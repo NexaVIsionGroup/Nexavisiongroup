@@ -64,7 +64,7 @@ export const fallbackHomepage = {
     highlightedText: "Revenue Infrastructure",
     subheadline:
       "We engineer acquisition + ops systems to win higher-caliber clients and scale operations.",
-    primaryCta: { label: "Get a Quote in 60 Seconds", href: "/contact" },
+    primaryCta: { label: "Get a Quote", href: "/contact" },
     secondaryCta: { label: "View Live Demos", href: "/demos" },
     consolePanel: {
       statusText: "Accepting builds",
