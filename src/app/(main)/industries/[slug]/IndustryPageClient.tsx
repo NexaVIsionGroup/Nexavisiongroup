@@ -383,7 +383,7 @@ export function IndustryPageClient({ data }: IndustryPageClientProps) {
             className="text-center max-w-3xl mx-auto"
           >
             <motion.h2 variants={fadeUp} className="font-display text-display-md md:text-display-lg mb-12">
-              Live in <span className="nv-gradient-text-teal">7–21 Days</span>
+              Live in <span className="nv-gradient-text-teal">Weeks, Not Months</span>
             </motion.h2>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">

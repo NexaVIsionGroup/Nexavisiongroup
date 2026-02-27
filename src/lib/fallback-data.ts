@@ -69,7 +69,7 @@ export const fallbackHomepage = {
     consolePanel: {
       statusText: "Accepting builds",
       statusColor: "green",
-      deploymentText: "7–21 days",
+      deploymentText: "weeks, not months",
       modules: ["Intake", "CRM", "Quote", "Invoices", "Automations", "Portal"],
       industries: ["HVAC", "Auto Repair", "Property Mgmt", "Law", "Insurance", "Salons"],
     },
@@ -143,7 +143,7 @@ export const fallbackHomepage = {
     processSteps: [
       { step: 1, title: "Discovery & Diagnosis", description: "We map your lead-to-job pipeline and identify where money leaks." },
       { step: 2, title: "System Design", description: "Custom module selection, data model, and automation rules for your vertical." },
-      { step: 3, title: "Build & Deploy", description: "Your Revenue System goes live in 7–21 days. Not months." },
+      { step: 3, title: "Build & Deploy", description: "Your Revenue System goes live in weeks, not months." },
       { step: 4, title: "Optimize & Scale", description: "Ongoing tuning, feature expansion, and performance monitoring." },
     ],
     testimonials: [],
@@ -157,7 +157,7 @@ export const fallbackHomepage = {
         name: "Revenue System Starter",
         tagline: "Fast ROI, clean conversion, upgrade-ready foundation",
         priceRange: "$6k–$12k",
-        timeline: "7–21 days",
+        timeline: "weeks, not months",
         featured: true,
         features: [
           "High-converting website (industry-specific)",

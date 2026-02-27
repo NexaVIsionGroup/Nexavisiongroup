@@ -380,7 +380,7 @@ export function IndustriesHubClient({ industries }: { industries: Industry[] }) 
             >
               <StatCounter value="10+" label="Verticals" icon="Layers" />
               <StatCounter value="8" label="Core Modules" icon="Cpu" />
-              <StatCounter value="7–21d" label="Deployment" icon="Zap" />
+              <StatCounter value="Fast" label="Deployment" icon="Zap" />
             </motion.div>
           </motion.div>
         </div>
@@ -491,7 +491,7 @@ export function IndustriesHubClient({ industries }: { industries: Industry[] }) 
                   icon: "Rocket",
                   title: "Deploy in Days",
                   description:
-                    "Not months. Your Revenue System goes live in 7–21 days with the modules that matter most to your vertical.",
+                    "Your Revenue System deploys fast — scoped to the modules that matter most to your vertical.",
                 },
               ].map((item, i) => (
                 <motion.div
