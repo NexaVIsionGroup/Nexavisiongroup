@@ -1,7 +1,8 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
-import { Linkedin, Twitter, Instagram, Facebook, Youtube, Github } from "lucide-react";
+import { Linkedin, Twitter, Instagram, Facebook, Youtube, Github, ArrowRight } from "lucide-react";
 
 interface FooterProps {
   settings: any;
@@ -19,6 +20,17 @@ const socialIcons: Record<string, any> = {
 export function Footer({ settings }: FooterProps) {
   const footer = settings?.footer;
   const socials = settings?.socialLinks || [];
+  const [email, setEmail] = useState("");
+  const [subscribed, setSubscribed] = useState(false);
+
+  const handleSubscribe = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (email.trim()) {
+      // TODO: Hook up to email service (SendGrid, Resend, etc.)
+      setSubscribed(true);
+      setEmail("");
+    }
+  };
 
   return (
     <footer className="relative border-t border-white/[0.04]">
@@ -37,14 +49,44 @@ export function Footer({ settings }: FooterProps) {
               </span>
             </Link>
             {footer?.tagline && (
-              <p className="text-body-sm text-nv-text-muted max-w-sm leading-relaxed">
+              <p className="text-body-sm text-nv-text-muted max-w-sm leading-relaxed mb-6">
                 {footer.tagline}
               </p>
             )}
 
+            {/* Email Capture */}
+            <div className="mb-6">
+              {subscribed ? (
+                <p className="text-body-sm text-nv-teal">
+                  You&apos;re in. We&apos;ll send you the playbook.
+                </p>
+              ) : (
+                <form onSubmit={handleSubscribe}>
+                  <p className="text-body-xs text-nv-text-muted mb-2">
+                    Get the playbook for your industry
+                  </p>
+                  <div className="flex gap-2">
+                    <input
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="you@company.com"
+                      className="flex-1 min-w-0 bg-nv-deep border border-white/[0.08] rounded-nv-md px-3 py-2 text-body-sm text-nv-text-primary placeholder:text-nv-text-muted focus:outline-none focus:border-nv-teal/40 transition-colors"
+                    />
+                    <button
+                      type="submit"
+                      className="shrink-0 px-3 py-2 bg-nv-teal/10 text-nv-teal border border-nv-teal/20 rounded-nv-md hover:bg-nv-teal/20 transition-colors"
+                    >
+                      <ArrowRight size={16} />
+                    </button>
+                  </div>
+                </form>
+              )}
+            </div>
+
             {/* Social icons */}
             {footer?.showSocials && socials.length > 0 && (
-              <div className="flex gap-3 mt-6">
+              <div className="flex gap-3">
                 {socials.map((social: any, i: number) => {
                   const Icon = socialIcons[social.platform];
                   if (!Icon) return null;
@@ -90,11 +132,19 @@ export function Footer({ settings }: FooterProps) {
         {/* Bottom bar */}
         <div className="mt-16 pt-8 border-t border-white/[0.04]">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-            <p className="text-body-xs text-nv-text-muted">
-              {footer?.bottomText || `© ${new Date().getFullYear()} NexaVision Group. All rights reserved.`}
-            </p>
-            <p className="text-body-xs text-nv-text-muted/50">
-              Engineered with precision. Built for revenue.
+            <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-4">
+              <p className="text-body-xs text-nv-text-muted">
+                {footer?.bottomText || `© ${new Date().getFullYear()} NexaVision Group. All rights reserved.`}
+              </p>
+              {/* Founder line */}
+              <span className="hidden sm:inline text-nv-text-muted/30">·</span>
+              <p className="text-body-xs text-nv-text-muted/70">
+                Built by Den Chai · Systems architect for service businesses
+              </p>
+            </div>
+            {/* Tech credibility badges */}
+            <p className="text-[10px] text-nv-text-muted/40 tracking-wider uppercase">
+              Next.js · Vercel · Sanity CMS
             </p>
           </div>
         </div>

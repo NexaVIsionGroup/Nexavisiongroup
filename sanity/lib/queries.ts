@@ -37,6 +37,13 @@ export const siteSettingsQuery = groq`
       link,
       linkText
     },
+    capacityBar {
+      isActive,
+      message,
+      linkText,
+      linkHref,
+      urgencyLevel
+    },
     navigation {
       items[] {
         label,

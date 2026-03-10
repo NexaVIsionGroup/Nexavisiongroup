@@ -135,6 +135,35 @@ export default defineType({
       ],
     }),
 
+    // ── Capacity / Scarcity Bar ──
+    defineField({
+      name: "capacityBar",
+      title: "Capacity Status Bar",
+      type: "object",
+      group: "branding",
+      description: "Thin banner at top of site showing current build availability",
+      fields: [
+        defineField({ name: "isActive", title: "Show Capacity Bar", type: "boolean", initialValue: true }),
+        defineField({ name: "message", title: "Status Message", type: "string", initialValue: "Q2 2026: 2 build slots remaining" }),
+        defineField({ name: "linkText", title: "Link Text", type: "string", initialValue: "Start your project" }),
+        defineField({ name: "linkHref", title: "Link URL", type: "string", initialValue: "/contact" }),
+        defineField({
+          name: "urgencyLevel",
+          title: "Urgency Level",
+          type: "string",
+          options: {
+            list: [
+              { title: "Low (Teal)", value: "low" },
+              { title: "Medium (Amber)", value: "medium" },
+              { title: "High (Red)", value: "high" },
+            ],
+          },
+          initialValue: "medium",
+          description: "Controls the bar color: low = teal, medium = amber, high = red",
+        }),
+      ],
+    }),
+
     // ── Navigation ──
     defineField({
       name: "navigation",
