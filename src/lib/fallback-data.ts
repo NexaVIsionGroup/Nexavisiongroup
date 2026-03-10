@@ -59,19 +59,24 @@ export const fallbackSettings = {
 
 export const fallbackHomepage = {
   hero: {
-    headline: "Revenue Infrastructure for Service Businesses",
-    highlightedText: "Revenue Infrastructure",
+    headline: "Stop Losing Leads. Start Closing More Jobs.",
     subheadline:
-      "We engineer acquisition + ops systems to win higher-caliber clients and scale operations.",
-    primaryCta: { label: "Get a Quote", href: "/contact" },
-    secondaryCta: { label: "View Live Demos", href: "/demos" },
-    consolePanel: {
-      statusText: "Accepting builds",
-      statusColor: "green",
-      deploymentText: "weeks, not months",
-      modules: ["Intake", "CRM", "Quote", "Invoices", "Automations", "Portal"],
-      industries: ["HVAC", "Auto Repair", "Property Mgmt", "Law", "Insurance", "Salons"],
-    },
+      "We build automated intake, quoting, and follow-up systems for service businesses. Your website becomes a revenue engine — not a brochure.",
+    primaryCta: { label: "Start Your Build", href: "/contact" },
+    secondaryCta: { label: "See a Live System", href: "https://arcticsolutionsllc.com" },
+    trustLine: "Trusted by Arctic Solutions and service businesses across 3 states",
+  },
+  trustBar: {
+    tagline: "Trusted by service businesses across Pennsylvania, Florida, and Texas",
+  },
+  problemSection: {
+    headline: "Sound Familiar?",
+    problems: [
+      { icon: "PhoneOff", text: "Leads go to voicemail after hours. By morning, they've called your competitor.", color: "#EF4444" },
+      { icon: "FileQuestion", text: "Quotes live in text threads. You have no idea which ones converted.", color: "#EAB308" },
+      { icon: "ClipboardList", text: "You're doing $800K in revenue but still dispatching by phone and sticky notes.", color: "#FF6B35" },
+    ],
+    closingLine: "These aren't marketing problems. They're system problems. And they're costing you real money.",
   },
   anthillSection: {
     sectionLabel: "The Anthill Model",
@@ -95,11 +100,22 @@ export const fallbackHomepage = {
       { icon: "Smartphone", label: "Admin App", description: "Mobile access + quick actions" },
     ],
   },
+  caseStudySnapshot: {
+    company: "Arctic Solutions",
+    headline: "Arctic Solutions: From Kickoff to Live in 3 Weeks",
+    body: "Arctic Solutions is a commercial refrigeration and HVAC company in Pennsylvania. They needed an emergency intake system that could capture after-hours calls, route urgent requests instantly, and automate follow-up. We built it.",
+    stats: [
+      { value: "3 weeks", label: "from kickoff to live deployment" },
+      { value: "48 hours", label: "first emergency lead captured after launch" },
+      { value: "24/7", label: "intake running around the clock without staff" },
+    ],
+    demoLink: "https://arcticsolutionsllc.com",
+  },
   industrySection: {
-    sectionLabel: "Industries We Serve",
-    headline: "Built for Your Vertical",
+    sectionLabel: "Industries",
+    headline: "Built for Your Industry",
     description:
-      "Each industry gets tailored intake flows, specialized data models, industry-specific automations, and proof pages that match buying behavior.",
+      "Each system is tailored to how your industry wins and keeps customers.",
     industries: [
       { _id: "1", name: "HVAC", slug: { current: "hvac" }, shortDescription: "Quote wizards, emergency routing, service area SEO", icon: "Thermometer", color: "#00E5CC" },
       { _id: "2", name: "Auto Repair", slug: { current: "auto-repair" }, shortDescription: "Booking, estimate intake, review engines, job status", icon: "Wrench", color: "#00E5CC" },
@@ -211,10 +227,10 @@ export const fallbackHomepage = {
     ],
   },
   ctaSection: {
-    headline: "Ready to Replace Chaos with Systems?",
+    headline: "Your next lead is 15 minutes away from choosing your competitor.",
     description:
-      "Stop losing leads to slow follow-up and manual processes. Get a Revenue System that works while you sleep.",
+      "Let's build the system that makes sure they choose you.",
     primaryCta: { label: "Start Your Build", href: "/contact" },
-    secondaryCta: { label: "Book a Call", href: "/contact" },
+    secondaryCta: { label: "Book a 15-Min Call", href: "mailto:hello@nexavisiongroup.com?subject=15-Min Scope Call" },
   },
 };
