@@ -18,6 +18,7 @@ import {
   Globe,
   Receipt,
   Thermometer,
+  HardHat,
   UtensilsCrossed,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -30,10 +31,10 @@ import { cn } from "@/lib/utils";
 const ARCTIC_CASE_STUDY = {
   company: "Arctic Solutions",
   industry: "Commercial HVAC & Refrigeration",
-  location: "Pennsylvania",
+  location: "Upstate South Carolina",
   headline: "From Kickoff to Live in 3 Weeks",
   description:
-    "Arctic Solutions is a commercial refrigeration and HVAC company in Pennsylvania. They needed an emergency intake system that could capture after-hours calls, route urgent requests instantly, and automate follow-up. We built it.",
+    "Arctic Solutions is a commercial refrigeration and HVAC company in Upstate South Carolina, covering the Spartanburg region and greater Carolinas. They needed an emergency intake system that could capture after-hours calls, route urgent requests instantly, and automate follow-up. We built it.",
   stats: [
     { value: "3 weeks", label: "From kickoff to live deployment", icon: Clock },
     { value: "48 hours", label: "First emergency lead captured after launch", icon: Zap },
@@ -56,6 +57,15 @@ const ARCTIC_CASE_STUDY = {
 };
 
 const OTHER_BUILDS = [
+  {
+    name: "RO Unlimited",
+    type: "Construction & Development Revenue System",
+    description:
+      "Full revenue system for a general contractor — bid intake, project showcase, subcontractor coordination, and client portal. Currently in active development as NexaVision's flagship construction vertical build.",
+    icon: HardHat,
+    status: "Building Now",
+    color: "#D4772C",
+  },
   {
     name: "JHPSFL",
     type: "Lead-to-Job Operating System",

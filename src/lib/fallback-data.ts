@@ -34,9 +34,9 @@ export const fallbackSettings = {
         title: "Industries",
         links: [
           { label: "HVAC", href: "/industries/hvac" },
+          { label: "Construction", href: "/industries/construction" },
           { label: "Auto Repair", href: "/industries/auto-repair" },
           { label: "Property Management", href: "/industries/property-management" },
-          { label: "Law Firms", href: "/industries/law-firms" },
           { label: "View All", href: "/industries" },
         ],
       },
@@ -64,10 +64,10 @@ export const fallbackHomepage = {
       "We build automated intake, quoting, and follow-up systems for service businesses. Your website becomes a revenue engine — not a brochure.",
     primaryCta: { label: "Start Your Build", href: "/contact" },
     secondaryCta: { label: "See a Live System", href: "https://arcticsolutionsllc.com" },
-    trustLine: "Trusted by Arctic Solutions and service businesses across 3 states",
+    trustLine: "Trusted by Arctic Solutions, RO Unlimited, and service businesses across the Carolinas",
   },
   trustBar: {
-    tagline: "Trusted by service businesses across Pennsylvania, Florida, and Texas",
+    tagline: "Trusted by service businesses across South Carolina, North Carolina, and Florida",
   },
   problemSection: {
     headline: "Sound Familiar?",
@@ -103,7 +103,7 @@ export const fallbackHomepage = {
   caseStudySnapshot: {
     company: "Arctic Solutions",
     headline: "Arctic Solutions: From Kickoff to Live in 3 Weeks",
-    body: "Arctic Solutions is a commercial refrigeration and HVAC company in Pennsylvania. They needed an emergency intake system that could capture after-hours calls, route urgent requests instantly, and automate follow-up. We built it.",
+    body: "Arctic Solutions is a commercial refrigeration and HVAC company in Upstate South Carolina, serving the Spartanburg and greater Carolina region. They needed an emergency intake system that could capture after-hours calls, route urgent requests instantly, and automate follow-up. We built it.",
     stats: [
       { value: "3 weeks", label: "from kickoff to live deployment" },
       { value: "48 hours", label: "first emergency lead captured after launch" },
@@ -118,6 +118,7 @@ export const fallbackHomepage = {
       "Each system is tailored to how your industry wins and keeps customers.",
     industries: [
       { _id: "1", name: "HVAC", slug: { current: "hvac" }, shortDescription: "Quote wizards, emergency routing, service area SEO", icon: "Thermometer", color: "#00E5CC" },
+      { _id: "11", name: "Construction", slug: { current: "construction" }, shortDescription: "Bid intake, project portals, subcontractor coordination, progress tracking", icon: "HardHat", color: "#00E5CC" },
       { _id: "2", name: "Auto Repair", slug: { current: "auto-repair" }, shortDescription: "Booking, estimate intake, review engines, job status", icon: "Wrench", color: "#00E5CC" },
       { _id: "3", name: "Property Management", slug: { current: "property-management" }, shortDescription: "Tenant intake, maintenance portals, work orders", icon: "Building2", color: "#00E5CC" },
       { _id: "4", name: "Law Firms", slug: { current: "law-firms" }, shortDescription: "Lead qualification, secure docs, intake automation", icon: "Scale", color: "#7B5EA7" },

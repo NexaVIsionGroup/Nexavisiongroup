@@ -13,6 +13,7 @@ import {
   Stethoscope,
   Heart,
   Warehouse,
+  HardHat,
   HelpCircle,
   PhoneCall,
   Mail,
@@ -36,6 +37,7 @@ import { cn } from "@/lib/utils";
 
 const INDUSTRIES = [
   { id: "hvac", label: "HVAC", icon: Thermometer, color: "#00E5CC" },
+  { id: "construction", label: "Construction", icon: HardHat, color: "#00E5CC" },
   { id: "auto-repair", label: "Auto Repair", icon: Wrench, color: "#FF6B35" },
   { id: "property-management", label: "Property Mgmt", icon: Building2, color: "#7B5EA7" },
   { id: "law-firms", label: "Law Firms", icon: Scale, color: "#3B82F6" },

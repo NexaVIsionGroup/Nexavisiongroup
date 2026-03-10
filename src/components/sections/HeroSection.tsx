@@ -67,7 +67,7 @@ export function HeroSection({ data }: HeroProps) {
             className="text-body-sm text-nv-text-muted"
           >
             {data.trustLine ||
-              "Trusted by Arctic Solutions and service businesses across 3 states"}
+              "Trusted by Arctic Solutions, RO Unlimited, and service businesses across the Carolinas"}
           </motion.p>
         </motion.div>
       </div>

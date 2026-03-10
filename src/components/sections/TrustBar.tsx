@@ -8,7 +8,7 @@ interface TrustBarProps {
 }
 
 export function TrustBar({ data }: TrustBarProps) {
-  const tagline = data?.tagline || "Trusted by service businesses across Pennsylvania, Florida, and Texas";
+  const tagline = data?.tagline || "Trusted by service businesses across South Carolina, North Carolina, and Florida";
 
   return (
     <motion.section
@@ -31,6 +31,14 @@ export function TrustBar({ data }: TrustBarProps) {
             >
               <span className="font-display font-bold text-body-lg tracking-tight">
                 Arctic<span className="text-nv-teal/40 hover:text-nv-teal/70 transition-colors">Solutions</span>
+              </span>
+            </motion.div>
+            <motion.div
+              variants={fadeIn}
+              className="text-nv-text-muted/60 hover:text-nv-text-muted transition-colors"
+            >
+              <span className="font-display font-bold text-body-lg tracking-tight">
+                RO<span className="text-nv-text-muted/40 hover:text-nv-text-muted/70 transition-colors ml-1">Unlimited</span>
               </span>
             </motion.div>
           </div>
