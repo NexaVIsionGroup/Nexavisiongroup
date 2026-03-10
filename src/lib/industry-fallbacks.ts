@@ -25,7 +25,7 @@ const industries: Record<string, IndustryFallback> = {
       "Quote wizards for emergency and scheduled service, automated follow-up, review generation, and service area SEO — built for commercial refrigeration, heating, cooling, and ventilation companies.",
     icon: "Thermometer",
     color: "#00E5CC",
-    demoLink: undefined, // Will point to Arctic Solutions once live
+    demoLink: "https://arcticsolutionsllc.com",
     painPoints: [
       { title: "Emergency Calls Go to Voicemail", description: "When a walk-in cooler goes down at 11pm, the first company to answer gets the job. If your intake system can't handle after-hours, you're losing $2,000+ calls.", icon: "PhoneOff" },
       { title: "Quotes Get Lost in Text Threads", description: "Estimating via text and email means no tracking, no follow-up, and no idea which quotes converted. Revenue leaks silently.", icon: "MessageSquareOff" },
@@ -338,6 +338,53 @@ const industries: Record<string, IndustryFallback> = {
       features: [ "Real-time unit availability grid", "Size and price comparison", "Online reservation with payment", "Move-in date selection", "Automated confirmation + instructions", "Lead nurture for browsers who don't book" ],
     },
     stats: [ { value: "3×", label: "Online reservations" }, { value: "40%", label: "Faster move-ins" }, { value: "95%", label: "On-time payments" }, { value: "24/7", label: "Booking availability" } ],
+  },
+
+  construction: {
+    name: "Construction",
+    slug: { current: "construction" },
+    shortDescription:
+      "Bid intake systems, project showcase portals, subcontractor coordination, progress tracking, and invoice automation — built for general contractors and construction firms.",
+    icon: "HardHat",
+    color: "#00E5CC",
+    demoLink: undefined,
+    painPoints: [
+      { title: "Bid Requests Get Buried in Email", description: "New project inquiries come via phone, email, referrals, and walk-ups. Without a centralized intake, you're quoting late — or not at all.", icon: "Inbox" },
+      { title: "No Project Visibility for Clients", description: "Homeowners and property managers call every day asking for updates. A client portal with progress photos eliminates 80% of those calls.", icon: "HelpCircle" },
+      { title: "Subcontractor Scheduling Is a Nightmare", description: "Coordinating subs via group texts and phone calls creates missed handoffs, schedule collisions, and delays that cost you the next referral.", icon: "CalendarOff" },
+      { title: "Change Orders Get Lost", description: "Verbal change orders with no paper trail lead to scope disputes, unpaid work, and damaged client relationships.", icon: "FileWarning" },
+      { title: "Invoicing Happens Weeks Late", description: "When invoices go out late, payments come in later. Progress billing tied to milestones keeps cash flow healthy.", icon: "Receipt" },
+      { title: "No Review Engine After Completion", description: "Your best marketing is a finished project and a happy client. Without automated review requests, that social proof never gets captured.", icon: "StarOff" },
+    ],
+    keyModules: [
+      { name: "Bid Request Intake", description: "Structured project inquiry form with scope, timeline, budget range, and site photos. Pre-qualifies leads before your first call.", icon: "FileText" },
+      { name: "Project Showcase", description: "Portfolio pages with before/after galleries, project details, and client testimonials. Your work sells the next job.", icon: "Image" },
+      { name: "Client Portal", description: "Real-time project updates, progress photos, documents, change orders, and payment status — all in one place.", icon: "Users" },
+      { name: "Milestone Invoicing", description: "Progress billing tied to project phases. Send invoices when milestones hit, collect payments online.", icon: "CreditCard" },
+      { name: "Review Engine", description: "Automated review requests at project completion. Route satisfied clients to Google and Houzz.", icon: "Star" },
+      { name: "Service Area Pages", description: "SEO-optimized pages for every city and county you build in. Rank locally for 'general contractor near me'.", icon: "MapPin" },
+    ],
+    signatureModule: {
+      name: "Bid Request & Project Portal",
+      description:
+        "A combined intake and client management system built for general contractors. Captures detailed project scope upfront, qualifies leads by budget and timeline, then transitions accepted bids into a live project portal with milestone tracking, progress photos, change order management, and integrated invoicing.",
+      features: [
+        "Multi-step bid request form with scope, timeline, and budget",
+        "Photo/document upload for site conditions and plans",
+        "Automatic bid qualification and tier routing",
+        "Client portal with real-time project status",
+        "Progress photo galleries per milestone",
+        "Change order tracking with digital approval",
+        "Milestone-based invoice generation",
+        "Automated review request at project completion",
+      ],
+    },
+    stats: [
+      { value: "3×", label: "Qualified bid requests" },
+      { value: "60%", label: "Fewer status calls" },
+      { value: "2 weeks", label: "Faster payment cycles" },
+      { value: "$0", label: "Per-lead ad cost" },
+    ],
   },
 };
 

@@ -26,7 +26,7 @@ export async function generateStaticParams() {
 
   // Fallback slugs
   return [
-    "hvac", "auto-repair", "property-management", "law-firms",
+    "hvac", "construction", "auto-repair", "property-management", "law-firms",
     "insurance", "salons-spas", "logistics", "veterinary",
     "home-healthcare", "self-storage",
   ].map((slug) => ({ slug }));
