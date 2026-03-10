@@ -10,13 +10,12 @@ export const fallbackSettings = {
   logo: null,
   navigation: {
     items: [
+      { label: "How It Works", href: "/systems", children: null },
       { label: "Industries", href: "/industries", children: null },
-      { label: "Systems", href: "/systems", children: null },
-      { label: "Demos", href: "/demos", children: null },
-      { label: "Systems Lab", href: "/lab", children: null },
+      { label: "Live Demos", href: "/demos", children: null },
       { label: "Pricing", href: "/pricing", children: null },
     ],
-    ctaButton: { label: "Get a Quote", href: "/contact" },
+    ctaButton: { label: "Start Your Build", href: "/contact" },
   },
   footer: {
     tagline: "We build revenue infrastructure. The website is the entrance. The system is the anthill.",
@@ -24,9 +23,9 @@ export const fallbackSettings = {
       {
         title: "Platform",
         links: [
+          { label: "How It Works", href: "/systems" },
           { label: "Industries", href: "/industries" },
-          { label: "Systems", href: "/systems" },
-          { label: "Demos", href: "/demos" },
+          { label: "Live Demos", href: "/demos" },
           { label: "Systems Lab", href: "/lab" },
           { label: "Pricing", href: "/pricing" },
         ],
