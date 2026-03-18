@@ -84,15 +84,14 @@ export default function AdminInbox() {
   };
 
   // ── Fetch accounts ──
+  const fetchAccounts = async () => {
+    const res = await fetch("/api/admin/email-accounts");
+    const data = await res.json();
+    if (data.accounts?.length) setAccounts(data.accounts);
+  };
+
   useEffect(() => {
-    fetch("/api/email/threads?folder=inbox")
-      .then(r => r.json())
-      .then(() => {
-        // Accounts come from DB via a separate endpoint or we hardcode defaults
-        setAccounts([
-          { email: "hello@nexavisiongroup.com", display_name: "NexaVision Group", color: "#00E5CC", initials: "NV" },
-        ]);
-      });
+    fetchAccounts();
   }, []);
 
   // ── Fetch threads ──
