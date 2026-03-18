@@ -144,6 +144,7 @@ const config: Config = {
         "nv-fade-up": "nv-fade-up 0.6s ease-out forwards",
         "nv-fade-in": "nv-fade-in 0.4s ease-out forwards",
         "nv-slide-in-right": "nv-slide-in-right 0.5s ease-out forwards",
+        "nv-slide-in-left": "nv-slide-in-left 0.25s ease-out forwards",
         "nv-glow-border": "nv-glow-border 3s ease-in-out infinite",
         "nv-grid-pulse": "nv-grid-pulse 8s ease-in-out infinite",
       },
@@ -172,6 +173,10 @@ const config: Config = {
         "nv-slide-in-right": {
           "0%": { opacity: "0", transform: "translateX(20px)" },
           "100%": { opacity: "1", transform: "translateX(0)" },
+        },
+        "nv-slide-in-left": {
+          "0%": { transform: "translateX(-100%)" },
+          "100%": { transform: "translateX(0)" },
         },
         "nv-glow-border": {
           "0%, 100%": { borderColor: "rgba(0, 229, 204, 0.2)" },
