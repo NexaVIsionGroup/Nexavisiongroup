@@ -13,7 +13,9 @@ export const fallbackSettings = {
       { label: "How It Works", href: "/systems", children: null },
       { label: "Industries", href: "/industries", children: null },
       { label: "Live Demos", href: "/demos", children: null },
+      { label: "Systems Lab", href: "/lab", children: null },
       { label: "Pricing", href: "/pricing", children: null },
+      { label: "About", href: "/about", children: null },
     ],
     ctaButton: { label: "Start Your Build", href: "/contact" },
   },
@@ -28,6 +30,8 @@ export const fallbackSettings = {
           { label: "Live Demos", href: "/demos" },
           { label: "Systems Lab", href: "/lab" },
           { label: "Pricing", href: "/pricing" },
+          { label: "About", href: "/about" },
+          { label: "Contact", href: "/contact" },
         ],
       },
       {
