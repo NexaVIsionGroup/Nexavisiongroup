@@ -434,13 +434,14 @@ export default function AdminInbox() {
 
               {/* Body */}
               {msg.body_html ? (
-                <div
-                  className="text-sm text-nv-text-secondary leading-relaxed overflow-x-auto overflow-y-hidden [&_a]:text-nv-teal [&_img]:max-w-full [&_img]:h-auto [&_table]:max-w-full [&_table]:table-fixed [&_td]:break-words [&_th]:break-words [&_div]:max-w-full [&_*]:max-w-full [&_*]:box-border"
-                  style={{ maxWidth: "100%", wordBreak: "break-word", overflowWrap: "break-word" }}
-                  dangerouslySetInnerHTML={{ __html: msg.body_html }}
-                />
+                <div className="overflow-x-auto -mx-4 px-4">
+                  <div
+                    className="text-sm text-nv-text-secondary leading-relaxed [&_a]:text-nv-teal [&_img]:max-w-full [&_img]:h-auto"
+                    dangerouslySetInnerHTML={{ __html: msg.body_html }}
+                  />
+                </div>
               ) : (
-                <pre className="text-sm text-nv-text-secondary whitespace-pre-wrap font-body leading-relaxed break-words overflow-wrap-anywhere">{msg.body_text || "(no content)"}</pre>
+                <pre className="text-sm text-nv-text-secondary whitespace-pre-wrap font-body leading-relaxed">{msg.body_text || "(no content)"}</pre>
               )}
 
               {/* Attachments */}
