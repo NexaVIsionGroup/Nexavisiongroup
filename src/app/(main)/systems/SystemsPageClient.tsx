@@ -390,8 +390,8 @@ export function SystemsPageClient() {
             </motion.div>
 
             <motion.h1 variants={fadeUp} className="font-display text-display-lg md:text-display-xl lg:text-display-2xl mb-6 max-w-4xl">
-              From First Click to Paid Invoice —{" "}
-              <span className="nv-gradient-text-teal">Automatically.</span>
+              From First Click to Paid Invoice{" "}
+              <span className="nv-gradient-text-teal">— Automatically</span>
             </motion.h1>
 
             <motion.p variants={fadeUp} className="text-body-lg md:text-body-xl text-nv-text-secondary max-w-2xl mb-4">
@@ -399,15 +399,15 @@ export function SystemsPageClient() {
             </motion.p>
 
             <motion.p variants={fadeUp} className="text-body-md text-nv-text-muted max-w-2xl">
-              Five module families. Three tiers. No lock-in. No bloat.
+              Five module families. Three tiers. Every piece works alone, but they compound when deployed together.
             </motion.p>
           </motion.div>
         </div>
       </section>
 
       {/* ═══ CUSTOMER JOURNEY WALKTHROUGH ═══ */}
-      <section className="relative py-16 md:py-24">
-        <div className="absolute top-0 left-0 right-0 nv-divider" />
+      <section className="relative py-20 md:py-28 bg-nv-void/50">
+        <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-nv-teal/20 to-transparent" />
         <div className="nv-container">
           <motion.div initial="hidden" whileInView="visible" viewport={viewportOnce} variants={staggerContainer}>
             <motion.div variants={fadeUp} className="text-center mb-14">
@@ -419,33 +419,30 @@ export function SystemsPageClient() {
 
             <div className="max-w-3xl mx-auto space-y-6">
               {[
-                { step: "01", title: "The Lead Arrives", desc: "Someone searches 'emergency HVAC repair near me' at 11pm. They find your site. Your intake wizard loads in under 2 seconds.", color: "#00E5CC" },
-                { step: "02", title: "Intake & Qualification", desc: "They fill out 4 fields: equipment type, issue, urgency, and contact info. Emergency? Instant click-to-call. Scheduled? Auto-confirmation sent.", color: "#00E5CC" },
-                { step: "03", title: "You Get Notified", desc: "Your phone buzzes. New lead. All details. One tap to call back. The lead is already in your pipeline \u2014 no manual entry.", color: "#7B5EA7" },
-                { step: "04", title: "Quote & Close", desc: "You build a professional quote in 60 seconds. Send it. They accept with one click. The job moves to 'Scheduled' automatically.", color: "#7B5EA7" },
-                { step: "05", title: "Job Complete, Get Paid", desc: "Job done. Invoice sent. Payment link clicked. Money in your account. A review request goes out automatically.", color: "#FF6B35" },
-                { step: "06", title: "The Loop Continues", desc: "One lead. Zero manual steps. And it happens again tomorrow. That's your Revenue System.", color: "#FF6B35" },
+                { step: "01", title: "The Lead Arrives", text: "Someone searches 'emergency HVAC repair near me' at 11pm. They find your site. Your intake wizard loads in under 2 seconds." },
+                { step: "02", title: "Intake & Qualification", text: "They fill out 4 fields: equipment type, issue, urgency, and contact info. Emergency? Instant click-to-call. Scheduled? Auto-confirmation sent." },
+                { step: "03", title: "You Get Notified", text: "Your phone buzzes. New lead. All details. One tap to call back. The lead is already in your pipeline — no manual entry." },
+                { step: "04", title: "Quote & Close", text: "You build a professional quote in 60 seconds. Send it. They accept with one click. The job moves to 'Scheduled' automatically." },
+                { step: "05", title: "Get Paid, Get Reviewed", text: "Job done. Invoice sent. Payment link clicked. Money in your account. A review request goes out automatically. 5 stars roll in." },
+                { step: "06", title: "The Loop Continues", text: "One lead. Zero manual steps. And it happens again tomorrow. That's your Revenue System." },
               ].map((item, i) => (
                 <motion.div
                   key={i}
                   variants={{
-                    hidden: { opacity: 0, x: -20 },
+                    hidden: { opacity: 0, x: -30 },
                     visible: { opacity: 1, x: 0, transition: { delay: i * 0.1, duration: 0.5 } },
                   }}
                   className="flex gap-5 group"
                 >
-                  <div className="shrink-0 flex flex-col items-center">
-                    <div
-                      className="w-12 h-12 rounded-full flex items-center justify-center border-2 transition-all duration-300 group-hover:shadow-lg"
-                      style={{ borderColor: `${item.color}40`, backgroundColor: `${item.color}08` }}
-                    >
-                      <span className="font-mono font-bold text-body-sm" style={{ color: item.color }}>{item.step}</span>
+                  <div className="shrink-0">
+                    <div className="w-12 h-12 rounded-full bg-nv-teal/10 border border-nv-teal/20 flex items-center justify-center group-hover:bg-nv-teal/20 group-hover:border-nv-teal/40 transition-all">
+                      <span className="font-mono font-bold text-nv-teal text-body-sm">{item.step}</span>
                     </div>
-                    {i < 5 && <div className="w-px h-full min-h-[24px] mt-2" style={{ background: `${item.color}20` }} />}
+                    {i < 5 && <div className="w-px h-6 bg-nv-teal/10 mx-auto mt-2" />}
                   </div>
-                  <div className="pb-4">
-                    <h3 className="font-display font-semibold text-body-lg mb-1 group-hover:text-white transition-colors">{item.title}</h3>
-                    <p className="text-body-sm text-nv-text-muted leading-relaxed">{item.desc}</p>
+                  <div className="pt-2 pb-2">
+                    <h3 className="font-display font-semibold text-body-lg mb-1 group-hover:text-nv-teal transition-colors">{item.title}</h3>
+                    <p className="text-body-sm text-nv-text-muted leading-relaxed">{item.text}</p>
                   </div>
                 </motion.div>
               ))}
@@ -560,11 +557,6 @@ export function SystemsPageClient() {
             </motion.div>
 
             <TierProgression />
-
-            <motion.p variants={fadeUp} className="text-center text-body-md text-nv-text-muted mt-10 max-w-2xl mx-auto">
-              Every month without a system costs the average service business{" "}
-              <span className="text-nv-ember font-semibold">$4K–$8K</span> in lost leads and manual overhead.
-            </motion.p>
           </motion.div>
         </div>
       </section>
