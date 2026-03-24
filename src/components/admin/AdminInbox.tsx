@@ -73,6 +73,8 @@ export default function AdminInbox() {
   const [composeBcc, setComposeBcc] = useState("");
   const [showCcBcc, setShowCcBcc] = useState(false);
   const [sending, setSending] = useState(false);
+  const [composeFiles, setComposeFiles] = useState<{name: string; size: number; base64: string; type: string}[]>([]);
+  const composeFileRef = useRef<HTMLInputElement>(null);
 
   // Accounts
   const [accounts, setAccounts] = useState<EmailAccount[]>([]);
@@ -165,6 +167,7 @@ export default function AdminInbox() {
       setComposeBody(`\n\n---------- Forwarded message ----------\nFrom: ${replyMsg.from_email}\nDate: ${new Date(replyMsg.created_at).toLocaleString()}\nSubject: ${replyMsg.subject}\n\n${replyMsg.body_text || ""}`);
     }
     setShowCcBcc(false); setComposeCc(""); setComposeBcc("");
+    setComposeFiles([]);
     setView("compose");
   };
 
@@ -174,8 +177,8 @@ export default function AdminInbox() {
     const isReply = composeMode === "reply" && selectedThread;
     const endpoint = isReply ? "/api/email/reply" : "/api/email/compose";
     const payload = isReply
-      ? { thread_id: selectedThread!.thread_id, to_email: composeTo, subject: composeSubject, reply_body: composeBody, from_email: fromAccount }
-      : { to_email: composeTo, subject: composeSubject, body: composeBody, from_email: fromAccount, cc_emails: composeCc ? composeCc.split(",").map(e => e.trim()) : [], bcc_emails: composeBcc ? composeBcc.split(",").map(e => e.trim()) : [] };
+      ? { thread_id: selectedThread!.thread_id, to_email: composeTo, subject: composeSubject, reply_body: composeBody, from_email: fromAccount, attachments: composeFiles.map(f => ({ filename: f.name, content: f.base64, type: f.type })) }
+      : { to_email: composeTo, subject: composeSubject, body: composeBody, from_email: fromAccount, cc_emails: composeCc ? composeCc.split(",").map(e => e.trim()) : [], bcc_emails: composeBcc ? composeBcc.split(",").map(e => e.trim()) : [], attachments: composeFiles.map(f => ({ filename: f.name, content: f.base64, type: f.type })) };
     const res = await fetch(endpoint, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
     setSending(false);
     if (res.ok) { showToast("Email sent"); setView("list"); fetchThreads(); } else { showToast("Failed to send"); }
@@ -322,8 +325,44 @@ export default function AdminInbox() {
               className="flex-1 bg-transparent text-sm text-nv-text-primary placeholder:text-nv-text-muted focus:outline-none" />
           </div>
           <textarea value={composeBody} onChange={e => setComposeBody(e.target.value)} placeholder="Compose email"
-            rows={16}
+            rows={12}
             className="w-full bg-transparent text-sm text-nv-text-primary placeholder:text-nv-text-muted focus:outline-none resize-none mt-2 leading-relaxed" />
+
+          {/* Attachments */}
+          <input ref={composeFileRef} type="file" multiple className="hidden" onChange={async (e) => {
+            const selected = e.target.files;
+            if (!selected) return;
+            const newFiles: typeof composeFiles = [];
+            for (let i = 0; i < selected.length; i++) {
+              const file = selected[i];
+              if (file.size > 10 * 1024 * 1024) continue;
+              const base64 = await new Promise<string>((res, rej) => {
+                const r = new FileReader();
+                r.onload = () => res((r.result as string).split(",")[1]);
+                r.onerror = rej;
+                r.readAsDataURL(file);
+              });
+              newFiles.push({ name: file.name, size: file.size, base64, type: file.type || "application/octet-stream" });
+            }
+            setComposeFiles(prev => [...prev, ...newFiles]);
+            if (composeFileRef.current) composeFileRef.current.value = "";
+          }} />
+
+          {composeFiles.length > 0 && (
+            <div className="flex flex-wrap gap-2 mt-2">
+              {composeFiles.map((f, i) => (
+                <div key={i} className="flex items-center gap-1.5 px-3 py-1.5 bg-white/5 border border-white/10 rounded-xl text-xs text-nv-text-secondary">
+                  <Paperclip size={12} className="text-nv-teal" />
+                  <span className="truncate max-w-[120px]">{f.name}</span>
+                  <button onClick={() => setComposeFiles(prev => prev.filter((_, j) => j !== i))} className="text-nv-text-muted hover:text-nv-error ml-1"><X size={12} /></button>
+                </div>
+              ))}
+            </div>
+          )}
+
+          <button onClick={() => composeFileRef.current?.click()} className="flex items-center gap-2 mt-3 text-xs text-nv-text-muted hover:text-nv-teal transition-colors">
+            <Paperclip size={14} /> Attach files
+          </button>
         </div>
       </div>
     );
@@ -395,10 +434,13 @@ export default function AdminInbox() {
 
               {/* Body */}
               {msg.body_html ? (
-                <div className="text-sm text-nv-text-secondary leading-relaxed [&_a]:text-nv-teal [&_img]:max-w-full"
-                  dangerouslySetInnerHTML={{ __html: msg.body_html }} />
+                <div
+                  className="text-sm text-nv-text-secondary leading-relaxed overflow-x-auto overflow-y-hidden [&_a]:text-nv-teal [&_img]:max-w-full [&_img]:h-auto [&_table]:max-w-full [&_table]:table-fixed [&_td]:break-words [&_th]:break-words [&_div]:max-w-full [&_*]:max-w-full [&_*]:box-border"
+                  style={{ maxWidth: "100%", wordBreak: "break-word", overflowWrap: "break-word" }}
+                  dangerouslySetInnerHTML={{ __html: msg.body_html }}
+                />
               ) : (
-                <pre className="text-sm text-nv-text-secondary whitespace-pre-wrap font-body leading-relaxed">{msg.body_text || "(no content)"}</pre>
+                <pre className="text-sm text-nv-text-secondary whitespace-pre-wrap font-body leading-relaxed break-words overflow-wrap-anywhere">{msg.body_text || "(no content)"}</pre>
               )}
 
               {/* Attachments */}
