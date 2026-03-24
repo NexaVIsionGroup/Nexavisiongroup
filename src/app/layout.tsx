@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { fontDisplay, fontBody, fontMono } from "@/lib/fonts";
+import { Providers } from "@/components/Providers";
 import "@/styles/globals.css";
 
 export const metadata: Metadata = {
@@ -47,7 +48,9 @@ export default function RootLayout({
           />
         </div>
 
-        {children}
+        <Providers>
+          {children}
+        </Providers>
       </body>
     </html>
   );
