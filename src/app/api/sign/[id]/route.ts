@@ -20,7 +20,9 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
   if (error || !agreement) {
     return NextResponse.json({ error: 'Not found' }, { status: 404 })
   }
-  return NextResponse.json({ agreement })
+  const res = NextResponse.json({ agreement })
+  res.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate')
+  return res
 }
 
 // POST - submit a signature

@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js'
 import { notFound } from 'next/navigation'
+import { headers } from 'next/headers'
 import SigningClient from './SigningClient'
 
 const supabase = createClient(
@@ -9,8 +10,12 @@ const supabase = createClient(
 
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
+export const fetchCache = 'force-no-store'
 
 export default async function SignPage({ params }: { params: { id: string } }) {
+  // Force dynamic by reading headers
+  headers()
+  
   const { data: agreement } = await supabase
     .from('signing_agreements')
     .select('*')
