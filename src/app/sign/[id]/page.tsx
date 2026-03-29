@@ -7,10 +7,10 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 )
 
-export default async function SignPage({ params, searchParams }: { 
-  params: { id: string }, 
-  searchParams: { token?: string } 
-}) {
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
+export default async function SignPage({ params }: { params: { id: string } }) {
   const { data: agreement } = await supabase
     .from('signing_agreements')
     .select('*')
@@ -19,23 +19,5 @@ export default async function SignPage({ params, searchParams }: {
 
   if (!agreement) return notFound()
 
-  const token = searchParams.token
-  let signerNumber: number | null = null
-
-  if (token) {
-    for (let i = 1; i <= 4; i++) {
-      if (agreement[`signer_${i}_token`] === token) {
-        signerNumber = i
-        break
-      }
-    }
-  }
-
-  return (
-    <SigningClient 
-      agreement={agreement} 
-      signerNumber={signerNumber}
-      token={token || null}
-    />
-  )
+  return <SigningClient agreement={agreement} />
 }
