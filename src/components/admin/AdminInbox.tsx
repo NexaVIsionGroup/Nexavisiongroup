@@ -147,13 +147,25 @@ export default function AdminInbox() {
     if (data.accounts?.length) {
       setAccounts(data.accounts);
       if (!activeAccount) {
-        const def = data.accounts.find((a: EmailAccount) => a.is_default) || data.accounts[0];
-        setActiveAccount(def);
-        setFromAccount(def.email);
+        const saved = typeof window !== "undefined" ? localStorage.getItem("nv_inbox_account") : null;
+        const match = saved ? data.accounts.find((a: EmailAccount) => a.email === saved) : null;
+        const pick = match || data.accounts.find((a: EmailAccount) => a.is_default) || data.accounts[0];
+        setActiveAccount(pick);
+        setFromAccount(pick.email);
       }
     }
   };
   useEffect(() => { fetchAccounts(); }, []);
+
+  // Persist active account selection
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (activeAccount) {
+      localStorage.setItem("nv_inbox_account", activeAccount.email);
+    } else {
+      localStorage.removeItem("nv_inbox_account");
+    }
+  }, [activeAccount]);
 
   // ── Fetch threads ──
   const fetchThreads = useCallback(async () => {
