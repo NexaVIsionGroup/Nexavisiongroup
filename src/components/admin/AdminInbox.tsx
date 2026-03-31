@@ -5,7 +5,7 @@ import {
   Inbox, Send, FileEdit, Star, Trash2, AlertOctagon,
   Search, RefreshCw, ChevronLeft, Archive, MailOpen,
   Reply, Forward, Mail, X, Check, Loader2, Users,
-  Paperclip, Menu, Pencil, MoreVertical, ChevronDown,
+  Paperclip, Menu, Pencil, MoreVertical, ChevronDown, Plus, Settings,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -80,6 +80,53 @@ export default function AdminInbox() {
   const [accounts, setAccounts] = useState<EmailAccount[]>([]);
   const [activeAccount, setActiveAccount] = useState<EmailAccount | null>(null);
   const [fromAccount, setFromAccount] = useState("");
+
+  // Account management
+  const [showAccountForm, setShowAccountForm] = useState(false);
+  const [editingAccount, setEditingAccount] = useState<EmailAccount | null>(null);
+  const [savingAccount, setSavingAccount] = useState(false);
+  const [accountForm, setAccountForm] = useState({ email: "", display_name: "", color: "#00E5CC", initials: "" });
+
+  const PRESET_COLORS = ["#00E5CC","#7B5EA7","#FF6B35","#3B82F6","#22C55E","#EAB308","#EF4444","#EC4899","#8B5CF6","#06B6D4"];
+
+  const openAddAccount = () => {
+    setEditingAccount(null);
+    setAccountForm({ email: "", display_name: "", color: "#00E5CC", initials: "" });
+    setShowAccountForm(true);
+  };
+
+  const openEditAccount = (account: EmailAccount) => {
+    setEditingAccount(account);
+    setAccountForm({ email: account.email, display_name: account.display_name, color: account.color, initials: account.initials });
+    setShowAccountForm(true);
+  };
+
+  const handleSaveAccount = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSavingAccount(true);
+    const initials = accountForm.initials || accountForm.display_name.split(" ").map(w => w[0]).join("").toUpperCase().slice(0, 2);
+    const payload = editingAccount
+      ? { action: "update", account: { ...accountForm, initials, id: editingAccount.id } }
+      : { action: "create", account: { ...accountForm, initials } };
+    await fetch("/api/admin/email-accounts", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
+    setSavingAccount(false);
+    setShowAccountForm(false);
+    fetchAccounts();
+    showToast(editingAccount ? "Account updated" : "Account added");
+  };
+
+  const handleDeleteAccount = async (account: EmailAccount) => {
+    if (!confirm(`Remove ${account.email}?`)) return;
+    await fetch("/api/admin/email-accounts", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "delete", account: { id: account.id } }) });
+    if (activeAccount?.email === account.email) setActiveAccount(null);
+    fetchAccounts();
+    showToast("Account removed");
+  };
+
+  const handleSetDefault = async (account: EmailAccount) => {
+    await fetch("/api/admin/email-accounts", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "set_default", account: { id: account.id } }) });
+    fetchAccounts();
+  };
 
   // Sidebar
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -205,67 +252,160 @@ export default function AdminInbox() {
   if (view === "accounts") {
     return (
       <div className="fixed inset-0 z-[60] bg-nv-void flex flex-col">
-        {/* Current account header */}
+        {/* Header */}
         <div className="flex items-center gap-3 px-5 py-4 border-b border-white/5">
-          {activeAccount && (
-            <>
-              <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold" style={{ backgroundColor: activeAccount.color + "25", color: activeAccount.color }}>
-                {activeAccount.initials}
-              </div>
-              <span className="flex-1 text-sm text-nv-text-primary truncate">{activeAccount.email}</span>
-            </>
-          )}
+          <span className="flex-1 text-base font-semibold text-nv-text-primary">Email Accounts</span>
+          <button onClick={openAddAccount} className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-nv-teal text-nv-abyss text-xs font-bold">
+            <Plus size={13} /> Add Account
+          </button>
           <button onClick={() => setView("list")} className="p-2 rounded-full text-nv-text-muted hover:text-nv-text-primary hover:bg-white/5">
             <X size={22} />
           </button>
         </div>
 
-        {/* Switch account list */}
+        {/* Account list */}
         <div className="flex-1 overflow-y-auto">
-          <div className="flex items-center justify-between px-5 py-4">
-            <span className="text-base font-medium text-nv-text-primary">Switch account</span>
-            <ChevronDown size={20} className="text-nv-text-muted" />
-          </div>
-
           {/* All accounts option */}
           <button
             onClick={() => { setActiveAccount(null); setView("list"); }}
             className={cn(
-              "w-full flex items-center gap-4 px-5 py-4 border-t border-white/[0.04] transition-colors hover:bg-white/[0.03]",
+              "w-full flex items-center gap-4 px-5 py-4 border-b border-white/[0.04] transition-colors hover:bg-white/[0.03]",
               !activeAccount && "bg-nv-teal/5"
             )}
           >
-            <div className="w-11 h-11 rounded-full bg-nv-deep border border-white/10 flex items-center justify-center">
+            <div className="w-11 h-11 rounded-full bg-nv-deep border border-white/10 flex items-center justify-center shrink-0">
               <Mail size={18} className="text-nv-text-muted" />
             </div>
             <div className="flex-1 text-left">
               <p className="text-[15px] font-medium text-nv-text-primary">All Accounts</p>
               <p className="text-[13px] text-nv-text-muted">View all inboxes</p>
             </div>
+            {!activeAccount && <Check size={16} className="text-nv-teal shrink-0" />}
           </button>
 
           {accounts.map(account => (
-            <button
+            <div
               key={account.email}
-              onClick={() => { setActiveAccount(account); setFromAccount(account.email); setView("list"); }}
               className={cn(
-                "w-full flex items-center gap-4 px-5 py-4 border-t border-white/[0.04] transition-colors hover:bg-white/[0.03]",
+                "flex items-center gap-4 px-5 py-4 border-b border-white/[0.04]",
                 activeAccount?.email === account.email && "bg-nv-teal/5"
               )}
             >
-              <div className="w-11 h-11 rounded-full flex items-center justify-center text-sm font-bold shrink-0" style={{ backgroundColor: account.color + "25", color: account.color }}>
+              {/* Avatar — tap to switch */}
+              <button
+                onClick={() => { setActiveAccount(account); setFromAccount(account.email); setView("list"); }}
+                className="w-11 h-11 rounded-full flex items-center justify-center text-sm font-bold shrink-0 transition-opacity hover:opacity-80"
+                style={{ backgroundColor: account.color + "25", color: account.color }}
+              >
                 {account.initials}
-              </div>
-              <div className="flex-1 text-left min-w-0">
-                <p className="text-[15px] font-medium text-nv-text-primary truncate">{account.display_name}</p>
+              </button>
+              {/* Info — tap to switch */}
+              <button
+                onClick={() => { setActiveAccount(account); setFromAccount(account.email); setView("list"); }}
+                className="flex-1 text-left min-w-0"
+              >
+                <div className="flex items-center gap-2">
+                  <p className="text-[15px] font-medium text-nv-text-primary truncate">{account.display_name}</p>
+                  {account.is_default && (
+                    <span className="text-[10px] font-bold text-nv-teal bg-nv-teal/10 px-1.5 py-0.5 rounded shrink-0">DEFAULT</span>
+                  )}
+                </div>
                 <p className="text-[13px] text-nv-text-muted truncate">{account.email}</p>
+              </button>
+              {/* Active check */}
+              {activeAccount?.email === account.email && <Check size={16} className="text-nv-teal shrink-0" />}
+              {/* Edit/delete actions */}
+              <div className="flex items-center gap-0.5 shrink-0 ml-1">
+                {!account.is_default && (
+                  <button onClick={() => handleSetDefault(account)} title="Set as default"
+                    className="p-2 rounded-full text-nv-text-muted hover:text-nv-warning hover:bg-white/5 transition-colors">
+                    <Star size={14} />
+                  </button>
+                )}
+                <button onClick={() => openEditAccount(account)}
+                  className="p-2 rounded-full text-nv-text-muted hover:text-nv-teal hover:bg-white/5 transition-colors">
+                  <Pencil size={14} />
+                </button>
+                <button onClick={() => handleDeleteAccount(account)}
+                  className="p-2 rounded-full text-nv-text-muted hover:text-nv-error hover:bg-white/5 transition-colors">
+                  <Trash2 size={14} />
+                </button>
               </div>
-              {folderCounts.inbox > 0 && (
-                <span className="text-[13px] text-nv-text-muted shrink-0">{folderCounts.inbox > 99 ? "99+" : folderCounts.inbox}</span>
-              )}
-            </button>
+            </div>
           ))}
+
+          {accounts.length === 0 && (
+            <div className="text-center text-nv-text-muted text-sm py-16">No accounts configured</div>
+          )}
         </div>
+
+        {/* Add/Edit Account Modal */}
+        {showAccountForm && (
+          <div className="fixed inset-0 z-[70] bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4"
+            onClick={() => setShowAccountForm(false)}>
+            <div className="w-full sm:max-w-md bg-nv-deep border border-white/10 rounded-t-2xl sm:rounded-2xl p-6"
+              onClick={e => e.stopPropagation()}>
+              <div className="flex items-center justify-between mb-5">
+                <h3 className="font-display font-semibold text-lg text-nv-text-primary">
+                  {editingAccount ? "Edit Account" : "New Email Account"}
+                </h3>
+                <button onClick={() => setShowAccountForm(false)} className="text-nv-text-muted hover:text-nv-teal">
+                  <X size={20} />
+                </button>
+              </div>
+              <form onSubmit={handleSaveAccount} className="space-y-4">
+                <div>
+                  <label className="block text-nv-text-secondary text-sm font-medium mb-1.5">Email Address</label>
+                  <input type="email" required value={accountForm.email}
+                    onChange={e => setAccountForm({ ...accountForm, email: e.target.value })}
+                    placeholder="name@nexavisiongroup.com"
+                    className="w-full px-3 py-2.5 bg-nv-void/60 border border-white/10 rounded-xl text-sm text-nv-text-primary placeholder:text-nv-text-muted focus:outline-none focus:border-nv-teal/50" />
+                </div>
+                <div>
+                  <label className="block text-nv-text-secondary text-sm font-medium mb-1.5">Display Name</label>
+                  <input type="text" required value={accountForm.display_name}
+                    onChange={e => setAccountForm({ ...accountForm, display_name: e.target.value })}
+                    placeholder="NexaVision Support"
+                    className="w-full px-3 py-2.5 bg-nv-void/60 border border-white/10 rounded-xl text-sm text-nv-text-primary placeholder:text-nv-text-muted focus:outline-none focus:border-nv-teal/50" />
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-nv-text-secondary text-sm font-medium mb-1.5">Initials</label>
+                    <input type="text" maxLength={2} value={accountForm.initials}
+                      onChange={e => setAccountForm({ ...accountForm, initials: e.target.value.toUpperCase() })}
+                      placeholder="Auto"
+                      className="w-full px-3 py-2.5 bg-nv-void/60 border border-white/10 rounded-xl text-sm text-nv-text-primary placeholder:text-nv-text-muted focus:outline-none focus:border-nv-teal/50" />
+                  </div>
+                  <div>
+                    <label className="block text-nv-text-secondary text-sm font-medium mb-1.5">Color</label>
+                    <div className="flex items-center gap-1.5 flex-wrap pt-0.5">
+                      {PRESET_COLORS.map(c => (
+                        <button key={c} type="button" onClick={() => setAccountForm({ ...accountForm, color: c })}
+                          className={cn("w-6 h-6 rounded-full border-2 transition-all", accountForm.color === c ? "border-white scale-110" : "border-transparent hover:border-white/30")}
+                          style={{ backgroundColor: c }} />
+                      ))}
+                    </div>
+                  </div>
+                </div>
+                {/* Preview */}
+                <div className="flex items-center gap-3 p-3 rounded-xl bg-white/[0.03] border border-white/5">
+                  <div className="w-9 h-9 rounded-lg flex items-center justify-center text-xs font-bold shrink-0"
+                    style={{ backgroundColor: accountForm.color + "20", color: accountForm.color }}>
+                    {accountForm.initials || accountForm.display_name.split(" ").map(w => w[0]).join("").toUpperCase().slice(0, 2) || "??"}
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-nv-text-primary">{accountForm.display_name || "Display Name"}</p>
+                    <p className="text-xs text-nv-text-muted">{accountForm.email || "email@nexavisiongroup.com"}</p>
+                  </div>
+                </div>
+                <button type="submit" disabled={savingAccount}
+                  className="w-full py-3 rounded-xl bg-nv-teal text-nv-abyss font-display font-bold text-sm disabled:opacity-50 flex items-center justify-center gap-2">
+                  {savingAccount ? <Loader2 size={16} className="animate-spin" /> : editingAccount ? "Save Changes" : "Add Account"}
+                </button>
+              </form>
+            </div>
+          </div>
+        )}
       </div>
     );
   }
