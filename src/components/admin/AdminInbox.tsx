@@ -141,12 +141,14 @@ export default function AdminInbox() {
   };
 
   // ── Fetch accounts ──
+  const accountsInitialized = useRef(false);
   const fetchAccounts = async () => {
     const res = await fetch("/api/admin/email-accounts");
     const data = await res.json();
     if (data.accounts?.length) {
       setAccounts(data.accounts);
-      if (!activeAccount) {
+      if (!accountsInitialized.current) {
+        accountsInitialized.current = true;
         const saved = typeof window !== "undefined" ? localStorage.getItem("nv_inbox_account") : null;
         const match = saved ? data.accounts.find((a: EmailAccount) => a.email === saved) : null;
         const pick = match || data.accounts.find((a: EmailAccount) => a.is_default) || data.accounts[0];
@@ -157,15 +159,39 @@ export default function AdminInbox() {
   };
   useEffect(() => { fetchAccounts(); }, []);
 
-  // Persist active account selection
+  // Persist active account selection (only after initialization, never overwrite with null)
   useEffect(() => {
-    if (typeof window === "undefined") return;
-    if (activeAccount) {
+    if (!accountsInitialized.current) return;
+    if (activeAccount && typeof window !== "undefined") {
       localStorage.setItem("nv_inbox_account", activeAccount.email);
-    } else {
-      localStorage.removeItem("nv_inbox_account");
     }
   }, [activeAccount]);
+
+  // ── Browser back button handling ──
+  // Push a history entry when entering sub-views so browser back stays within inbox
+  const goToView = useCallback((newView: View) => {
+    if (newView !== "list") {
+      window.history.pushState({ inboxView: newView }, "");
+    }
+    setView(newView);
+  }, []);
+
+  const viewRef = useRef(view);
+  useEffect(() => { viewRef.current = view; }, [view]);
+
+  useEffect(() => {
+    const handlePop = () => {
+      if (viewRef.current !== "list") {
+        // Back within inbox — go to list and re-push so further back still works
+        setView("list");
+        setSelectedThread(null);
+        window.history.pushState({ inboxView: "list" }, "");
+      }
+      // If already at list, let browser navigate away normally
+    };
+    window.addEventListener("popstate", handlePop);
+    return () => window.removeEventListener("popstate", handlePop);
+  }, []);
 
   // ── Fetch threads ──
   const fetchThreads = useCallback(async () => {
@@ -183,7 +209,7 @@ export default function AdminInbox() {
   // ── Open thread ──
   const openThread = async (thread: Thread) => {
     setSelectedThread(thread);
-    setView("thread");
+    goToView("thread");
     setLoadingThread(true);
     const res = await fetch("/api/email/threads", {
       method: "POST",
@@ -227,7 +253,7 @@ export default function AdminInbox() {
     }
     setShowCcBcc(false); setComposeCc(""); setComposeBcc("");
     setComposeFiles([]);
-    setView("compose");
+    goToView("compose");
   };
 
   const handleSend = async () => {
@@ -429,7 +455,7 @@ export default function AdminInbox() {
     return (
       <div className="fixed inset-0 z-[60] bg-nv-void flex flex-col">
         <div className="flex items-center gap-2 px-4 py-3 border-b border-white/5">
-          <button onClick={() => setView(selectedThread ? "thread" : "list")} className="p-1.5 rounded-full text-nv-text-muted hover:text-nv-text-primary hover:bg-white/5">
+          <button onClick={() => window.history.back()} className="p-1.5 rounded-full text-nv-text-muted hover:text-nv-text-primary hover:bg-white/5">
             <X size={22} />
           </button>
           <h2 className="font-display font-semibold text-base text-nv-text-primary flex-1">
@@ -641,7 +667,7 @@ export default function AdminInbox() {
           <span className="font-display font-bold text-lg nv-gradient-text-teal">NexaVision</span>
           {/* Account avatar — tapping opens account switcher */}
           {activeAccount && (
-            <button onClick={() => { setSidebarOpen(false); setView("accounts"); }}
+            <button onClick={() => { setSidebarOpen(false); goToView("accounts"); }}
               className="w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold"
               style={{ backgroundColor: activeAccount.color + "25", color: activeAccount.color }}>
               {activeAccount.initials}
@@ -698,7 +724,7 @@ export default function AdminInbox() {
         </div>
 
         {/* Account avatar — opens account switcher */}
-        <button onClick={() => setView("accounts")}
+        <button onClick={() => goToView("accounts")}
           className="w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold shrink-0"
           style={activeAccount ? { backgroundColor: activeAccount.color + "25", color: activeAccount.color } : { backgroundColor: "#1C2D4A", color: "#8896A6" }}>
           {activeAccount ? activeAccount.initials : "All"}
