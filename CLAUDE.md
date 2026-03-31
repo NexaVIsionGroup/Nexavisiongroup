@@ -1,28 +1,34 @@
 # NexaVisionGroup — Claude Context
-> Last updated: 2026-03-02
+> Last updated: 2026-03-31
 
 ## Stack
 Next.js 14 App Router + Sanity CMS + Tailwind CSS + Framer Motion + Supabase (admin)
 
 ## Critical Rules
-- `.npmrc` must have `legacy-peer-deps=true` or Vercel/Netlify build fails
+- `.npmrc` must have `legacy-peer-deps=true` or Vercel build fails
 - Framer Motion bezier arrays: cast as `as [number, number, number, number]` in TypeScript
 - Use proven dep versions: `next-sanity@^9.8.0`, `sanity@^3.40.0`, `styled-components`
 - Root `nexavisiongroup/` is NOT a git repo — only `nexavisiongroup/git/` is committed
 - Sanity content not yet populated — all pages use fallback data from `src/lib/fallback-data.ts`
+- **DO NOT use Netlify** — DNS points to Vercel. Netlify deploys go nowhere.
 
 ## Local Path
 `C:\websites\nexavisiongroup\git\`
 
-## Deploy Commands
+## Deploy — VERCEL ONLY
 ```bash
-# Netlify (active host)
 cd /c/websites/nexavisiongroup/git
-npx netlify-cli deploy --prod  # needs NETLIFY_AUTH_TOKEN + NETLIFY_SITE_ID env vars
+VERCEL_TOKEN=<see PROJECT_INFO.md> npx vercel --prod --yes
+```
+`.vercel/project.json` already links to the correct project — no extra flags needed.
+All tokens/keys are in `C:/websites/nexavisiongroup/PROJECT_INFO.md`.
 
-# Vercel
-npx vercel --prod  # needs VERCEL_TOKEN env var
-# or: nexpush (PowerShell)
+### Cache Purge (if changes don't appear after deploy)
+```bash
+# Cloudflare zone: 74a7cc841e83375fbedc700a79121fe7 — credentials in PROJECT_INFO.md
+curl -X POST "https://api.cloudflare.com/client/v4/zones/74a7cc841e83375fbedc700a79121fe7/purge_cache" \
+  -H "X-Auth-Email: <CF email>" -H "X-Auth-Key: <CF key>" \
+  -H "Content-Type: application/json" --data '{"purge_everything":true}'
 ```
 
 ## GitHub
@@ -38,12 +44,12 @@ npx vercel --prod  # needs VERCEL_TOKEN env var
 | Studio URL | `nexavisiongroup.com/studio` |
 | CORS origins needed | `nexavisiongroup.com`, `nexavisiongroup.vercel.app`, `localhost:3000` |
 
-### IONOS DNS
+### Cloudflare DNS
 | Key | Value |
 |-----|-------|
-| Zone ID | `bc8b00fa-7a3f-11f0-8177-0a5864440d79` |
-| Auth | `X-API-Key: 660f4b1f48ad4df8a6c848c29147b899.1I9TCWlacxl5FT2V9mA00xt59FtSq3a0Qsba83MFVod1VnDfl3hOedJY2S2fFrTfUiJHHFmh59QAXJyYN1_Oqg` |
-| Nameservers | ns1/ns2.vercel-dns.com (set, propagation pending) |
+| Zone ID | `74a7cc841e83375fbedc700a79121fe7` |
+| Nameservers | ns1/ns2.vercel-dns.com |
+| Credentials | See PROJECT_INFO.md |
 
 ## Pages Built (Batches 1–5)
 | Batch | What | Route |
@@ -84,5 +90,4 @@ npx vercel --prod  # needs VERCEL_TOKEN env var
 | `supabase/phase1-schema.sql` | Phase 1 database schema |
 | `sanity/lib/queries.ts` | All GROQ queries |
 | `sanity/lib/client.ts` | Sanity client (uses "placeholder" if env empty) |
-| `netlify.toml` | Netlify build config + `@netlify/plugin-nextjs` |
-| `.vercel/project.json` | Links CLI to correct Vercel project |
+| `.vercel/project.json` | Links CLI to correct Vercel project (prj_ld75CmyLdlgX8WxX45fiebbgMn1P) |
