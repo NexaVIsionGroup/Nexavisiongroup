@@ -9,7 +9,7 @@ export async function POST(req: NextRequest) {
   try {
     const supabase = createAdminClient();
     const body = await req.json();
-    const { thread_id, to_email, to_name, subject, reply_body, reply_html, lead_id, from_email } = body;
+    const { thread_id, to_email, to_name, subject, reply_body, reply_html, lead_id, from_email, attachments } = body;
     const accounts = await fetchEmailAccounts();
 
     if (!thread_id || !to_email || (!reply_body && !reply_html)) {
@@ -39,6 +39,13 @@ export async function POST(req: NextRequest) {
     };
     if (inReplyToHeader) {
       params.headers = { 'In-Reply-To': inReplyToHeader, 'References': inReplyToHeader };
+    }
+    if (attachments?.length) {
+      params.attachments = attachments.map((att: any) => ({
+        filename: att.filename,
+        content: Buffer.from(att.content, 'base64'),
+        content_type: att.type,
+      }));
     }
 
     const { data, error } = await r.emails.send(params);

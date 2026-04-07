@@ -10,7 +10,7 @@ export async function POST(req: NextRequest) {
   try {
     const supabase = createAdminClient();
     const body = await req.json();
-    const { to_email, to_name, subject, body: emailBody, body_html: richHtml, lead_id, draft_id, cc_emails, bcc_emails, from_email } = body;
+    const { to_email, to_name, subject, body: emailBody, body_html: richHtml, lead_id, draft_id, cc_emails, bcc_emails, from_email, attachments } = body;
 
     const accounts = await fetchEmailAccounts();
     if (!to_email || !subject || (!emailBody && !richHtml)) {
@@ -31,6 +31,13 @@ export async function POST(req: NextRequest) {
     };
     if (cc_emails?.length) params.cc = cc_emails;
     if (bcc_emails?.length) params.bcc = bcc_emails;
+    if (attachments?.length) {
+      params.attachments = attachments.map((att: any) => ({
+        filename: att.filename,
+        content: Buffer.from(att.content, 'base64'),
+        content_type: att.type,
+      }));
+    }
 
     const { data, error } = await r.emails.send(params);
     if (error) {
