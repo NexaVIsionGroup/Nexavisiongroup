@@ -38,6 +38,13 @@ export async function POST(req: NextRequest) {
         content_type: att.type,
       }));
     }
+    if (attachments?.length) {
+      params.attachments = attachments.map((att: any) => ({
+        filename: att.filename,
+        content: Buffer.from(att.content, 'base64'),
+        content_type: att.type,
+      }));
+    }
 
     const { data, error } = await r.emails.send(params);
     if (error) {
