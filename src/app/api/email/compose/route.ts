@@ -34,15 +34,13 @@ export async function POST(req: NextRequest) {
     if (attachments?.length) {
       params.attachments = attachments.map((att: any) => ({
         filename: att.filename,
-        content: Buffer.from(att.content, 'base64'),
-        content_type: att.type,
+        content: att.content,
       }));
     }
     if (attachments?.length) {
       params.attachments = attachments.map((att: any) => ({
         filename: att.filename,
-        content: Buffer.from(att.content, 'base64'),
-        content_type: att.type,
+        content: att.content,
       }));
     }
 

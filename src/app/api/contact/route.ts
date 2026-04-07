@@ -18,8 +18,7 @@ export async function POST(request: Request) {
     // Build Resend attachments array
     const resendAttachments = (attachments || []).map((att: any) => ({
       filename: att.filename,
-      content: Buffer.from(att.content, "base64"),
-      content_type: att.type,
+      content: att.content,
     }));
 
     const hasAttachments = resendAttachments.length > 0;
