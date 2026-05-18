@@ -92,13 +92,15 @@ export default function VerificationPage() {
         ) : (
           <div className="space-y-2">
             {reqs.map((q) => (
-              <div key={q.id} className="nv-glass rounded-nv-lg p-4 flex items-center gap-4">
+              <div key={q.id} className="nv-glass rounded-nv-lg p-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium text-nv-text-primary truncate">{q.customer_name || q.customer_email || q.customer_id || "Unknown customer"}</p>
                   <p className="text-xs text-nv-text-muted truncate">Created {new Date(q.created_at).toLocaleDateString()}{q.submitted_at ? " · Submitted " + new Date(q.submitted_at).toLocaleDateString() : ""}</p>
                 </div>
-                <span className={cn("text-xs font-medium px-2 py-0.5 rounded-full border capitalize", statusColors[q.status] || statusColors.pending)}>{q.status}</span>
-                <button disabled={q.status !== "submitted"} onClick={() => openReview(q)} className="text-xs px-3 py-1.5 rounded-nv-md border border-white/10 text-nv-text-secondary hover:border-nv-teal/40 disabled:opacity-30 disabled:cursor-not-allowed">Review</button>
+                <div className="flex items-center gap-3 shrink-0">
+                  <span className={cn("text-xs font-medium px-2 py-0.5 rounded-full border capitalize", statusColors[q.status] || statusColors.pending)}>{q.status}</span>
+                  <button disabled={q.status !== "submitted"} onClick={() => openReview(q)} className="text-xs px-3 py-1.5 rounded-nv-md border border-white/10 text-nv-text-secondary hover:border-nv-teal/40 disabled:opacity-30 disabled:cursor-not-allowed">Review</button>
+                </div>
               </div>
             ))}
           </div>
