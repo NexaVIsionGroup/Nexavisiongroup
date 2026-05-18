@@ -2,11 +2,11 @@
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import AppShell from "@/components/admin/AppShell";
-import { ShieldCheck, Plus, Loader2, X, Check, Ban, FileText, RefreshCw, ExternalLink } from "lucide-react";
+import { ShieldCheck, Plus, Loader2, X, Check, Ban, FileText, RefreshCw, ExternalLink, Download } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface Req { id: string; customer_id: string | null; customer_name?: string; customer_email?: string; status: string; created_at: string; submitted_at: string | null; reviewed_at: string | null; expires_at: string; }
-interface Doc { id: string; doc_type: string; original_name: string | null; content_type: string | null; size_bytes: number | null; url: string | null; }
+interface Doc { id: string; doc_type: string; original_name: string | null; content_type: string | null; size_bytes: number | null; url: string | null; downloadUrl?: string | null; }
 interface Cust { id: string; first_name: string | null; last_name: string | null; company_name: string | null; email: string | null; }
 
 const statusColors: Record<string, string> = {
@@ -133,6 +133,9 @@ export default function VerificationPage() {
                         <a href={d.url} target="_blank" rel="noreferrer" className="text-nv-teal text-sm inline-flex items-center gap-1.5"><FileText size={14} /> Open document <ExternalLink size={12} /></a>
                       )
                     ) : <span className="text-xs text-red-400">URL unavailable</span>}
+                    {d.downloadUrl && (
+                      <a href={d.downloadUrl} className="mt-2 text-nv-teal text-xs inline-flex items-center gap-1.5 hover:underline"><Download size={13} /> Download {d.original_name || d.doc_type}</a>
+                    )}
                   </div>
                 ))}
               </div>

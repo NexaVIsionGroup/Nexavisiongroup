@@ -67,7 +67,9 @@ export async function PATCH(req: NextRequest) {
       .eq('request_id', id);
     const documents = await Promise.all((docs || []).map(async (d: any) => {
       const { data: s } = await supabase.storage.from(BUCKET).createSignedUrl(d.storage_path, 300);
-      return { ...d, url: s?.signedUrl || null };
+      const { data: dl } = await supabase.storage.from(BUCKET)
+        .createSignedUrl(d.storage_path, 300, { download: d.original_name || true });
+      return { ...d, url: s?.signedUrl || null, downloadUrl: dl?.signedUrl || null };
     }));
     await supabase.from('activity_log').insert({
       action: 'verification_docs_viewed', entity_type: 'verification_request',
