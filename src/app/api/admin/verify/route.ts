@@ -19,7 +19,8 @@ export async function POST(req: NextRequest) {
   await supabase.from('activity_log').insert({
     action: 'verification_requested', entity_type: 'verification_request',
     entity_id: data.id, user_email: created_by || null });
-  const link = (process.env.NEXT_PUBLIC_SITE_URL || '') + '/verify/' + token;
+  const verifyBase = process.env.NEXT_PUBLIC_VERIFY_URL || 'https://verify.apply.nexavisiongroup.com';
+  const link = verifyBase + '/' + token;
   if (send_email && email) {
     try {
       const resend = new Resend(process.env.RESEND_API_KEY);
