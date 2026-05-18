@@ -16,12 +16,30 @@ Next.js 14 App Router + Sanity CMS + Tailwind CSS + Framer Motion + Supabase (ad
 `C:\websites\nexavisiongroup\git\`
 
 ## Deploy — VERCEL ONLY
+
+> ⚠️ **CRITICAL — verify the project link FIRST.** `.vercel/project.json` has
+> been found linked to the WRONG Vercel project (`prj_pm6…` / name "git",
+> which is **RO Unlimited's LIVE site** — rounlimited.com). Deploying with the
+> wrong link overwrites RO Unlimited's production. **Do NOT trust any claim
+> that the link is already correct.**
+
+**Mandatory pre-deploy check:**
 ```bash
-cd /c/websites/nexavisiongroup/git
-VERCEL_TOKEN=<see PROJECT_INFO.md> npx vercel --prod --yes
+cd "C:/Users/databackup/Desktop/websites/nexavisiongroup/git"
+cat .vercel/project.json
+# projectId MUST equal prj_ld75CmyLdlgX8WxX45fiebbgMn1P (name "nexavisiongroup").
+# If it shows prj_pm6… / "git", STOP and rewrite it to:
+# {"projectId":"prj_ld75CmyLdlgX8WxX45fiebbgMn1P","orgId":"team_1b8fRiUKV3SdeniHIRBvwJ9l","projectName":"nexavisiongroup"}
 ```
-`.vercel/project.json` already links to the correct project — no extra flags needed.
-All tokens/keys are in `C:/websites/nexavisiongroup/PROJECT_INFO.md`.
+**Deploy:**
+```bash
+VERCEL_TOKEN=<see PROJECT_INFO.md> npx vercel --prod --yes \
+  --token <vercel token> --scope nates-projects-795d90f3
+```
+**Post-deploy check:** the deploy log MUST show `▲ Aliased https://nexavisiongroup.com`
+(never `rounlimited`). Then purge Cloudflare (below). The nexavisiongroup
+Vercel project has NO Git connection — GitHub pushes do not auto-deploy; CLI only.
+All tokens/keys are in `PROJECT_INFO.md` (one level up from this `git/` folder).
 
 ### Cache Purge (if changes don't appear after deploy)
 ```bash
