@@ -35,6 +35,21 @@ export async function updateSession(request: NextRequest) {
   const publicAdminPaths = ["/admin/login", "/admin/join", "/admin/access"];
   const isPublicAdmin = publicAdminPaths.some((p) => pathname.startsWith(p));
 
+  // Protect /api/admin/* (service-role routes). Exempt the pre-login auth
+  // flows and the cron cleanup route (it self-authenticates via CRON_SECRET,
+  // and Vercel Cron requests carry no Supabase session cookie).
+  const publicApiAdminPaths = [
+    "/api/admin/auth/",
+    "/api/admin/verify/cleanup",
+  ];
+  if (
+    pathname.startsWith("/api/admin") &&
+    !publicApiAdminPaths.some((p) => pathname.startsWith(p)) &&
+    !user
+  ) {
+    return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+  }
+
   // Protect /admin routes
   if (pathname.startsWith("/admin") && !isPublicAdmin) {
     if (!user) {
