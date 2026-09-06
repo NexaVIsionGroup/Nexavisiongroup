@@ -8,6 +8,7 @@ import {
   FileText,
   Receipt,
   Mail,
+  FileCode2,
   TrendingUp,
   DollarSign,
   Clock,
@@ -168,6 +169,7 @@ export default function AdminDashboard() {
           </h3>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             {[
+              { label: "Share Document", icon: FileCode2, href: "/admin/documents" },
               { label: "New Proposal", icon: FileText, href: "/admin/proposals" },
               { label: "New Invoice", icon: Receipt, href: "/admin/invoices" },
               { label: "Compose Email", icon: Mail, href: "/admin/inbox" },

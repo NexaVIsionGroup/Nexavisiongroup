@@ -1,4 +1,4 @@
-const CACHE_NAME = "nexa-admin-v1";
+const CACHE_NAME = "nexa-admin-v2";
 const PRECACHE = ["/admin", "/admin/login"];
 
 self.addEventListener("install", (e) => {

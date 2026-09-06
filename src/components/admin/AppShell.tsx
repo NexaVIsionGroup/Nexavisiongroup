@@ -8,6 +8,7 @@ import {
   Mail,
   Users,
   FileText,
+  FileCode2,
   Receipt,
   BarChart3,
   Settings,
@@ -31,6 +32,7 @@ const navItems: NavItem[] = [
   { label: "Dashboard", icon: LayoutDashboard, path: "/admin" },
   { label: "Inbox", icon: Mail, path: "/admin/inbox" },
   { label: "Customers", icon: Users, path: "/admin/customers" },
+  { label: "Documents", icon: FileCode2, path: "/admin/documents" },
   { label: "Verify", icon: ShieldCheck, path: "/admin/verification" },
   { label: "Proposals", icon: FileText, path: "/admin/proposals" },
   { label: "Invoices", icon: Receipt, path: "/admin/invoices" },
@@ -195,7 +197,7 @@ export default function AppShell({ children, title, showBack }: AppShellProps) {
         {/* ── Main Content ── */}
         <div
           className={cn(
-            "flex-1 flex flex-col min-h-screen transition-all duration-300",
+            "flex-1 min-w-0 flex flex-col min-h-screen transition-all duration-300",
             collapsed ? "lg:ml-[68px]" : "lg:ml-60"
           )}
         >
