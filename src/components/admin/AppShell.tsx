@@ -17,6 +17,7 @@ import {
   X,
   ChevronLeft,
   ShieldCheck,
+  Smartphone,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import AuthGuard from "./AuthGuard";
@@ -37,6 +38,7 @@ const navItems: NavItem[] = [
   { label: "Proposals", icon: FileText, path: "/admin/proposals" },
   { label: "Invoices", icon: Receipt, path: "/admin/invoices" },
   { label: "Analytics", icon: BarChart3, path: "/admin/analytics" },
+  { label: "Devices", icon: Smartphone, path: "/admin/devices" },
   { label: "Settings", icon: Settings, path: "/admin/settings" },
 ];
 
