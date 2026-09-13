@@ -23,6 +23,15 @@ const api = (path: string) => `/api/admin/devices?path=${encodeURIComponent(path
 
 // commands that get a confirm prompt before firing
 const DANGER = new Set(["reboot", "lockdown_on", "screen_off"]);
+// Android keycodes. Must stay within the backend's allow-list (it refuses anything else).
+const NAV_KEYS = [
+  { code: 4, label: "Back" },
+  { code: 3, label: "Home" },
+  { code: 187, label: "Recents" },
+  { code: 82, label: "Menu" },
+  { code: 224, label: "Wake" },
+  { code: 26, label: "Power" },
+];
 const CAT_META: Record<string, { label: string; icon: React.ElementType; tone: string }> = {
   screen: { label: "Screen", icon: MonitorSmartphone, tone: "text-nv-teal" },
   power: { label: "Power", icon: Power, tone: "text-nv-error" },
@@ -46,6 +55,8 @@ export default function DevicesPage() {
   const [shot, setShot] = useState<string>("");
   const [shotLoading, setShotLoading] = useState(false);
   const [autoShot, setAutoShot] = useState(false);
+  const [control, setControl] = useState(false);
+  const [tapping, setTapping] = useState(false);
   const logRef = useRef<HTMLDivElement>(null);
 
   // initial: load device registry + command catalog
@@ -111,6 +122,39 @@ export default function DevicesPage() {
   }, [autoShot, grabShot]);
 
   useEffect(() => { logRef.current?.scrollTo(0, logRef.current.scrollHeight); }, [log]);
+
+  // Interactive control. Taps/keys are proxied through the backend to the device tap-server,
+  // so this works from any browser — the tap-server itself is tailnet-only and unreachable direct.
+  const sendInput = useCallback(async (kind: "tap" | "key", payload: Record<string, number>, label: string) => {
+    if (!sel) return;
+    setTapping(true);
+    try {
+      const r = await fetch(api(`/${sel}/${kind}`), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const j = await r.json();
+      if (!j.ok) pushLog(`✗ ${label}: ${j.error || j.out || "failed"}`, false);
+      // re-grab the screen so you see the result of what you just pressed
+      setTimeout(grabShot, 600);
+    } catch (e) {
+      pushLog(`✗ ${label}: ${e}`, false);
+    } finally {
+      setTapping(false);
+    }
+  }, [sel, grabShot]);
+
+  // Translate a click on the scaled-down screenshot back into real device pixels.
+  const onScreenClick = (e: React.MouseEvent<HTMLImageElement>) => {
+    if (!control) return;
+    const img = e.currentTarget;
+    const rect = img.getBoundingClientRect();
+    if (!img.naturalWidth || !rect.width) return;
+    const x = Math.round((e.clientX - rect.left) * (img.naturalWidth / rect.width));
+    const y = Math.round((e.clientY - rect.top) * (img.naturalHeight / rect.height));
+    sendInput("tap", { x, y }, `tap ${x},${y}`);
+  };
 
   const runCmd = async (c: CatalogCmd) => {
     if (DANGER.has(c.id) && !confirm(`Run "${c.label}" on ${sel.toUpperCase()}?`)) return;
@@ -235,7 +279,7 @@ export default function DevicesPage() {
                   <Health label="Tailscale" ok={!!stats?.tun0} detail={String(stats?.tun0 || "down")} icon={Wifi} />
                   <Health label="SSH :8022" ok={Number(stats?.sshd) > 0} detail={Number(stats?.sshd) > 0 ? "listening" : "down"} icon={Server} />
                   <Health label="Tap-server" ok={Number(stats?.tap) > 0}
-                    detail={Number(stats?.tap) > 0 ? (selDev?.tap ? "up · open ↗" : "up") : "down"}
+                    detail={Number(stats?.tap) > 0 ? (selDev?.tap ? "up · open ↗ (tailnet)" : "up") : "down"}
                     icon={MonitorSmartphone} href={Number(stats?.tap) > 0 ? selDev?.tap : undefined} />
                   <Health label="RustDesk" ok={Number(stats?.rustdesk) > 0} detail={Number(stats?.rustdesk) > 0 ? "capturing" : "idle"} icon={Camera} />
                   <Health label="Watchdog" ok={Number(stats?.watchdog) > 0} detail={Number(stats?.watchdog) > 0 ? "running" : "down"} icon={Eye} />
@@ -301,22 +345,49 @@ export default function DevicesPage() {
                       <input type="checkbox" checked={autoShot} onChange={(e) => setAutoShot(e.target.checked)}
                         className="accent-nv-teal" /> Auto
                     </label>
+                    {/* off by default so a stray click on the screenshot can't poke the phone */}
+                    <label className={cn("flex items-center gap-1.5 text-[11.5px] cursor-pointer",
+                      control ? "text-nv-teal" : "text-nv-text-muted")}>
+                      <input type="checkbox" checked={control} onChange={(e) => setControl(e.target.checked)}
+                        className="accent-nv-teal" /> Control
+                    </label>
                     <button onClick={grabShot} disabled={shotLoading}
                       className="flex items-center gap-1 text-[12px] text-nv-teal hover:opacity-80">
                       <Camera size={13} className={shotLoading ? "animate-pulse" : ""} /> Capture
                     </button>
                   </div>
                 }>
-                <div className="rounded-nv-md overflow-hidden bg-nv-void/60 border border-nv-teal/10 flex items-center justify-center min-h-[280px]">
+                <div className={cn(
+                  "rounded-nv-md overflow-hidden bg-nv-void/60 border flex items-center justify-center min-h-[280px]",
+                  control ? "border-nv-teal/50" : "border-nv-teal/10"
+                )}>
                   {shot ? (
                     // eslint-disable-next-line @next/next/no-img-element
-                    <img src={shot} alt="device screen" className="max-h-[420px] w-auto object-contain" />
+                    <img src={shot} alt="device screen" onClick={onScreenClick}
+                      className={cn("max-h-[420px] w-auto object-contain", control && "cursor-crosshair")} />
                   ) : (
                     <button onClick={grabShot} className="flex flex-col items-center gap-2 text-nv-text-muted py-10 hover:text-nv-teal transition-colors">
                       {shotLoading ? <Loader2 size={22} className="animate-spin" /> : <Camera size={22} />}
                       <span className="text-[12px]">Tap to capture screen</span>
                     </button>
                   )}
+                </div>
+
+                {/* hardware keys — proxied through the backend, so no tailnet needed */}
+                <div className="flex flex-wrap items-center gap-1.5 mt-3">
+                  {NAV_KEYS.map((k) => (
+                    <button key={k.code} onClick={() => sendInput("key", { code: k.code }, k.label)}
+                      disabled={!online || tapping}
+                      className="rounded-nv-sm px-2.5 py-1.5 text-[11.5px] nv-glass border border-nv-teal/15 text-nv-text-secondary hover:border-nv-teal/45 hover:text-nv-text-primary transition-all disabled:opacity-40">
+                      {k.label}
+                    </button>
+                  ))}
+                  {tapping && <Loader2 size={13} className="animate-spin text-nv-teal" />}
+                </div>
+                <div className="mt-2 text-[11px] text-nv-text-muted leading-snug">
+                  {control
+                    ? "Control is ON — clicking the image taps that exact spot on the phone."
+                    : "Turn on Control to tap the screen by clicking it."}
                 </div>
               </Panel>
 
