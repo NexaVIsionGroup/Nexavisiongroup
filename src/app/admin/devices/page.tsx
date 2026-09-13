@@ -403,9 +403,12 @@ export default function DevicesPage() {
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-2.5">
                   <Health label="Tailscale" ok={!!stats?.tun0} detail={String(stats?.tun0 || "down")} icon={Wifi} />
                   <Health label="SSH :8022" ok={Number(stats?.sshd) > 0} detail={Number(stats?.sshd) > 0 ? "listening" : "down"} icon={Server} />
+                  {/* Status only — deliberately NOT a link. The tap-server listens on a TAILNET
+                      address, so clicking through just hangs on a blank page from any normal
+                      browser. Use the Live Control panel instead; it works from anywhere. */}
                   <Health label="Tap-server" ok={Number(stats?.tap) > 0}
-                    detail={Number(stats?.tap) > 0 ? (selDev?.tap ? "up · open ↗ (tailnet)" : "up") : "down"}
-                    icon={MonitorSmartphone} href={Number(stats?.tap) > 0 ? selDev?.tap : undefined} />
+                    detail={Number(stats?.tap) > 0 ? "up (internal)" : "down"}
+                    icon={MonitorSmartphone} />
                   <Health label="RustDesk" ok={Number(stats?.rustdesk) > 0} detail={Number(stats?.rustdesk) > 0 ? "capturing" : "idle"} icon={Camera} />
                   <Health label="Watchdog" ok={Number(stats?.watchdog) > 0} detail={Number(stats?.watchdog) > 0 ? "running" : "down"} icon={Eye} />
                   <Health label="Root" ok={Number(stats?.root_uid) === 0} detail={Number(stats?.root_uid) === 0 ? `Magisk · ${stats?.modules}mods` : "no root"} icon={Cpu} />
