@@ -18,6 +18,8 @@ import {
   ChevronLeft,
   ShieldCheck,
   Smartphone,
+  Sparkles,
+  ExternalLink,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import AuthGuard from "./AuthGuard";
@@ -27,6 +29,8 @@ interface NavItem {
   icon: React.ElementType;
   path: string;
   badge?: number;
+  /** opens in a new tab instead of client-side routing (path is an absolute URL) */
+  external?: boolean;
 }
 
 const navItems: NavItem[] = [
@@ -39,6 +43,7 @@ const navItems: NavItem[] = [
   { label: "Invoices", icon: Receipt, path: "/admin/invoices" },
   { label: "Analytics", icon: BarChart3, path: "/admin/analytics" },
   { label: "Devices", icon: Smartphone, path: "/admin/devices" },
+  { label: "NEXA AI", icon: Sparkles, path: "https://ai.nexavisiongroup.com", external: true },
   { label: "Settings", icon: Settings, path: "/admin/settings" },
 ];
 
@@ -66,6 +71,12 @@ export default function AppShell({ children, title, showBack }: AppShellProps) {
   const handleLogout = async () => {
     await supabase.auth.signOut();
     router.replace("/admin/login");
+  };
+
+  // external items point at another origin, so they open in a new tab rather than routing
+  const go = (item: NavItem) => {
+    if (item.external) window.open(item.path, "_blank", "noopener,noreferrer");
+    else router.push(item.path);
   };
 
   const isActive = (path: string) => {
@@ -112,7 +123,7 @@ export default function AppShell({ children, title, showBack }: AppShellProps) {
             {navItems.map((item) => (
               <button
                 key={item.path}
-                onClick={() => router.push(item.path)}
+                onClick={() => go(item)}
                 className={cn(
                   "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all",
                   isActive(item.path)
@@ -123,6 +134,9 @@ export default function AppShell({ children, title, showBack }: AppShellProps) {
               >
                 <item.icon size={20} className="shrink-0" />
                 {!collapsed && <span>{item.label}</span>}
+                {!collapsed && item.external && (
+                  <ExternalLink size={13} className="ml-auto opacity-50 shrink-0" />
+                )}
                 {!collapsed && item.badge && item.badge > 0 && (
                   <span className="ml-auto bg-nv-teal text-nv-abyss text-xs font-bold px-1.5 py-0.5 rounded-full min-w-[20px] text-center">
                     {item.badge}
@@ -171,7 +185,7 @@ export default function AppShell({ children, title, showBack }: AppShellProps) {
                 {navItems.map((item) => (
                   <button
                     key={item.path}
-                    onClick={() => router.push(item.path)}
+                    onClick={() => go(item)}
                     className={cn(
                       "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all",
                       isActive(item.path)
@@ -241,7 +255,7 @@ export default function AppShell({ children, title, showBack }: AppShellProps) {
             {mobileNavItems.map((item) => (
               <button
                 key={item.path}
-                onClick={() => router.push(item.path)}
+                onClick={() => go(item)}
                 className={cn(
                   "flex flex-col items-center justify-center gap-0.5 w-full h-full transition-colors",
                   isActive(item.path)

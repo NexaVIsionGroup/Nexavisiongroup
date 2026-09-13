@@ -5,11 +5,16 @@ import AppShell from "@/components/admin/AppShell";
 import {
   Smartphone, Loader2, RefreshCw, Battery, Thermometer, Signal, ShieldCheck,
   Wifi, Server, MonitorSmartphone, Radio, Cpu, Clock, Power, Lock, Eye,
-  Zap, Terminal, ChevronRight, AlertTriangle, CircleCheck, CircleX, Camera,
+  Zap, Terminal, ChevronRight, AlertTriangle, CircleCheck, CircleX, Camera, KeyRound,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-type Device = { id: string; name: string; model: string };
+type Device = {
+  id: string; name: string; model: string;
+  tap?: string;          // tap-server base url (TAILNET only — reachable from a tailnet browser)
+  rustdesk_id?: string;  // registry-held: RustDesk stores its ID encrypted, so it can't be read live
+  rustdesk_pw?: string;
+};
 type CatalogCmd = { id: string; label: string; arg: boolean; argHint: string };
 type Catalog = Record<string, CatalogCmd[]>;
 type Stats = Record<string, string | number | boolean>;
@@ -133,6 +138,8 @@ export default function DevicesPage() {
     setLog((l) => [...l.slice(-80), { t: new Date().toLocaleTimeString(), m, ok }]);
 
   const online = !!stats?.online;
+  const selDev = devices.find((d) => d.id === sel);
+  const pifDays = daysUntil(stats?.pif_expiry);
 
   return (
     <AppShell title="Phone Command Center">
@@ -183,14 +190,30 @@ export default function DevicesPage() {
             {/* LEFT: stats (2 cols) */}
             <div className="lg:col-span-2 space-y-4">
               {/* hero stat tiles */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
                 <BatteryTile stats={stats} />
+                <CpuTile stats={stats} />
                 <Tile icon={Thermometer} label="Temp" value={stats?.temp != null ? `${stats.temp}°C` : "—"}
                   tone={Number(stats?.temp) > 42 ? "text-nv-error" : "text-nv-text-primary"} />
                 <Tile icon={ShieldCheck} label="Integrity"
                   value={verdictShort(stats?.integrity)} tone={verdictTone(stats?.integrity)} />
                 <Tile icon={Clock} label="Uptime" value={fmtUptime(stats?.uptime)} tone="text-nv-text-primary" />
               </div>
+
+              {/* charge health: "plugged in" != "actually charging". A negative current on an
+                  underpowered port (e.g. 4.5W PC USB) drains the phone while it reads Charging. */}
+              {stats?.chg_state === "draining" && (
+                <div className="flex items-start gap-2.5 rounded-nv-md px-3.5 py-2.5 bg-nv-error/10 border border-nv-error/25">
+                  <AlertTriangle size={15} className="text-nv-error mt-0.5 shrink-0" />
+                  <div className="text-[12.5px] leading-snug">
+                    <span className="text-nv-error font-medium">Plugged in but draining.</span>{" "}
+                    <span className="text-nv-text-secondary">
+                      Input capped at {fmtWatts(stats?.in_mw)} ({String(stats?.usb_type || "USB")}) — less than the
+                      device is using{stats?.chg_now != null ? ` (${stats.chg_now} µA)` : ""}. Move to a higher-wattage charger.
+                    </span>
+                  </div>
+                </div>
+              )}
 
               {/* signal panel */}
               <Panel title="Cellular" icon={Signal}>
@@ -211,7 +234,9 @@ export default function DevicesPage() {
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-2.5">
                   <Health label="Tailscale" ok={!!stats?.tun0} detail={String(stats?.tun0 || "down")} icon={Wifi} />
                   <Health label="SSH :8022" ok={Number(stats?.sshd) > 0} detail={Number(stats?.sshd) > 0 ? "listening" : "down"} icon={Server} />
-                  <Health label="Tap-server" ok={Number(stats?.tap) > 0} detail={Number(stats?.tap) > 0 ? "up" : "down"} icon={MonitorSmartphone} />
+                  <Health label="Tap-server" ok={Number(stats?.tap) > 0}
+                    detail={Number(stats?.tap) > 0 ? (selDev?.tap ? "up · open ↗" : "up") : "down"}
+                    icon={MonitorSmartphone} href={Number(stats?.tap) > 0 ? selDev?.tap : undefined} />
                   <Health label="RustDesk" ok={Number(stats?.rustdesk) > 0} detail={Number(stats?.rustdesk) > 0 ? "capturing" : "idle"} icon={Camera} />
                   <Health label="Watchdog" ok={Number(stats?.watchdog) > 0} detail={Number(stats?.watchdog) > 0 ? "running" : "down"} icon={Eye} />
                   <Health label="Root" ok={Number(stats?.root_uid) === 0} detail={Number(stats?.root_uid) === 0 ? `Magisk · ${stats?.modules}mods` : "no root"} icon={Cpu} />
@@ -221,6 +246,31 @@ export default function DevicesPage() {
                   <Chip>Beacon: {String(stats?.beacon || "—")}</Chip>
                   <Chip>Lockdown: {Number(stats?.lockdown) ? "ON" : "off"}</Chip>
                   <Chip>Power-alarm: {Number(stats?.poweralarm) ? "armed" : "none"}</Chip>
+                  {stats?.pif_expiry && (
+                    <Chip tone={pifDays == null ? undefined : pifDays <= 0 ? "error" : pifDays <= 7 ? "warning" : undefined}>
+                      Integrity print: {String(stats.pif_expiry)}
+                      {pifDays != null && (pifDays <= 0 ? " · EXPIRED — re-run action.sh" : ` · ${pifDays}d left`)}
+                    </Chip>
+                  )}
+                </div>
+              </Panel>
+
+              {/* remote-access IDs */}
+              <Panel title="IDs & Remote Access" icon={KeyRound}>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-x-4 gap-y-3">
+                  <KV label="RustDesk ID" value={selDev?.rustdesk_id || "—"} />
+                  <KV label="RustDesk pw" value={selDev?.rustdesk_pw || "—"} />
+                  <KV label="TeamViewer ID" value={fmtTvId(stats?.tv_id)} />
+                  <KV label="TV assigned" value={Number(stats?.tv_assigned) ? "yes" : "no"} />
+                  <KV label="Tailnet IP" value={String(stats?.tun0 || "—")} />
+                  <KV label="Load (1m)" value={String(stats?.load1 || "—")} />
+                  <KV label="Charge in" value={fmtWatts(stats?.in_mw)} />
+                  <KV label="Charge state" value={String(stats?.chg_state || "—")} />
+                </div>
+                <div className="mt-3 pt-3 border-t border-nv-teal/10 text-[11px] text-nv-text-muted leading-snug">
+                  RustDesk&apos;s ID is stored encrypted on the device, so it is held in the backend registry —
+                  update it there if RustDesk is ever reinstalled (a reinstall mints a new ID).
+                  TeamViewer&apos;s is read live from the device.
                 </div>
               </Panel>
 
@@ -360,6 +410,27 @@ function BatteryTile({ stats }: { stats: Stats | null }) {
   );
 }
 
+// Hottest process on the device. This exists because a runaway `busybox httpd` once span at
+// ~96% for days -- it cooked the SoC, tripped thermal throttling and out-drew the charger,
+// and nothing on this dashboard would have shown it.
+function CpuTile({ stats }: { stats: Stats | null }) {
+  const pct = Number(stats?.top_pct ?? 0);
+  const name = String(stats?.top_name || "—");
+  const tone = pct >= 80 ? "text-nv-error" : pct >= 50 ? "text-nv-warning" : "text-nv-text-primary";
+  return (
+    <div className="nv-glass rounded-nv-lg p-3.5 border border-nv-teal/10">
+      <div className="flex items-center gap-1.5 text-[11px] text-nv-text-muted mb-1.5">
+        <Cpu size={13} className="text-nv-text-muted" /> Top CPU
+        {pct >= 80 && <AlertTriangle size={11} className="text-nv-error" />}
+      </div>
+      <div className={cn("text-[19px] font-semibold leading-none", tone)}>
+        {stats?.top_pct != null ? `${pct}%` : "—"}
+      </div>
+      <div className="text-[10.5px] text-nv-text-muted truncate mt-1" title={name}>{name}</div>
+    </div>
+  );
+}
+
 function KV({ label, value, sig }: { label: string; value: string; sig?: number }) {
   return (
     <div>
@@ -385,10 +456,11 @@ function SignalBars({ rsrp }: { rsrp: number }) {
   );
 }
 
-function Health({ label, ok, detail, icon: Icon }: { label: string; ok: boolean; detail: string; icon: React.ElementType }) {
-  return (
-    <div className={cn("rounded-nv-md px-3 py-2.5 border flex items-center gap-2.5",
-      ok ? "bg-nv-success/5 border-nv-success/20" : "bg-nv-error/10 border-nv-error/25")}>
+function Health({ label, ok, detail, icon: Icon, href }: {
+  label: string; ok: boolean; detail: string; icon: React.ElementType; href?: string;
+}) {
+  const body = (
+    <>
       <Icon size={15} className={ok ? "text-nv-success" : "text-nv-error"} />
       <div className="min-w-0">
         <div className="text-[12.5px] text-nv-text-primary font-medium leading-tight">{label}</div>
@@ -396,12 +468,33 @@ function Health({ label, ok, detail, icon: Icon }: { label: string; ok: boolean;
       </div>
       {ok ? <CircleCheck size={14} className="text-nv-success ml-auto shrink-0" />
           : <CircleX size={14} className="text-nv-error ml-auto shrink-0" />}
-    </div>
+    </>
   );
+  const base = cn("rounded-nv-md px-3 py-2.5 border flex items-center gap-2.5",
+    ok ? "bg-nv-success/5 border-nv-success/20" : "bg-nv-error/10 border-nv-error/25");
+  // href turns the tile into a launcher (tap-server). The tap-server lives on the TAILNET,
+  // so the link only resolves from a browser that is itself on the tailnet.
+  if (href) {
+    return (
+      <a href={href} target="_blank" rel="noopener noreferrer"
+        title={`Open ${label} — ${href} (tailnet only)`}
+        className={cn(base, "hover:border-nv-teal/50 hover:bg-nv-teal/5 transition-colors cursor-pointer")}>
+        {body}
+      </a>
+    );
+  }
+  return <div className={base}>{body}</div>;
 }
 
-function Chip({ children }: { children: React.ReactNode }) {
-  return <span className="rounded-nv-sm bg-nv-void/60 border border-nv-teal/10 px-2 py-0.5">{children}</span>;
+function Chip({ children, tone }: { children: React.ReactNode; tone?: "warning" | "error" }) {
+  return (
+    <span className={cn(
+      "rounded-nv-sm px-2 py-0.5 border",
+      tone === "error" ? "bg-nv-error/10 border-nv-error/30 text-nv-error"
+        : tone === "warning" ? "bg-nv-warning/10 border-nv-warning/30 text-nv-warning"
+        : "bg-nv-void/60 border-nv-teal/10"
+    )}>{children}</span>
+  );
 }
 
 function StatusDot({ online, err }: { online: boolean; err: string }) {
@@ -416,6 +509,25 @@ function StatusDot({ online, err }: { online: boolean; err: string }) {
 }
 
 /* ---------- helpers ---------- */
+// TeamViewer shows IDs space-grouped in 3s (841006807 -> 841 006 807)
+function fmtTvId(v?: string | number | boolean) {
+  const s = String(v || "").replace(/\D/g, "");
+  if (!s) return "—";
+  return s.replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+}
+function fmtWatts(mw?: string | number | boolean) {
+  const n = Number(mw || 0);
+  if (!n) return "—";
+  return `${(n / 1000).toFixed(1)}W`;
+}
+// Play Integrity canary fingerprints expire; once lapsed, banking apps start failing again.
+// Returns whole days remaining (negative = already expired).
+function daysUntil(d?: string | number | boolean) {
+  const s = String(d || "");
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(s)) return null;
+  const ms = new Date(s + "T00:00:00").getTime() - Date.now();
+  return Math.ceil(ms / 86400000);
+}
 function fmtUptime(s?: string | number | boolean) {
   const n = Number(s || 0);
   if (!n) return "—";
