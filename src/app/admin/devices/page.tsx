@@ -32,6 +32,18 @@ const NAV_KEYS = [
   { code: 224, label: "Wake" },
   { code: 26, label: "Power" },
 ];
+// one-click diagnostics — the checks that actually get run on this fleet
+const SNIPPETS: { label: string; cmd: string }[] = [
+  { label: "Charge health", cmd: "printf 'now='; cat /sys/class/power_supply/battery/current_now; printf 'cap='; cat /sys/class/power_supply/battery/capacity; printf 'usbmax='; cat /sys/class/power_supply/usb/current_max; printf 'type='; cat /sys/class/power_supply/usb/type" },
+  { label: "Top CPU", cmd: "top -b -n 1 -m 10 -s 1 -o %CPU,RES,NAME | head -16" },
+  { label: "RustDesk armed?", cmd: "printf 'capture='; dumpsys media_projection | grep -c carriez; dumpsys accessibility | grep -A3 'Bound services'" },
+  { label: "rd-arm log", cmd: "tail -20 /data/local/tmp/rd-arm.log" },
+  { label: "Watchdog log", cmd: "tail -20 /data/local/tmp/op3-watchdog.log" },
+  { label: "Tailscale/tun0", cmd: "ip -4 addr show tun0; netstat -tln | grep -E ':8022|:8089'" },
+  { label: "Integrity print", cmd: "grep -aE 'Estimated Expiry|FINGERPRINT' /data/adb/modules/playintegrityfix/custom.pif.prop" },
+  { label: "Disk", cmd: "df -h /data" },
+  { label: "Uptime/load", cmd: "uptime; cat /proc/loadavg" },
+];
 const CAT_META: Record<string, { label: string; icon: React.ElementType; tone: string }> = {
   screen: { label: "Screen", icon: MonitorSmartphone, tone: "text-nv-teal" },
   power: { label: "Power", icon: Power, tone: "text-nv-error" },
@@ -57,6 +69,11 @@ export default function DevicesPage() {
   const [autoShot, setAutoShot] = useState(false);
   const [control, setControl] = useState(false);
   const [tapping, setTapping] = useState(false);
+  const [shellCmd, setShellCmd] = useState("");
+  const [shellOut, setShellOut] = useState("");
+  const [shellBusy, setShellBusy] = useState(false);
+  const [shellHist, setShellHist] = useState<string[]>([]);
+  const [histIdx, setHistIdx] = useState(-1);   // -1 = editing a fresh line
   const logRef = useRef<HTMLDivElement>(null);
 
   // initial: load device registry + command catalog
@@ -144,6 +161,66 @@ export default function DevicesPage() {
       setTapping(false);
     }
   }, [sel, grabShot]);
+
+  // shell history is per-device and survives reloads
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(`pcc.shellhist.${sel}`);
+      setShellHist(raw ? JSON.parse(raw) : []);
+    } catch { setShellHist([]); }
+    setShellOut(""); setHistIdx(-1);
+  }, [sel]);
+
+  const runShell = useCallback(async (raw?: string, confirmed = false) => {
+    const cmd = (raw ?? shellCmd).trim();
+    if (!cmd || !sel) return;
+    setShellBusy(true);
+    try {
+      const r = await fetch(api(`/${sel}/shell`), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ cmd, confirm: confirmed }),
+      });
+      const j = await r.json();
+
+      // The backend refuses unrecoverable commands outright and asks twice for the ones that
+      // could sever remote access. Surface that here rather than silently swallowing it.
+      if (j.needsConfirm && !confirmed) {
+        setShellBusy(false);
+        if (confirm(`This ${j.reason}.\n\n  ${cmd}\n\nRun it anyway?`)) return runShell(cmd, true);
+        setShellOut((p) => `${p}$ ${cmd}\ncancelled\n\n`);
+        return;
+      }
+      setShellOut((p) => `${p}$ ${cmd}\n${j.out || j.error || "(no output)"}\n\n`);
+      if (!j.blocked) {
+        setShellHist((h) => {
+          const next = [cmd, ...h.filter((x) => x !== cmd)].slice(0, 40);
+          try { localStorage.setItem(`pcc.shellhist.${sel}`, JSON.stringify(next)); } catch {}
+          return next;
+        });
+      }
+      setShellCmd(""); setHistIdx(-1);
+    } catch (e) {
+      setShellOut((p) => `${p}$ ${cmd}\nerror: ${e}\n\n`);
+    } finally {
+      setShellBusy(false);
+    }
+  }, [sel, shellCmd]);
+
+  const onShellKey = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") { e.preventDefault(); runShell(); return; }
+    if (e.key === "ArrowUp") {
+      e.preventDefault();
+      const i = Math.min(histIdx + 1, shellHist.length - 1);
+      if (i >= 0) { setHistIdx(i); setShellCmd(shellHist[i]); }
+    }
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      const i = histIdx - 1;
+      setHistIdx(i);
+      setShellCmd(i >= 0 ? shellHist[i] : "");
+    }
+  };
 
   // Translate a click on the scaled-down screenshot back into real device pixels.
   const onScreenClick = (e: React.MouseEvent<HTMLImageElement>) => {
@@ -315,6 +392,47 @@ export default function DevicesPage() {
                   RustDesk&apos;s ID is stored encrypted on the device, so it is held in the backend registry —
                   update it there if RustDesk is ever reinstalled (a reinstall mints a new ID).
                   TeamViewer&apos;s is read live from the device.
+                </div>
+              </Panel>
+
+              {/* free-form shell */}
+              <Panel title="Shell" icon={Terminal}
+                right={shellOut ? (
+                  <button onClick={() => setShellOut("")}
+                    className="text-[11.5px] text-nv-text-muted hover:text-nv-teal">clear</button>
+                ) : undefined}>
+                <div className="flex flex-wrap gap-1.5 mb-2.5">
+                  {SNIPPETS.map((s) => (
+                    <button key={s.label} onClick={() => runShell(s.cmd)} disabled={!online || shellBusy}
+                      className="rounded-nv-sm px-2 py-1 text-[11px] nv-glass border border-nv-teal/15 text-nv-text-secondary hover:border-nv-teal/45 hover:text-nv-text-primary transition-all disabled:opacity-40">
+                      {s.label}
+                    </button>
+                  ))}
+                </div>
+                {shellOut && (
+                  <pre className="h-48 overflow-auto rounded-nv-sm bg-nv-void/70 border border-nv-teal/10 p-2.5 font-mono text-[11.5px] text-nv-text-secondary whitespace-pre-wrap break-all mb-2.5">
+                    {shellOut}
+                  </pre>
+                )}
+                <div className="flex items-center gap-2">
+                  <span className="font-mono text-[13px] text-nv-teal select-none">#</span>
+                  <input
+                    value={shellCmd}
+                    onChange={(e) => setShellCmd(e.target.value)}
+                    onKeyDown={onShellKey}
+                    disabled={!online || shellBusy}
+                    spellCheck={false}
+                    placeholder="run as root on the device — ↑/↓ for history"
+                    className="flex-1 rounded-nv-sm bg-nv-void/60 border border-nv-teal/15 px-2.5 py-2 font-mono text-[12px] text-nv-text-primary placeholder:text-nv-text-muted focus:border-nv-teal/50 outline-none disabled:opacity-40"
+                  />
+                  <button onClick={() => runShell()} disabled={!online || shellBusy || !shellCmd.trim()}
+                    className="rounded-nv-md px-3 py-2 text-[12.5px] nv-glass border border-nv-teal/20 text-nv-text-secondary hover:border-nv-teal/50 hover:text-nv-text-primary transition-all disabled:opacity-40">
+                    {shellBusy ? <Loader2 size={13} className="animate-spin" /> : "Run"}
+                  </button>
+                </div>
+                <div className="mt-2 text-[11px] text-nv-text-muted leading-snug">
+                  Runs as root. Commands that can&apos;t be undone remotely (factory reset, bootloader
+                  lock, raw partition writes) are refused; ones that could cut remote access ask first.
                 </div>
               </Panel>
 
