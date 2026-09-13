@@ -6,6 +6,7 @@ import {
   Smartphone, Loader2, RefreshCw, Battery, Thermometer, Signal, ShieldCheck,
   Wifi, Server, MonitorSmartphone, Radio, Cpu, Clock, Power, Lock, Eye,
   Zap, Terminal, ChevronRight, AlertTriangle, CircleCheck, CircleX, Camera, KeyRound,
+  Maximize, ExternalLink,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -14,6 +15,7 @@ type Device = {
   tap?: string;          // tap-server base url (TAILNET only — reachable from a tailnet browser)
   rustdesk_id?: string;  // registry-held: RustDesk stores its ID encrypted, so it can't be read live
   rustdesk_pw?: string;
+  control_url?: string;  // ScrcpyOverWebRTC live control — PUBLIC url, WebRTC media is peer-to-peer
 };
 type CatalogCmd = { id: string; label: string; arg: boolean; argHint: string };
 type Catalog = Record<string, CatalogCmd[]>;
@@ -74,7 +76,9 @@ export default function DevicesPage() {
   const [shellBusy, setShellBusy] = useState(false);
   const [shellHist, setShellHist] = useState<string[]>([]);
   const [histIdx, setHistIdx] = useState(-1);   // -1 = editing a fresh line
+  const [liveOpen, setLiveOpen] = useState(false);
   const logRef = useRef<HTMLDivElement>(null);
+  const liveRef = useRef<HTMLDivElement>(null);
 
   // initial: load device registry + command catalog
   useEffect(() => {
@@ -112,6 +116,7 @@ export default function DevicesPage() {
   useEffect(() => {
     if (!sel) return;
     setStats(null); setStatsErr(""); setShot("");
+    setLiveOpen(false);   // never carry a live session across a device switch
     loadStats();
     const id = setInterval(() => loadStats(true), 5000);
     return () => clearInterval(id);
@@ -305,6 +310,49 @@ export default function DevicesPage() {
             </button>
           </div>
         </div>
+
+        {/* Live control (ScrcpyOverWebRTC). Deliberately lazy: the iframe — and therefore the
+            WebRTC session and the phone's encoder — only start when you click Open, so an idle
+            dashboard costs the device nothing. Media is peer-to-peer, so it never crosses the rack. */}
+        {sel && selDev?.control_url && (
+          <Panel title="Live Control" icon={MonitorSmartphone}
+            right={
+              <div className="flex items-center gap-3 text-[12px]">
+                {liveOpen && (
+                  <button onClick={() => liveRef.current?.requestFullscreen?.()}
+                    className="flex items-center gap-1 text-nv-teal hover:opacity-80">
+                    <Maximize size={13} /> Fullscreen
+                  </button>
+                )}
+                <a href={selDev.control_url} target="_blank" rel="noopener noreferrer"
+                  className="flex items-center gap-1 text-nv-text-muted hover:text-nv-teal">
+                  New tab <ExternalLink size={12} />
+                </a>
+                {liveOpen && (
+                  <button onClick={() => setLiveOpen(false)}
+                    className="text-nv-text-muted hover:text-nv-error">Disconnect</button>
+                )}
+              </div>
+            }>
+            {liveOpen ? (
+              <div ref={liveRef} className="rounded-nv-md overflow-hidden bg-black border border-nv-teal/20">
+                <iframe src={selDev.control_url} title="Live control"
+                  allow="fullscreen; clipboard-read; clipboard-write; autoplay"
+                  allowFullScreen
+                  className="w-full h-[70vh] border-0 bg-black" />
+              </div>
+            ) : (
+              <button onClick={() => setLiveOpen(true)} disabled={!online}
+                className="w-full flex flex-col items-center gap-2 py-10 rounded-nv-md nv-glass border border-nv-teal/15 text-nv-text-secondary hover:border-nv-teal/45 hover:text-nv-text-primary transition-all disabled:opacity-40">
+                <MonitorSmartphone size={24} className="text-nv-teal" />
+                <span className="text-[13px] font-medium">Open live control</span>
+                <span className="text-[11px] text-nv-text-muted">
+                  Direct peer-to-peer stream — starts the session only when you open it
+                </span>
+              </button>
+            )}
+          </Panel>
+        )}
 
         {sel && (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
