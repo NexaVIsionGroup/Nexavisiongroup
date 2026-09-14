@@ -16,6 +16,9 @@ type Device = {
   rustdesk_id?: string;  // registry-held: RustDesk stores its ID encrypted, so it can't be read live
   rustdesk_pw?: string;
   control_url?: string;  // ScrcpyOverWebRTC live control — PUBLIC url, WebRTC media is peer-to-peer
+  terminal_url?: string; // rack only: browser PTY (ttyd) with cyden/listc preloaded
+  local?: boolean;       // runs ON the rack — no SSH hop, no tailnet
+  commands?: Catalog;    // per-device catalogue; phone commands must not appear on the rack
 };
 type CatalogCmd = { id: string; label: string; arg: boolean; argHint: string };
 type Catalog = Record<string, CatalogCmd[]>;
@@ -53,6 +56,7 @@ const CAT_META: Record<string, { label: string; icon: React.ElementType; tone: s
   integrity: { label: "Integrity", icon: ShieldCheck, tone: "text-nv-success" },
   beacon: { label: "Beacon", icon: Radio, tone: "text-nv-ember" },
   info: { label: "Info", icon: Terminal, tone: "text-nv-info" },
+  services: { label: "Services", icon: Server, tone: "text-nv-violet" },
 };
 
 export default function DevicesPage() {
@@ -282,6 +286,10 @@ export default function DevicesPage() {
   const online = !!stats?.online;
   const selDev = devices.find((d) => d.id === sel);
   const pifDays = daysUntil(stats?.pif_expiry);
+  // The rack is a machine, not a phone: no battery, cellular, RustDesk or screen capture.
+  const isRack = !!selDev?.local;
+  // Per-device catalogue, falling back to the legacy top-level one during a rollout.
+  const activeCatalog: Catalog = selDev?.commands ?? catalog;
 
   return (
     <AppShell title="Phone Command Center">
@@ -330,6 +338,49 @@ export default function DevicesPage() {
         {/* Live control (ScrcpyOverWebRTC). Deliberately lazy: the iframe — and therefore the
             WebRTC session and the phone's encoder — only start when you click Open, so an idle
             dashboard costs the device nothing. Media is peer-to-peer, so it never crosses the rack. */}
+        {/* Rack terminal — a real PTY (ttyd) with cyden/cyden2/listc preloaded, attaching the
+            same WSL2 tmux sessions as the desktop PowerShell functions. Lazy like Live Control.
+            Basic-auth prompts inside the iframe; "New tab" avoids that if the browser is fussy. */}
+        {sel && selDev?.terminal_url && (
+          <Panel title="Terminal" icon={Terminal}
+            right={
+              <div className="flex items-center gap-3 text-[12px]">
+                {liveOpen && (
+                  <button onClick={() => liveRef.current?.requestFullscreen?.()}
+                    className="flex items-center gap-1 text-nv-teal hover:opacity-80">
+                    <Maximize size={13} /> Fullscreen
+                  </button>
+                )}
+                <a href={selDev.terminal_url} target="_blank" rel="noopener noreferrer"
+                  className="flex items-center gap-1 text-nv-text-muted hover:text-nv-teal">
+                  New tab <ExternalLink size={12} />
+                </a>
+                {liveOpen && (
+                  <button onClick={() => setLiveOpen(false)}
+                    className="text-nv-text-muted hover:text-nv-error">Close</button>
+                )}
+              </div>
+            }>
+            {liveOpen ? (
+              <div ref={liveRef} className="rounded-nv-md overflow-hidden bg-black border border-nv-teal/20">
+                <iframe src={selDev.terminal_url} title="Rack terminal"
+                  allow="fullscreen; clipboard-read; clipboard-write"
+                  allowFullScreen
+                  className="w-full h-[70vh] border-0 bg-black" />
+              </div>
+            ) : (
+              <button onClick={() => setLiveOpen(true)} disabled={!online}
+                className="w-full flex flex-col items-center gap-2 py-10 rounded-nv-md nv-glass border border-nv-teal/15 text-nv-text-secondary hover:border-nv-teal/45 hover:text-nv-text-primary transition-all disabled:opacity-40">
+                <Terminal size={24} className="text-nv-teal" />
+                <span className="text-[13px] font-medium">Open terminal</span>
+                <span className="text-[11px] text-nv-text-muted">
+                  Root shell on the rack — <code>cyden</code>, <code>cyden2</code> and <code>listc</code> are ready
+                </span>
+              </button>
+            )}
+          </Panel>
+        )}
+
         {sel && selDev?.control_url && (
           <Panel title="Live Control" icon={MonitorSmartphone}
             right={
@@ -376,13 +427,32 @@ export default function DevicesPage() {
             <div className="lg:col-span-2 space-y-4">
               {/* hero stat tiles */}
               <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-                <BatteryTile stats={stats} />
-                <CpuTile stats={stats} />
-                <Tile icon={Thermometer} label="Temp" value={stats?.temp != null ? `${stats.temp}°C` : "—"}
-                  tone={Number(stats?.temp) > 42 ? "text-nv-error" : "text-nv-text-primary"} />
-                <Tile icon={ShieldCheck} label="Integrity"
-                  value={verdictShort(stats?.integrity)} tone={verdictTone(stats?.integrity)} />
-                <Tile icon={Clock} label="Uptime" value={fmtUptime(stats?.uptime)} tone="text-nv-text-primary" />
+                {isRack ? (
+                  <>
+                    <Tile icon={Cpu} label="Load (1m)" value={String(stats?.load1 ?? "—")}
+                      tone={Number(stats?.load1) > Number(stats?.cpus || 99) ? "text-nv-error" : "text-nv-text-primary"} />
+                    <Tile icon={Server} label="Memory"
+                      value={stats?.mem_pct != null ? `${stats.mem_pct}%` : "—"}
+                      tone={Number(stats?.mem_pct) > 90 ? "text-nv-error" : Number(stats?.mem_pct) > 75 ? "text-nv-warning" : "text-nv-text-primary"} />
+                    <Tile icon={Server} label="Disk C:"
+                      value={stats?.disk_c_pct != null ? `${stats.disk_c_pct}%` : "—"}
+                      tone={Number(stats?.disk_c_pct) > 90 ? "text-nv-error" : Number(stats?.disk_c_pct) > 80 ? "text-nv-warning" : "text-nv-text-primary"} />
+                    <Tile icon={Server} label="Free C:"
+                      value={stats?.disk_c_free_gb != null ? `${stats.disk_c_free_gb} GB` : "—"}
+                      tone="text-nv-text-primary" />
+                    <Tile icon={Clock} label="Uptime" value={fmtUptime(stats?.uptime)} tone="text-nv-text-primary" />
+                  </>
+                ) : (
+                  <>
+                    <BatteryTile stats={stats} />
+                    <CpuTile stats={stats} />
+                    <Tile icon={Thermometer} label="Temp" value={stats?.temp != null ? `${stats.temp}°C` : "—"}
+                      tone={Number(stats?.temp) > 42 ? "text-nv-error" : "text-nv-text-primary"} />
+                    <Tile icon={ShieldCheck} label="Integrity"
+                      value={verdictShort(stats?.integrity)} tone={verdictTone(stats?.integrity)} />
+                    <Tile icon={Clock} label="Uptime" value={fmtUptime(stats?.uptime)} tone="text-nv-text-primary" />
+                  </>
+                )}
               </div>
 
               {/* charge health: "plugged in" != "actually charging". A negative current on an
@@ -400,7 +470,8 @@ export default function DevicesPage() {
                 </div>
               )}
 
-              {/* signal panel */}
+              {/* signal panel — phones only; a rack has no radio */}
+              {!isRack && (
               <Panel title="Cellular" icon={Signal}>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-x-4 gap-y-3">
                   <KV label="Operator" value={String(stats?.op || (stats?.sim === "ABSENT" ? "No SIM" : "—"))} />
@@ -413,8 +484,35 @@ export default function DevicesPage() {
                   <KV label="ADB-TCP" value={stats?.adbtcp ? `:${stats.adbtcp}` : "off"} />
                 </div>
               </Panel>
+              )}
 
               {/* services health */}
+              {isRack ? (
+              <Panel title="Rack Services" icon={Server}>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-2.5">
+                  <Health label="NEXA AI :8787" ok={Number(stats?.nexa_up) > 0}
+                    detail={Number(stats?.nexa_up) > 0 ? "answering" : "down"} icon={Server} />
+                  <Health label="Cloudflare tunnel" ok={Number(stats?.cloudflared) > 0}
+                    detail={Number(stats?.cloudflared) > 0 ? "running" : "down"} icon={Wifi} />
+                  <Health label="phonectl :8790" ok={Number(stats?.phonectl_up) > 0}
+                    detail={Number(stats?.phonectl_up) > 0 ? "answering" : "down"} icon={Server} />
+                  <Health label="Cloud Phone :8443" ok={Number(stats?.cloudphone_up) > 0}
+                    detail={Number(stats?.cloudphone_up) > 0 ? "answering" : "down"} icon={MonitorSmartphone} />
+                  <Health label="Signalling" ok={Number(stats?.signaling) > 0}
+                    detail={Number(stats?.signaling) > 0 ? "running" : "down"} icon={Radio} />
+                  <Health label="Windows interop" ok={Number(stats?.win_interop) > 0}
+                    detail={Number(stats?.win_interop) > 0 ? "ok" : "unavailable"} icon={Cpu} />
+                </div>
+                <div className="flex flex-wrap gap-2 mt-3 pt-3 border-t border-nv-teal/10 text-[11.5px] text-nv-text-muted">
+                  <Chip>tmux server: {Number(stats?.tmux_server) ? "up" : "down"}</Chip>
+                  <Chip>tunnel: {Number(stats?.tmux_tunnel) ? "up" : "down"}</Chip>
+                  <Chip>phonectl: {Number(stats?.tmux_phonectl) ? "up" : "down"}</Chip>
+                  <Chip>cloudphone: {Number(stats?.tmux_cloudphone) ? "up" : "down"}</Chip>
+                  <Chip>CPUs: {String(stats?.cpus ?? "—")}</Chip>
+                  <Chip>RAM: {stats?.mem_used_mb}/{stats?.mem_total_mb} MB</Chip>
+                </div>
+              </Panel>
+              ) : (
               <Panel title="Services & Remote Access" icon={Server}>
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-2.5">
                   <Health label="Tailscale" ok={!!stats?.tun0} detail={String(stats?.tun0 || "down")} icon={Wifi} />
@@ -442,8 +540,10 @@ export default function DevicesPage() {
                   )}
                 </div>
               </Panel>
+              )}
 
-              {/* remote-access IDs */}
+              {/* remote-access IDs — phones only (RustDesk/TeamViewer/charge mean nothing on a rack) */}
+              {!isRack && (
               <Panel title="IDs & Remote Access" icon={KeyRound}>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-x-4 gap-y-3">
                   <KV label="RustDesk ID" value={selDev?.rustdesk_id || "—"} />
@@ -461,6 +561,7 @@ export default function DevicesPage() {
                   TeamViewer&apos;s is read live from the device.
                 </div>
               </Panel>
+              )}
 
               {/* free-form shell */}
               <Panel title="Shell" icon={Terminal}
@@ -522,7 +623,8 @@ export default function DevicesPage() {
 
             {/* RIGHT: screenshot + commands */}
             <div className="space-y-4">
-              {/* live screen */}
+              {/* live screen — phones only; a rack has no MediaProjection to capture */}
+              {!isRack && (
               <Panel title="Live Screen" icon={Camera}
                 right={
                   <div className="flex items-center gap-2">
@@ -575,9 +677,10 @@ export default function DevicesPage() {
                     : "Turn on Control to tap the screen by clicking it."}
                 </div>
               </Panel>
+              )}
 
               {/* commands */}
-              {Object.entries(catalog).map(([cat, cmds]) => {
+              {Object.entries(activeCatalog).map(([cat, cmds]) => {
                 const meta = CAT_META[cat] || { label: cat, icon: Zap, tone: "text-nv-teal" };
                 return (
                   <Panel key={cat} title={meta.label} icon={meta.icon} iconTone={meta.tone}>
