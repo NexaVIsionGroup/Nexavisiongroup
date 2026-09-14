@@ -227,6 +227,22 @@ export default function DevicesPage() {
     }
   };
 
+  // Opening live control wakes + unlocks the device first. The agent captures via
+  // MediaProjection, so a device with the screen off streams pure black — which looks like a
+  // broken player rather than a sleeping phone. These are unattended phones that sleep on a
+  // timer, so this would otherwise happen most times you connect.
+  const openLive = useCallback(async () => {
+    setLiveOpen(true);
+    if (!sel) return;
+    try {
+      await fetch(api(`/${sel}/cmd`), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ cmd: "unlock" }),
+      });
+    } catch { /* non-fatal: the stream may still be fine if it was already awake */ }
+  }, [sel]);
+
   // Translate a click on the scaled-down screenshot back into real device pixels.
   const onScreenClick = (e: React.MouseEvent<HTMLImageElement>) => {
     if (!control) return;
@@ -342,12 +358,12 @@ export default function DevicesPage() {
                   className="w-full h-[70vh] border-0 bg-black" />
               </div>
             ) : (
-              <button onClick={() => setLiveOpen(true)} disabled={!online}
+              <button onClick={openLive} disabled={!online}
                 className="w-full flex flex-col items-center gap-2 py-10 rounded-nv-md nv-glass border border-nv-teal/15 text-nv-text-secondary hover:border-nv-teal/45 hover:text-nv-text-primary transition-all disabled:opacity-40">
                 <MonitorSmartphone size={24} className="text-nv-teal" />
                 <span className="text-[13px] font-medium">Open live control</span>
                 <span className="text-[11px] text-nv-text-muted">
-                  Direct peer-to-peer stream — starts the session only when you open it
+                  Direct peer-to-peer stream — wakes the device and starts the session on open
                 </span>
               </button>
             )}
