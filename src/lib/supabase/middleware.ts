@@ -8,13 +8,6 @@ export async function updateSession(request: NextRequest) {
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
-      // Match client.ts: domain-wide cookie in production so the nexa-gate Worker
-      // on the term./phone. subdomains can see the session; unset elsewhere.
-      cookieOptions: {
-        domain: request.nextUrl.hostname.endsWith("nexavisiongroup.com")
-          ? ".nexavisiongroup.com"
-          : undefined,
-      },
       cookies: {
         getAll() {
           return request.cookies.getAll();
