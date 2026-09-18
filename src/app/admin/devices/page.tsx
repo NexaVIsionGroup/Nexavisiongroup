@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import AppShell from "@/components/admin/AppShell";
+import { RackTerminal } from "@/components/admin/RackTerminal";
 import {
   Smartphone, Loader2, RefreshCw, Battery, Thermometer, Signal, ShieldCheck,
   Wifi, Server, MonitorSmartphone, Radio, Cpu, Clock, Power, Lock, Eye,
@@ -363,10 +364,7 @@ export default function DevicesPage() {
             }>
             {liveOpen ? (
               <div ref={liveRef} className="rounded-nv-md overflow-hidden bg-black border border-nv-teal/20">
-                <iframe src={selDev.terminal_url} title="Rack terminal"
-                  allow="fullscreen; clipboard-read; clipboard-write"
-                  allowFullScreen
-                  className="w-full h-[70vh] border-0 bg-black" />
+                <RackTerminal url={selDev.terminal_url} />
               </div>
             ) : (
               <button onClick={() => setLiveOpen(true)} disabled={!online}
