@@ -2,34 +2,29 @@
 
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { Plus, X, Minimize2, Maximize } from "lucide-react";
+import { Plus, X, Minimize2, Maximize2 } from "lucide-react";
 
-// Tabbed rack terminal — Termux-style. Opens as a full-screen overlay so the tab
-// strip is pinned at the very top of the viewport and always tappable (on a phone
-// the terminal iframe captures all touch, so an inline tab bar buried in the page
-// can't be reached). Each tab is an independent ttyd connection (a fresh root shell
-// on the rack) — `listc` a different Claude session per tab. Tabs stay mounted when
-// you switch (visibility, not unmount) so their sessions + scrollback survive.
+// Tabbed rack terminal — Termux-style. Renders windowed (embedded in the device
+// page) by default, with a button to expand to a full-screen overlay and back.
+// Each tab is an independent ttyd connection (a fresh root shell on the rack) —
+// `listc` a different Claude session per tab. Tabs stay mounted when you switch
+// (visibility, not unmount) so their sessions + scrollback survive.
+//
+// Fullscreen renders through a portal to <body>: the admin page has framer-motion
+// ancestors with CSS transforms, and a transformed ancestor traps `position: fixed`
+// (anchors it to that box, not the viewport). The portal escapes the transform.
+// NOTE: toggling windowed<->fullscreen reparents the iframes, which reloads them
+// (the ttyd shell reconnects; the tmux/claude sessions survive — re-`listc`).
 const MAX_TABS = 6;
 
 export function RackTerminal({ url, onClose }: { url: string; onClose?: () => void }) {
   const [tabs, setTabs] = useState<number[]>([1]);
   const [active, setActive] = useState(1);
   const [next, setNext] = useState(2);
+  const [full, setFull] = useState(false);
   const [mounted, setMounted] = useState(false);
-  const rootRef = useRef<HTMLDivElement>(null);
 
-  // Render through a portal to <body>. The admin page has framer-motion ancestors
-  // with CSS transforms, which trap `position: fixed` — without the portal the
-  // "full-screen" overlay anchors to a small in-page box and the terminal collapses.
   useEffect(() => setMounted(true), []);
-
-  const toggleFullscreen = () => {
-    const el = rootRef.current;
-    if (!el) return;
-    if (document.fullscreenElement) document.exitFullscreen?.();
-    else el.requestFullscreen?.();
-  };
 
   const add = () => {
     if (tabs.length >= MAX_TABS) return;
@@ -46,15 +41,9 @@ export function RackTerminal({ url, onClose }: { url: string; onClose?: () => vo
     if (active === id) setActive(rest[Math.min(idx, rest.length - 1)]);
   };
 
-  if (!mounted) return null;
-
-  return createPortal(
-    <div
-      ref={rootRef}
-      className="fixed inset-0 z-[200] flex flex-col bg-black"
-      style={{ paddingTop: "env(safe-area-inset-top,0px)" }}
-    >
-      {/* Pinned tab strip — always at the top of the screen, above the terminals */}
+  const body = (
+    <>
+      {/* Tab strip */}
       <div className="flex items-stretch gap-1 bg-[#0a0a0a] border-b border-[#222] px-1.5 py-1.5 shrink-0">
         <div className="flex items-stretch gap-1 overflow-x-auto flex-1 min-w-0">
           {tabs.map((id, i) => (
@@ -91,11 +80,12 @@ export function RackTerminal({ url, onClose }: { url: string; onClose?: () => vo
           </button>
         </div>
         <button
-          onClick={toggleFullscreen}
-          aria-label="Toggle fullscreen"
+          onClick={() => setFull((f) => !f)}
+          aria-label={full ? "Windowed" : "Fullscreen"}
+          title={full ? "Windowed" : "Fullscreen"}
           className="flex items-center gap-1 rounded-md px-3 py-1.5 text-[13px] bg-[#161616] text-nv-teal hover:bg-[#1d2630] shrink-0 ml-1"
         >
-          <Maximize size={14} />
+          {full ? <Minimize2 size={14} /> : <Maximize2 size={14} />}
         </button>
         {onClose && (
           <button
@@ -103,7 +93,7 @@ export function RackTerminal({ url, onClose }: { url: string; onClose?: () => vo
             aria-label="Close terminal"
             className="flex items-center gap-1 rounded-md px-3 py-1.5 text-[13px] bg-[#161616] text-nv-text-secondary hover:text-nv-text-primary shrink-0 ml-1"
           >
-            <Minimize2 size={14} /> Done
+            Close
           </button>
         )}
       </div>
@@ -124,7 +114,27 @@ export function RackTerminal({ url, onClose }: { url: string; onClose?: () => vo
           />
         ))}
       </div>
-    </div>,
-    document.body
+    </>
+  );
+
+  // Fullscreen: portal to <body> so `position: fixed` escapes transformed ancestors.
+  if (full) {
+    if (!mounted) return null;
+    return createPortal(
+      <div
+        className="fixed inset-0 z-[200] flex flex-col bg-black"
+        style={{ paddingTop: "env(safe-area-inset-top,0px)" }}
+      >
+        {body}
+      </div>,
+      document.body
+    );
+  }
+
+  // Windowed: embedded in the page (not fixed, so no transform trap).
+  return (
+    <div className="flex flex-col h-[70vh] rounded-nv-md overflow-hidden bg-black border border-nv-teal/20">
+      {body}
+    </div>
   );
 }
