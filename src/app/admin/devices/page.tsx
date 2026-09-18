@@ -363,9 +363,7 @@ export default function DevicesPage() {
               </div>
             }>
             {liveOpen ? (
-              <div ref={liveRef} className="rounded-nv-md overflow-hidden bg-black border border-nv-teal/20">
-                <RackTerminal url={selDev.terminal_url} />
-              </div>
+              <RackTerminal url={selDev.terminal_url} onClose={() => setLiveOpen(false)} />
             ) : (
               <button onClick={() => setLiveOpen(true)} disabled={!online}
                 className="w-full flex flex-col items-center gap-2 py-10 rounded-nv-md nv-glass border border-nv-teal/15 text-nv-text-secondary hover:border-nv-teal/45 hover:text-nv-text-primary transition-all disabled:opacity-40">
