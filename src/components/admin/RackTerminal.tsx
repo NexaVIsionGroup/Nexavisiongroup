@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { Plus, X, Minimize2 } from "lucide-react";
+import { useRef, useState } from "react";
+import { Plus, X, Minimize2, Maximize } from "lucide-react";
 
 // Tabbed rack terminal — Termux-style. Opens as a full-screen overlay so the tab
 // strip is pinned at the very top of the viewport and always tappable (on a phone
@@ -15,6 +15,14 @@ export function RackTerminal({ url, onClose }: { url: string; onClose?: () => vo
   const [tabs, setTabs] = useState<number[]>([1]);
   const [active, setActive] = useState(1);
   const [next, setNext] = useState(2);
+  const rootRef = useRef<HTMLDivElement>(null);
+
+  const toggleFullscreen = () => {
+    const el = rootRef.current;
+    if (!el) return;
+    if (document.fullscreenElement) document.exitFullscreen?.();
+    else el.requestFullscreen?.();
+  };
 
   const add = () => {
     if (tabs.length >= MAX_TABS) return;
@@ -33,6 +41,7 @@ export function RackTerminal({ url, onClose }: { url: string; onClose?: () => vo
 
   return (
     <div
+      ref={rootRef}
       className="fixed inset-0 z-[200] flex flex-col bg-black"
       style={{ paddingTop: "env(safe-area-inset-top,0px)" }}
     >
@@ -72,6 +81,13 @@ export function RackTerminal({ url, onClose }: { url: string; onClose?: () => vo
             <Plus size={14} /> Tab
           </button>
         </div>
+        <button
+          onClick={toggleFullscreen}
+          aria-label="Toggle fullscreen"
+          className="flex items-center gap-1 rounded-md px-3 py-1.5 text-[13px] bg-[#161616] text-nv-teal hover:bg-[#1d2630] shrink-0 ml-1"
+        >
+          <Maximize size={14} />
+        </button>
         {onClose && (
           <button
             onClick={onClose}
