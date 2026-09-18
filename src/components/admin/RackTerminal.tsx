@@ -1,6 +1,7 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { Plus, X, Minimize2, Maximize } from "lucide-react";
 
 // Tabbed rack terminal — Termux-style. Opens as a full-screen overlay so the tab
@@ -15,7 +16,13 @@ export function RackTerminal({ url, onClose }: { url: string; onClose?: () => vo
   const [tabs, setTabs] = useState<number[]>([1]);
   const [active, setActive] = useState(1);
   const [next, setNext] = useState(2);
+  const [mounted, setMounted] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
+
+  // Render through a portal to <body>. The admin page has framer-motion ancestors
+  // with CSS transforms, which trap `position: fixed` — without the portal the
+  // "full-screen" overlay anchors to a small in-page box and the terminal collapses.
+  useEffect(() => setMounted(true), []);
 
   const toggleFullscreen = () => {
     const el = rootRef.current;
@@ -39,7 +46,9 @@ export function RackTerminal({ url, onClose }: { url: string; onClose?: () => vo
     if (active === id) setActive(rest[Math.min(idx, rest.length - 1)]);
   };
 
-  return (
+  if (!mounted) return null;
+
+  return createPortal(
     <div
       ref={rootRef}
       className="fixed inset-0 z-[200] flex flex-col bg-black"
@@ -115,6 +124,7 @@ export function RackTerminal({ url, onClose }: { url: string; onClose?: () => vo
           />
         ))}
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
