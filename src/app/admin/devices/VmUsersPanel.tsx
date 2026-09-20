@@ -7,7 +7,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-// Cloud Phone users. "New sign-up link" reserves a free slot, builds a factory-fresh phone in
+// Nexa Cloud users. "New sign-up link" reserves a free slot, builds a factory-fresh phone in
 // it, boots it, and copies a one-time link. The person opens it, picks a username + password,
 // and from then on signs in at nexavisiongroup.com/vm — the account decides which phone opens.
 
@@ -82,7 +82,7 @@ export default function VmUsersPanel() {
       <div className="flex flex-wrap items-center gap-3">
         <div>
           <h2 className="text-[15px] font-semibold text-nv-text-primary flex items-center gap-2">
-            <UserPlus size={17} className="text-nv-teal" /> Cloud Phone users
+            <UserPlus size={17} className="text-nv-teal" /> Nexa Cloud users
           </h2>
           <p className="text-[12px] text-nv-text-muted mt-0.5">
             People sign in at <span className="font-mono text-nv-text-secondary">nexavisiongroup.com/vm</span>. {free} of {phones.length || 3} phone slots free.

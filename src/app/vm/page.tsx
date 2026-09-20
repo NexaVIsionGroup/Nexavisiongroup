@@ -5,7 +5,7 @@ import VmClient from "./VmClient";
 
 // One door for every VM user: sign in here and the ACCOUNT decides which phone opens.
 export const dynamic = "force-dynamic";
-export const metadata: Metadata = { title: "Cloud Phone", robots: { index: false, follow: false } };
+export const metadata: Metadata = { title: "Nexa Cloud", robots: { index: false, follow: false } };
 
 export default async function VmPage() {
   const jar = await cookies();

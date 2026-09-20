@@ -2,10 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Loader2 } from "lucide-react";
-
-const INPUT =
-  "w-full px-3.5 py-3 bg-nv-void/60 border border-white/10 rounded-nv-md text-nv-text-primary " +
-  "placeholder:text-nv-text-muted text-base focus:outline-none focus:border-nv-teal/50";
+import CloudShell, { CLOUD_INPUT, CLOUD_LABEL } from "../../CloudShell";
 
 // Opened from a one-time link. invite -> create username + password (twice). reset -> new password (twice).
 export default function JoinClient({ token }: { token: string }) {
@@ -17,6 +14,7 @@ export default function JoinClient({ token }: { token: string }) {
   const [confirm, setConfirm] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const [unlocking, setUnlocking] = useState(false);
 
   useEffect(() => {
     fetch(`/api/vm/signup?token=${encodeURIComponent(token)}`, { cache: "no-store" })
@@ -38,58 +36,51 @@ export default function JoinClient({ token }: { token: string }) {
       method: "POST", headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ token, username, password, confirm }),
     });
-    if (r.ok) { window.location.href = "/vm"; return; }
+    if (r.ok) { setUnlocking(true); setTimeout(() => { window.location.href = "/vm"; }, 520); return; }
     const d = await r.json().catch(() => ({}));
     setError(d.error || "Could not save. Try again.");
     setBusy(false);
   }
 
+  const subtitle = dead ? "This link can't be used." : kind === "reset"
+    ? "Choose a new password for your phone."
+    : "A new phone is waiting. Create your login to claim it.";
+
   return (
-    <div className="min-h-screen flex items-center justify-center p-4">
-      <div className="w-full max-w-sm">
-        <div className="text-center mb-8">
-          <h1 className="font-display font-bold text-display-sm nv-gradient-text-teal">Cloud Phone</h1>
-          <p className="text-nv-text-muted text-sm mt-1 font-mono tracking-wider uppercase">
-            {kind === "reset" ? "Choose a new password" : "Create your login"}
-          </p>
-        </div>
-        <div className="nv-glass rounded-nv-xl p-6">
-          {dead ? (
-            <p className="text-nv-error text-sm text-center">{dead}</p>
-          ) : !kind ? (
-            <div className="flex justify-center py-6"><Loader2 className="animate-spin text-nv-teal" /></div>
-          ) : (
-            <form onSubmit={submit} className="space-y-4">
-              <div>
-                <label className="block text-nv-text-secondary text-sm font-medium mb-1.5">Username</label>
-                {kind === "invite" ? (
-                  <input className={INPUT} value={username} onChange={(e) => setUsername(e.target.value)}
-                    autoCapitalize="none" autoCorrect="off" autoComplete="username" placeholder="pick a username" required />
-                ) : (
-                  <input className={INPUT + " opacity-60"} value={fixedUser} readOnly />
-                )}
-              </div>
-              <div>
-                <label className="block text-nv-text-secondary text-sm font-medium mb-1.5">Password</label>
-                <input className={INPUT} type="password" value={password} onChange={(e) => setPassword(e.target.value)}
-                  autoComplete="new-password" placeholder="at least 8 characters" minLength={8} required />
-              </div>
-              <div>
-                <label className="block text-nv-text-secondary text-sm font-medium mb-1.5">Password again</label>
-                <input className={INPUT} type="password" value={confirm} onChange={(e) => setConfirm(e.target.value)}
-                  autoComplete="new-password" minLength={8} required />
-              </div>
-              {error && (
-                <div className="text-nv-error text-sm bg-nv-error/10 border border-nv-error/20 rounded-nv-md px-3 py-2">{error}</div>
-              )}
-              <button type="submit" disabled={busy}
-                className="w-full nv-btn-primary py-3 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2">
-                {busy ? <Loader2 size={18} className="animate-spin" /> : kind === "reset" ? "Save password" : "Create account"}
-              </button>
-            </form>
-          )}
-        </div>
-      </div>
-    </div>
+    <CloudShell subtitle={subtitle} unlocking={unlocking}>
+      {dead ? (
+        <div className="nc-error" role="alert">{dead}</div>
+      ) : !kind ? (
+        <div className="flex justify-center py-6"><Loader2 className="animate-spin text-white/70" /></div>
+      ) : (
+        <form onSubmit={submit} className="space-y-3.5">
+          <div>
+            <label className={CLOUD_LABEL} htmlFor="nc-user">Username</label>
+            {kind === "invite" ? (
+              <input id="nc-user" className={CLOUD_INPUT} value={username} onChange={(e) => setUsername(e.target.value)}
+                autoCapitalize="none" autoCorrect="off" spellCheck={false} autoComplete="username"
+                placeholder="Pick a username" required />
+            ) : (
+              <input id="nc-user" className={CLOUD_INPUT + " opacity-60"} value={fixedUser} readOnly />
+            )}
+          </div>
+          <div>
+            <label className={CLOUD_LABEL} htmlFor="nc-pass">Password</label>
+            <input id="nc-pass" className={CLOUD_INPUT} type="password" value={password}
+              onChange={(e) => setPassword(e.target.value)} autoComplete="new-password"
+              placeholder="At least 8 characters" minLength={8} required />
+          </div>
+          <div>
+            <label className={CLOUD_LABEL} htmlFor="nc-pass2">Password again</label>
+            <input id="nc-pass2" className={CLOUD_INPUT} type="password" value={confirm}
+              onChange={(e) => setConfirm(e.target.value)} autoComplete="new-password" minLength={8} required />
+          </div>
+          {error && <div className="nc-error" role="alert">{error}</div>}
+          <button type="submit" disabled={busy} className="nc-btn">
+            {busy ? <Loader2 size={18} className="animate-spin" /> : kind === "reset" ? "Save password" : "Create my login"}
+          </button>
+        </form>
+      )}
+    </CloudShell>
   );
 }
