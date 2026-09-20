@@ -10,6 +10,7 @@ import {
   Maximize, ExternalLink,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import VmUsersPanel from "./VmUsersPanel";
 
 type Device = {
   id: string; name: string; model: string;
@@ -335,6 +336,9 @@ export default function DevicesPage() {
             </button>
           </div>
         </div>
+
+        {/* Cloud Phone users: sign-up links, on/off, reset, reassign, delete */}
+        <VmUsersPanel />
 
         {/* Live control (ScrcpyOverWebRTC). Deliberately lazy: the iframe — and therefore the
             WebRTC session and the phone's encoder — only start when you click Open, so an idle
