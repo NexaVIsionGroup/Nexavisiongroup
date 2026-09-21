@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Loader2, LogOut, RefreshCw, Smartphone, Maximize, CreditCard, ArrowLeft, Clock } from "lucide-react";
-import CloudShell, { CLOUD_INPUT, CLOUD_LABEL } from "./CloudShell";
+import CloudShell, { CLOUD_INPUT, CLOUD_LABEL, BOOT_STAGES, type BootState } from "./CloudShell";
 
 type Props = {
   user: { username: string; hasPhone: boolean } | null;
@@ -49,6 +49,29 @@ export default function VmClient({ user, phoneUrl, trial, payUrl }: Props) {
   // wakes it: ask the backend to start it, then wait until it has booted before loading the stream.
   const [phoneState, setPhoneState] = useState<"checking" | "starting" | "ready" | "full" | "error">("checking");
   const live = !!user && !!phoneUrl && !trial?.expired;
+  // The boot animation is honest about one thing: it only completes when the phone really is up.
+  // Until then it eases toward 94% on a ~35 s curve (what a start takes), and the stages follow it.
+  const [boot, setBoot] = useState<BootState>({ progress: 0, stage: 0, done: false });
+  const [entered, setEntered] = useState(false);       // boot finished AND its exit animation played
+  useEffect(() => {
+    if (!live || entered) return;
+    if (phoneState === "ready") {                         // real signal: finish, flare, then enter
+      setBoot({ progress: 1, stage: BOOT_STAGES.length, done: true });
+      const t = setTimeout(() => setEntered(true), 1050);
+      return () => clearTimeout(t);
+    }
+    const t0 = Date.now();
+    const id = setInterval(() => {
+      const sec = (Date.now() - t0) / 1000;
+      const p = 0.94 * (1 - Math.exp(-sec / 15));         // 50% at ~11 s, 85% at ~35 s, never reaches 94%
+      setBoot((b) => ({
+        progress: Math.max(b.progress, p),
+        stage: Math.min(BOOT_STAGES.length - 1, Math.floor((Math.max(b.progress, p) / 0.94) * BOOT_STAGES.length * 0.98)),
+        done: false,
+      }));
+    }, 450);
+    return () => clearInterval(id);
+  }, [live, phoneState, entered]);
 
   useEffect(() => {
     if (!live) return;
@@ -124,16 +147,12 @@ export default function VmClient({ user, phoneUrl, trial, payUrl }: Props) {
   }
 
   // ---------- signed in, phone asleep or waking ----------
-  if (live && phoneState !== "ready") {
-    const waiting = phoneState === "checking" || phoneState === "starting";
+  if (live && !entered) {
+    const waiting = phoneState === "checking" || phoneState === "starting" || phoneState === "ready";
     return (
-      <CloudShell subtitle={waiting ? "Waking your phone. This takes about half a minute." : `Hi ${user!.username}.`}>
-        {waiting ? (
-          <div className="flex flex-col items-center gap-3 py-6 text-white/70">
-            <Loader2 size={30} className="animate-spin text-[#7CFFEA]" />
-            <span className="text-[14px]">{phoneState === "checking" ? "Checking your phone" : "Starting up"}</span>
-          </div>
-        ) : (
+      <CloudShell subtitle={waiting ? `Welcome back, ${user!.username}. Bringing your phone online.` : `Hi ${user!.username}.`}
+        boot={waiting ? boot : null}>
+        {waiting ? null : (
           <div className="nc-note">
             {phoneState === "full"
               ? "Every phone slot on the server is busy right now. This page keeps trying and will open your phone as soon as there is room."
