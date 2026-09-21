@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import {
   Link2, Copy, Check, Loader2, Power, Trash2, KeyRound, ExternalLink, RotateCcw,
-  UserPlus, RefreshCw, Shuffle, Pencil, Unlock, AlertTriangle, Clock, CalendarPlus, BadgeCheck,
+  UserPlus, RefreshCw, ChevronDown, Pencil, Unlock, AlertTriangle, Clock, CalendarPlus, BadgeCheck,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -48,6 +48,7 @@ export default function VmUsersPanel() {
   const [label, setLabel] = useState("");
   const [isTrial, setIsTrial] = useState(false);
   const [trialDays, setTrialDays] = useState("3");
+  const [more, setMore] = useState("");   // id of the user whose secondary actions are open
   const [lastLink, setLastLink] = useState<{ link: string; note: string; copied: boolean } | null>(null);
   const [msg, setMsg] = useState("");
 
@@ -173,67 +174,90 @@ export default function VmUsersPanel() {
                   {u.pending_link && <span className="text-[11.5px] text-nv-text-muted">{u.pending_link} link active</span>}
                   <span className="ml-auto text-[11.5px] text-nv-text-muted">last sign-in {ago(u.last_login_at)}</span>
                 </div>
+                {/* Everyday actions stay in view; the rest sits behind "More" so a user is one glanceable card. */}
                 <div className="flex flex-wrap gap-1.5">
                   {p && (
                     <a className={BTN} href={p.url} target="_blank" rel="noopener noreferrer" title="Open this phone as admin">
                       <ExternalLink size={13} className="text-nv-teal" /> Open phone
                     </a>
                   )}
-                  <button className={BTN} disabled={busy !== ""}
-                    onClick={async () => showLink(await act(`link-${u.id}`, { action: u.signed_up ? "reset_link" : "new_link", id: u.id }), u.signed_up ? "Password-reset link" : "New sign-up link")}>
-                    {busy === `link-${u.id}` ? <Loader2 size={13} className="animate-spin" /> : <KeyRound size={13} />}
-                    {u.signed_up ? "Password reset link" : "New sign-up link"}
-                  </button>
-                  <button className={BTN} disabled={busy !== ""} title={u.plan === "trial" ? "Add time to this trial (reactivates it if it ended)" : "Put this user on a timed trial"}
-                    onClick={() => { const v = window.prompt(u.plan === "trial" ? (u.trial_expired ? "Reactivate for how many days?" : "Add how many days?") : "Put on a trial of how many days (from now)?", "3"); if (v === null) return; act(`days-${u.id}`, u.plan === "trial" ? { action: "add_days", id: u.id, days: v } : { action: "set_plan", id: u.id, plan: "trial", days: v }); }}>
-                    {busy === `days-${u.id}` ? <Loader2 size={13} className="animate-spin" /> : <CalendarPlus size={13} className="text-nv-warning" />}
-                    {u.plan === "trial" ? (u.trial_expired ? "Reactivate" : "Add days") : "Set trial"}
-                  </button>
+                  {!u.signed_up && (
+                    <button className={BTN} disabled={busy !== ""}
+                      onClick={async () => showLink(await act(`link-${u.id}`, { action: "new_link", id: u.id }), "New sign-up link")}>
+                      {busy === `link-${u.id}` ? <Loader2 size={13} className="animate-spin" /> : <KeyRound size={13} />} New sign-up link
+                    </button>
+                  )}
                   {u.plan === "trial" && (
-                    <button className={BTN} disabled={busy !== ""} title="No expiry. This is what a paid invoice will do automatically later."
-                      onClick={() => act(`full-${u.id}`, { action: "set_plan", id: u.id, plan: "full" })}>
-                      {busy === `full-${u.id}` ? <Loader2 size={13} className="animate-spin" /> : <BadgeCheck size={13} className="text-nv-success" />} Make full access
+                    <button className={BTN} disabled={busy !== ""} title="Add time to this trial (reactivates it if it ended)"
+                      onClick={() => { const v = window.prompt(u.trial_expired ? "Reactivate for how many days?" : "Add how many days?", "3"); if (v === null) return; act(`days-${u.id}`, { action: "add_days", id: u.id, days: v }); }}>
+                      {busy === `days-${u.id}` ? <Loader2 size={13} className="animate-spin" /> : <CalendarPlus size={13} className="text-nv-warning" />}
+                      {u.trial_expired ? "Reactivate" : "Add days"}
                     </button>
-                  )}
-                  <button className={BTN} disabled={busy !== ""} onClick={() => act(`tog-${u.id}`, { action: "toggle", id: u.id, enabled: !u.enabled })}>
-                    {busy === `tog-${u.id}` ? <Loader2 size={13} className="animate-spin" /> : <Power size={13} className={u.enabled ? "text-nv-success" : "text-nv-error"} />}
-                    {u.enabled ? "Turn off" : "Turn on"}
-                  </button>
-                  {u.locked && (
-                    <button className={BTN} disabled={busy !== ""} onClick={() => act(`unl-${u.id}`, { action: "unlock", id: u.id })}>
-                      <Unlock size={13} /> Unlock
-                    </button>
-                  )}
-                  <button className={BTN} disabled={busy !== ""}
-                    onClick={() => { const v = window.prompt("Note for this user (who is it for?)", u.label); if (v !== null) act(`lab-${u.id}`, { action: "label", id: u.id, label: v }); }}>
-                    <Pencil size={13} /> Note
-                  </button>
-                  {(freeTargets.length > 0 || u.phone_id) && (
-                    <select disabled={busy !== ""} value="" title="Reassign"
-                      onChange={(e) => { const v = e.target.value; if (!v) return; if (window.confirm(v === "none" ? "Unassign this user from their phone? The phone keeps its data." : `Move this user to ${v}? Their current phone keeps its data but they will no longer see it.`)) act(`re-${u.id}`, { action: "reassign", id: u.id, phone_id: v === "none" ? "" : v }); }}
-                      className={cn(BTN, "bg-transparent pr-6")}>
-                      <option value="">Reassign…</option>
-                      {freeTargets.map((x) => <option key={x.id} value={x.id}>{x.label}</option>)}
-                      {u.phone_id && <option value="none">Unassign</option>}
-                    </select>
                   )}
                   {p && (
-                    <>
-                      <button className={BTN} disabled={busy !== ""} onClick={() => act(`pw-${u.id}`, { action: "power", phone: p.id, on: phoneState === "off" })}>
-                        {busy === `pw-${u.id}` ? <Loader2 size={13} className="animate-spin" /> : <Shuffle size={13} />}
-                        {phoneState === "off" ? "Start phone" : "Stop phone"}
+                    <button className={BTN} disabled={busy !== ""} onClick={() => act(`pw-${u.id}`, { action: "power", phone: p.id, on: phoneState === "off" })}>
+                      {busy === `pw-${u.id}` ? <Loader2 size={13} className="animate-spin" /> : <Power size={13} className={phoneState === "off" ? "text-nv-text-muted" : "text-nv-success"} />}
+                      {phoneState === "off" ? "Start phone" : "Stop phone"}
+                    </button>
+                  )}
+                  <button className={cn(BTN, "ml-auto", more === u.id && "border-nv-teal/45 text-nv-text-primary")} onClick={() => setMore(more === u.id ? "" : u.id)} aria-expanded={more === u.id}>
+                    More <ChevronDown size={13} className={cn("transition-transform", more === u.id && "rotate-180")} />
+                  </button>
+                </div>
+                {more === u.id && (
+                  <div className="flex flex-wrap gap-1.5 pt-2.5 border-t border-white/10">
+                    {u.signed_up && (
+                      <button className={BTN} disabled={busy !== ""}
+                        onClick={async () => showLink(await act(`link-${u.id}`, { action: "reset_link", id: u.id }), "Password-reset link")}>
+                        {busy === `link-${u.id}` ? <Loader2 size={13} className="animate-spin" /> : <KeyRound size={13} />} Password reset link
                       </button>
+                    )}
+                    {u.plan === "trial" ? (
+                      <button className={BTN} disabled={busy !== ""} title="No expiry. This is what a paid invoice will do automatically later."
+                        onClick={() => act(`full-${u.id}`, { action: "set_plan", id: u.id, plan: "full" })}>
+                        {busy === `full-${u.id}` ? <Loader2 size={13} className="animate-spin" /> : <BadgeCheck size={13} className="text-nv-success" />} Make full access
+                      </button>
+                    ) : (
+                      <button className={BTN} disabled={busy !== ""} title="Put this user on a timed trial"
+                        onClick={() => { const v = window.prompt("Put on a trial of how many days (from now)?", "3"); if (v === null) return; act(`days-${u.id}`, { action: "set_plan", id: u.id, plan: "trial", days: v }); }}>
+                        {busy === `days-${u.id}` ? <Loader2 size={13} className="animate-spin" /> : <CalendarPlus size={13} className="text-nv-warning" />} Set trial
+                      </button>
+                    )}
+                    <button className={BTN} disabled={busy !== ""} title="Blocks sign-in and stops the phone. Nothing is erased."
+                      onClick={() => act(`tog-${u.id}`, { action: "toggle", id: u.id, enabled: !u.enabled })}>
+                      {busy === `tog-${u.id}` ? <Loader2 size={13} className="animate-spin" /> : <Power size={13} className={u.enabled ? "text-nv-error" : "text-nv-success"} />}
+                      {u.enabled ? "Turn account off" : "Turn account on"}
+                    </button>
+                    {u.locked && (
+                      <button className={BTN} disabled={busy !== ""} onClick={() => act(`unl-${u.id}`, { action: "unlock", id: u.id })}>
+                        <Unlock size={13} /> Unlock
+                      </button>
+                    )}
+                    <button className={BTN} disabled={busy !== ""}
+                      onClick={() => { const v = window.prompt("Note for this user (who is it for?)", u.label); if (v !== null) act(`lab-${u.id}`, { action: "label", id: u.id, label: v }); }}>
+                      <Pencil size={13} /> Note
+                    </button>
+                    {(freeTargets.length > 0 || u.phone_id) && (
+                      <select disabled={busy !== ""} value="" title="Reassign"
+                        onChange={(e) => { const v = e.target.value; if (!v) return; if (window.confirm(v === "none" ? "Unassign this user from their phone? The phone keeps its data." : `Move this user to ${v}? Their current phone keeps its data but they will no longer see it.`)) act(`re-${u.id}`, { action: "reassign", id: u.id, phone_id: v === "none" ? "" : v }); }}
+                        className={cn(BTN, "bg-transparent pr-6")}>
+                        <option value="">Reassign…</option>
+                        {freeTargets.map((x) => <option key={x.id} value={x.id}>{x.label}</option>)}
+                        {u.phone_id && <option value="none">Unassign</option>}
+                      </select>
+                    )}
+                    {p && (
                       <button className={cn(BTN, "hover:border-nv-error/50")} disabled={busy !== ""}
                         onClick={() => { if (window.confirm(`Factory reset ${p.label}? Everything signed in on that phone is erased. The user account stays.`)) act(`wipe-${u.id}`, { action: "wipe", phone: p.id }); }}>
                         {busy === `wipe-${u.id}` ? <Loader2 size={13} className="animate-spin" /> : <RotateCcw size={13} className="text-nv-warning" />} Factory reset
                       </button>
-                    </>
-                  )}
-                  <button className={cn(BTN, "hover:border-nv-error/50 ml-auto")} disabled={busy !== ""}
-                    onClick={() => { if (window.confirm(`Delete ${u.username || "this pending user"}? Their phone is erased and the slot becomes free.`)) act(`del-${u.id}`, { action: "delete", id: u.id }); }}>
-                    {busy === `del-${u.id}` ? <Loader2 size={13} className="animate-spin" /> : <Trash2 size={13} className="text-nv-error" />} Delete
-                  </button>
-                </div>
+                    )}
+                    <button className={cn(BTN, "hover:border-nv-error/50 ml-auto")} disabled={busy !== ""}
+                      onClick={() => { if (window.confirm(`Delete ${u.username || "this pending user"}? Their phone is erased and the slot becomes free.`)) act(`del-${u.id}`, { action: "delete", id: u.id }); }}>
+                      {busy === `del-${u.id}` ? <Loader2 size={13} className="animate-spin" /> : <Trash2 size={13} className="text-nv-error" />} Delete
+                    </button>
+                  </div>
+                )}
               </div>
             );
           })}

@@ -7,7 +7,7 @@ import {
   Smartphone, Loader2, RefreshCw, Battery, Thermometer, Signal, ShieldCheck,
   Wifi, Server, MonitorSmartphone, Radio, Cpu, Clock, Power, Lock, Eye,
   Zap, Terminal, ChevronRight, AlertTriangle, CircleCheck, CircleX, Camera, KeyRound,
-  Maximize, ExternalLink,
+  Maximize, ExternalLink, Users, ChevronUp, ChevronDown,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import VmUsersPanel from "./VmUsersPanel";
@@ -25,6 +25,8 @@ type Device = {
 type CatalogCmd = { id: string; label: string; arg: boolean; argHint: string };
 type Catalog = Record<string, CatalogCmd[]>;
 type Stats = Record<string, string | number | boolean>;
+type Area = "devices" | "cloud";
+type WorkTab = "control" | "actions" | "status" | "shell";
 
 const api = (path: string) => `/api/admin/devices?path=${encodeURIComponent(path)}`;
 
@@ -83,6 +85,31 @@ export default function DevicesPage() {
   const [shellHist, setShellHist] = useState<string[]>([]);
   const [histIdx, setHistIdx] = useState(-1);   // -1 = editing a fresh line
   const [liveOpen, setLiveOpen] = useState(false);
+  const [area, setAreaState] = useState<Area>("devices");
+  const [tab, setTabState] = useState<WorkTab>("control");
+  const [logOpen, setLogOpen] = useState(false);
+  // The activity bar is position:fixed (sticky does not survive the app shell), so it tracks the
+  // content column's box: correct whether the sidebar is open, collapsed, or gone on a phone.
+  // callback ref: the column mounts late (after the auth guard), so an effect keyed on a plain ref would miss it
+  const [colEl, setColEl] = useState<HTMLDivElement | null>(null);
+  const [dock, setDock] = useState<{ left: number; width: number }>({ left: 0, width: 0 });
+  useEffect(() => {
+    const el = colEl; if (!el) return;
+    const measure = () => { const r = el.getBoundingClientRect(); setDock({ left: r.left, width: r.width }); };
+    measure();
+    const ro = new ResizeObserver(measure); ro.observe(el); ro.observe(document.body);
+    window.addEventListener("resize", measure);
+    return () => { ro.disconnect(); window.removeEventListener("resize", measure); };
+  }, [colEl]);
+  // remember where you were (per browser); a command failure pops the activity log open
+  useEffect(() => {
+    try {
+      const a = localStorage.getItem("pcc.area"); if (a === "devices" || a === "cloud") setAreaState(a);
+      const t = localStorage.getItem("pcc.tab"); if (t === "control" || t === "actions" || t === "status" || t === "shell") setTabState(t);
+    } catch {}
+  }, []);
+  const setArea = (a: Area) => { setAreaState(a); try { localStorage.setItem("pcc.area", a); } catch {} };
+  const setTab = (t: WorkTab) => { setTabState(t); try { localStorage.setItem("pcc.tab", t); } catch {} };
   const logRef = useRef<HTMLDivElement>(null);
   const liveRef = useRef<HTMLDivElement>(null);
 
@@ -282,8 +309,10 @@ export default function DevicesPage() {
     }
   };
 
-  const pushLog = (m: string, ok: boolean) =>
+  const pushLog = (m: string, ok: boolean) => {
     setLog((l) => [...l.slice(-80), { t: new Date().toLocaleTimeString(), m, ok }]);
+    if (!ok) setLogOpen(true);
+  };
 
   const online = !!stats?.online;
   const selDev = devices.find((d) => d.id === sel);
@@ -293,322 +322,427 @@ export default function DevicesPage() {
   // Per-device catalogue, falling back to the legacy top-level one during a rollout.
   const activeCatalog: Catalog = selDev?.commands ?? catalog;
 
+  // ---- layout state: what is on screen. Persisted so the page reopens where you left it. ----
+  // The page used to be one long column of permanently expanded panels. Now: two areas (the device
+  // fleet / Nexa Cloud users), always-visible vitals, and ONE workspace at a time per device.
+  const tabs: { id: WorkTab; label: string; icon: React.ElementType }[] = [
+    { id: "control", label: isRack ? "Terminal" : "Control", icon: isRack ? Terminal : MonitorSmartphone },
+    { id: "actions", label: "Actions", icon: Zap },
+    { id: "status", label: "Status", icon: Server },
+    { id: "shell", label: "Shell", icon: Terminal },
+  ];
+  const lastLog = log[log.length - 1];
+
   return (
     <AppShell title="Phone Command Center">
-      <div className="max-w-7xl mx-auto space-y-5">
-        {/* device selector row */}
-        <div className="flex flex-wrap items-center gap-2">
-          {loading ? (
-            <div className="flex items-center gap-2 text-nv-text-muted text-sm">
-              <Loader2 size={16} className="animate-spin text-nv-teal" /> Loading devices…
-            </div>
-          ) : devices.length === 0 ? (
-            <div className="text-nv-error text-sm flex items-center gap-2">
-              <AlertTriangle size={16} /> No devices registered.
-            </div>
-          ) : (
-            devices.map((d) => (
-              <button
-                key={d.id}
-                onClick={() => setSel(d.id)}
-                className={cn(
-                  "group flex items-center gap-2.5 rounded-nv-lg px-4 py-2.5 border transition-all",
-                  sel === d.id
-                    ? "nv-glass-elevated border-nv-teal/50 text-nv-text-primary shadow-nv-glow-sm"
-                    : "nv-glass border-nv-teal/10 text-nv-text-secondary hover:border-nv-teal/30"
-                )}
-              >
-                <Smartphone size={17} className={sel === d.id ? "text-nv-teal" : "text-nv-text-muted"} />
-                <div className="text-left leading-tight">
-                  <div className="text-[13.5px] font-semibold">{d.name}</div>
-                  <div className="text-[11px] text-nv-text-muted">{d.model}</div>
-                </div>
+      <div ref={setColEl} className="max-w-7xl mx-auto space-y-4 pb-16">
+        {/* area switch: the fleet, or the people who use the cloud phones */}
+        <div className="flex items-center gap-2">
+          <div className="inline-flex p-1 rounded-nv-lg nv-glass border border-nv-teal/10">
+            {([["devices", "Devices", Smartphone], ["cloud", "Nexa Cloud", Users]] as const).map(([id, label, Icon]) => (
+              <button key={id} onClick={() => setArea(id)}
+                className={cn("flex items-center gap-2 px-4 py-2 rounded-nv-md text-[13.5px] font-medium transition-all",
+                  area === id ? "bg-nv-teal/15 text-nv-text-primary shadow-nv-glow-sm" : "text-nv-text-muted hover:text-nv-text-primary")}>
+                <Icon size={16} className={area === id ? "text-nv-teal" : ""} /> {label}
               </button>
-            ))
-          )}
-          <div className="ml-auto flex items-center gap-2">
-            <StatusDot online={online} err={statsErr} />
-            <button
-              onClick={() => loadStats()}
-              className="flex items-center gap-1.5 rounded-nv-md px-3 py-2 nv-glass border border-nv-teal/15 text-[12.5px] text-nv-text-secondary hover:border-nv-teal/40 transition-all"
-            >
-              <RefreshCw size={13} className={cn("text-nv-teal", refreshing && "animate-spin")} /> Refresh
-            </button>
+            ))}
           </div>
+          {area === "devices" && (
+            <div className="ml-auto flex items-center gap-2">
+              <StatusDot online={online} err={statsErr} />
+              <button onClick={() => loadStats()} title="Refresh"
+                className="flex items-center gap-1.5 rounded-nv-md px-3 py-2 nv-glass border border-nv-teal/15 text-[12.5px] text-nv-text-secondary hover:border-nv-teal/40 transition-all">
+                <RefreshCw size={14} className={cn("text-nv-teal", refreshing && "animate-spin")} />
+                <span className="hidden sm:inline">Refresh</span>
+              </button>
+            </div>
+          )}
         </div>
 
-        {/* Cloud Phone users: sign-up links, on/off, reset, reassign, delete */}
-        <VmUsersPanel />
+        {area === "cloud" && <VmUsersPanel />}
 
-        {/* Live control (ScrcpyOverWebRTC). Deliberately lazy: the iframe — and therefore the
-            WebRTC session and the phone's encoder — only start when you click Open, so an idle
-            dashboard costs the device nothing. Media is peer-to-peer, so it never crosses the rack. */}
-        {/* Rack terminal — a real PTY (ttyd) with cyden/cyden2/listc preloaded, attaching the
-            same WSL2 tmux sessions as the desktop PowerShell functions. Lazy like Live Control.
-            Basic-auth prompts inside the iframe; "New tab" avoids that if the browser is fussy. */}
-        {sel && selDev?.terminal_url && (
-          <Panel title="Terminal" icon={Terminal}
-            right={
-              <div className="flex items-center gap-3 text-[12px]">
-                {liveOpen && (
-                  <button onClick={() => liveRef.current?.requestFullscreen?.()}
-                    className="flex items-center gap-1 text-nv-teal hover:opacity-80">
-                    <Maximize size={13} /> Fullscreen
-                  </button>
-                )}
-                <a href={selDev.terminal_url} target="_blank" rel="noopener noreferrer"
-                  className="flex items-center gap-1 text-nv-text-muted hover:text-nv-teal">
-                  New tab <ExternalLink size={12} />
-                </a>
-                {liveOpen && (
-                  <button onClick={() => setLiveOpen(false)}
-                    className="text-nv-text-muted hover:text-nv-error">Close</button>
-                )}
-              </div>
-            }>
-            {liveOpen ? (
-              <RackTerminal url={selDev.terminal_url} onClose={() => setLiveOpen(false)} />
-            ) : (
-              <button onClick={() => setLiveOpen(true)} disabled={!online}
-                className="w-full flex flex-col items-center gap-2 py-10 rounded-nv-md nv-glass border border-nv-teal/15 text-nv-text-secondary hover:border-nv-teal/45 hover:text-nv-text-primary transition-all disabled:opacity-40">
-                <Terminal size={24} className="text-nv-teal" />
-                <span className="text-[13px] font-medium">Open terminal</span>
-                <span className="text-[11px] text-nv-text-muted">
-                  Root shell on the rack — <code>cyden</code>, <code>cyden2</code> and <code>listc</code> are ready
-                </span>
-              </button>
-            )}
-          </Panel>
-        )}
-
-        {sel && selDev?.control_url && (
-          <Panel title="Live Control" icon={MonitorSmartphone}
-            right={
-              <div className="flex items-center gap-3 text-[12px]">
-                {liveOpen && (
-                  <button onClick={() => liveRef.current?.requestFullscreen?.()}
-                    className="flex items-center gap-1 text-nv-teal hover:opacity-80">
-                    <Maximize size={13} /> Fullscreen
-                  </button>
-                )}
-                <a href={selDev.control_url} target="_blank" rel="noopener noreferrer"
-                  className="flex items-center gap-1 text-nv-text-muted hover:text-nv-teal">
-                  New tab <ExternalLink size={12} />
-                </a>
-                {liveOpen && (
-                  <button onClick={() => setLiveOpen(false)}
-                    className="text-nv-text-muted hover:text-nv-error">Disconnect</button>
-                )}
-              </div>
-            }>
-            {liveOpen ? (
-              <div ref={liveRef} className="rounded-nv-md overflow-hidden bg-black border border-nv-teal/20">
-                <iframe src={selDev.control_url} title="Live control"
-                  allow="fullscreen; clipboard-read; clipboard-write; autoplay"
-                  allowFullScreen
-                  className="w-full h-[70vh] border-0 bg-black" />
-              </div>
-            ) : (
-              <button onClick={openLive} disabled={!online}
-                className="w-full flex flex-col items-center gap-2 py-10 rounded-nv-md nv-glass border border-nv-teal/15 text-nv-text-secondary hover:border-nv-teal/45 hover:text-nv-text-primary transition-all disabled:opacity-40">
-                <MonitorSmartphone size={24} className="text-nv-teal" />
-                <span className="text-[13px] font-medium">Open live control</span>
-                <span className="text-[11px] text-nv-text-muted">
-                  Direct peer-to-peer stream — wakes the device and starts the session on open
-                </span>
-              </button>
-            )}
-          </Panel>
-        )}
-
-        {sel && (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-            {/* LEFT: stats (2 cols) */}
-            <div className="lg:col-span-2 space-y-4">
-              {/* hero stat tiles */}
-              <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-                {isRack ? (
-                  <>
-                    <Tile icon={Cpu} label="Load (1m)" value={String(stats?.load1 ?? "—")}
-                      tone={Number(stats?.load1) > Number(stats?.cpus || 99) ? "text-nv-error" : "text-nv-text-primary"} />
-                    <Tile icon={Server} label="Memory"
-                      value={stats?.mem_pct != null ? `${stats.mem_pct}%` : "—"}
-                      tone={Number(stats?.mem_pct) > 90 ? "text-nv-error" : Number(stats?.mem_pct) > 75 ? "text-nv-warning" : "text-nv-text-primary"} />
-                    <Tile icon={Server} label="Disk C:"
-                      value={stats?.disk_c_pct != null ? `${stats.disk_c_pct}%` : "—"}
-                      tone={Number(stats?.disk_c_pct) > 90 ? "text-nv-error" : Number(stats?.disk_c_pct) > 80 ? "text-nv-warning" : "text-nv-text-primary"} />
-                    <Tile icon={Server} label="Free C:"
-                      value={stats?.disk_c_free_gb != null ? `${stats.disk_c_free_gb} GB` : "—"}
-                      tone="text-nv-text-primary" />
-                    <Tile icon={Clock} label="Uptime" value={fmtUptime(stats?.uptime)} tone="text-nv-text-primary" />
-                  </>
-                ) : (
-                  <>
-                    <BatteryTile stats={stats} />
-                    <CpuTile stats={stats} />
-                    <Tile icon={Thermometer} label="Temp" value={stats?.temp != null ? `${stats.temp}°C` : "—"}
-                      tone={Number(stats?.temp) > 42 ? "text-nv-error" : "text-nv-text-primary"} />
-                    <Tile icon={ShieldCheck} label="Integrity"
-                      value={verdictShort(stats?.integrity)} tone={verdictTone(stats?.integrity)} />
-                    <Tile icon={Clock} label="Uptime" value={fmtUptime(stats?.uptime)} tone="text-nv-text-primary" />
-                  </>
-                )}
-              </div>
-
-              {/* charge health: "plugged in" != "actually charging". A negative current on an
-                  underpowered port (e.g. 4.5W PC USB) drains the phone while it reads Charging. */}
-              {stats?.chg_state === "draining" && (
-                <div className="flex items-start gap-2.5 rounded-nv-md px-3.5 py-2.5 bg-nv-error/10 border border-nv-error/25">
-                  <AlertTriangle size={15} className="text-nv-error mt-0.5 shrink-0" />
-                  <div className="text-[12.5px] leading-snug">
-                    <span className="text-nv-error font-medium">Plugged in but draining.</span>{" "}
-                    <span className="text-nv-text-secondary">
-                      Input capped at {fmtWatts(stats?.in_mw)} ({String(stats?.usb_type || "USB")}) — less than the
-                      device is using{stats?.chg_now != null ? ` (${stats.chg_now} µA)` : ""}. Move to a higher-wattage charger.
-                    </span>
-                  </div>
+        {area === "devices" && (
+          <>
+            {/* device switcher: one scrolling row, never wraps into a wall of buttons */}
+            <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1">
+              {loading ? (
+                <div className="flex items-center gap-2 text-nv-text-muted text-sm py-2">
+                  <Loader2 size={16} className="animate-spin text-nv-teal" /> Loading devices…
                 </div>
-              )}
-
-              {/* signal panel — phones only; a rack has no radio */}
-              {!isRack && (
-              <Panel title="Cellular" icon={Signal}>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-x-4 gap-y-3">
-                  <KV label="Operator" value={String(stats?.op || (stats?.sim === "ABSENT" ? "No SIM" : "—"))} />
-                  <KV label="Network" value={String(stats?.rat || "—")} />
-                  <KV label="Band" value={stats?.band ? `B${stats.band}` : "—"} />
-                  <KV label="Signal" value={stats?.rsrp ? `${stats.rsrp} dBm` : "—"} sig={Number(stats?.rsrp)} />
-                  <KV label="EARFCN" value={String(stats?.earfcn || "—")} />
-                  <KV label="PCI" value={String(stats?.pci || "—")} />
-                  <KV label="SIM" value={String(stats?.sim || "—")} />
-                  <KV label="ADB-TCP" value={stats?.adbtcp ? `:${stats.adbtcp}` : "off"} />
+              ) : devices.length === 0 ? (
+                <div className="text-nv-error text-sm flex items-center gap-2 py-2">
+                  <AlertTriangle size={16} /> No devices registered.
                 </div>
-              </Panel>
-              )}
-
-              {/* services health */}
-              {isRack ? (
-              <Panel title="Rack Services" icon={Server}>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-2.5">
-                  <Health label="NEXA AI :8787" ok={Number(stats?.nexa_up) > 0}
-                    detail={Number(stats?.nexa_up) > 0 ? "answering" : "down"} icon={Server} />
-                  <Health label="Cloudflare tunnel" ok={Number(stats?.cloudflared) > 0}
-                    detail={Number(stats?.cloudflared) > 0 ? "running" : "down"} icon={Wifi} />
-                  <Health label="phonectl :8790" ok={Number(stats?.phonectl_up) > 0}
-                    detail={Number(stats?.phonectl_up) > 0 ? "answering" : "down"} icon={Server} />
-                  <Health label="Cloud Phone :8443" ok={Number(stats?.cloudphone_up) > 0}
-                    detail={Number(stats?.cloudphone_up) > 0 ? "answering" : "down"} icon={MonitorSmartphone} />
-                  <Health label="Signalling" ok={Number(stats?.signaling) > 0}
-                    detail={Number(stats?.signaling) > 0 ? "running" : "down"} icon={Radio} />
-                  <Health label="Windows interop" ok={Number(stats?.win_interop) > 0}
-                    detail={Number(stats?.win_interop) > 0 ? "ok" : "unavailable"} icon={Cpu} />
-                </div>
-                <div className="flex flex-wrap gap-2 mt-3 pt-3 border-t border-nv-teal/10 text-[11.5px] text-nv-text-muted">
-                  <Chip>tmux server: {Number(stats?.tmux_server) ? "up" : "down"}</Chip>
-                  <Chip>tunnel: {Number(stats?.tmux_tunnel) ? "up" : "down"}</Chip>
-                  <Chip>phonectl: {Number(stats?.tmux_phonectl) ? "up" : "down"}</Chip>
-                  <Chip>cloudphone: {Number(stats?.tmux_cloudphone) ? "up" : "down"}</Chip>
-                  <Chip>CPUs: {String(stats?.cpus ?? "—")}</Chip>
-                  <Chip>RAM: {stats?.mem_used_mb}/{stats?.mem_total_mb} MB</Chip>
-                </div>
-              </Panel>
               ) : (
-              <Panel title="Services & Remote Access" icon={Server}>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-2.5">
-                  <Health label="Tailscale" ok={!!stats?.tun0} detail={String(stats?.tun0 || "down")} icon={Wifi} />
-                  <Health label="SSH :8022" ok={Number(stats?.sshd) > 0} detail={Number(stats?.sshd) > 0 ? "listening" : "down"} icon={Server} />
-                  {/* Status only — deliberately NOT a link. The tap-server listens on a TAILNET
-                      address, so clicking through just hangs on a blank page from any normal
-                      browser. Use the Live Control panel instead; it works from anywhere. */}
-                  <Health label="Tap-server" ok={Number(stats?.tap) > 0}
-                    detail={Number(stats?.tap) > 0 ? "up (internal)" : "down"}
-                    icon={MonitorSmartphone} />
-                  <Health label="RustDesk" ok={Number(stats?.rustdesk) > 0} detail={Number(stats?.rustdesk) > 0 ? "capturing" : "idle"} icon={Camera} />
-                  <Health label="Watchdog" ok={Number(stats?.watchdog) > 0} detail={Number(stats?.watchdog) > 0 ? "running" : "down"} icon={Eye} />
-                  <Health label="Root" ok={Number(stats?.root_uid) === 0} detail={Number(stats?.root_uid) === 0 ? `Magisk · ${stats?.modules}mods` : "no root"} icon={Cpu} />
-                </div>
-                <div className="flex flex-wrap gap-2 mt-3 pt-3 border-t border-nv-teal/10 text-[11.5px] text-nv-text-muted">
-                  <Chip>Screen: {String(stats?.screen || "—")}</Chip>
-                  <Chip>Beacon: {String(stats?.beacon || "—")}</Chip>
-                  <Chip>Lockdown: {Number(stats?.lockdown) ? "ON" : "off"}</Chip>
-                  <Chip>Power-alarm: {Number(stats?.poweralarm) ? "armed" : "none"}</Chip>
-                  {stats?.pif_expiry && (
-                    <Chip tone={pifDays == null ? undefined : pifDays <= 0 ? "error" : pifDays <= 7 ? "warning" : undefined}>
-                      Integrity print: {String(stats.pif_expiry)}
-                      {pifDays != null && (pifDays <= 0 ? " · EXPIRED — re-run action.sh" : ` · ${pifDays}d left`)}
-                    </Chip>
+                devices.map((d) => (
+                  <button key={d.id} onClick={() => setSel(d.id)}
+                    className={cn("shrink-0 flex items-center gap-2.5 rounded-nv-lg px-3.5 py-2 border transition-all",
+                      sel === d.id
+                        ? "nv-glass-elevated border-nv-teal/50 text-nv-text-primary shadow-nv-glow-sm"
+                        : "nv-glass border-nv-teal/10 text-nv-text-secondary hover:border-nv-teal/30")}>
+                    {d.local ? <Server size={16} className={sel === d.id ? "text-nv-teal" : "text-nv-text-muted"} />
+                      : <Smartphone size={16} className={sel === d.id ? "text-nv-teal" : "text-nv-text-muted"} />}
+                    <div className="text-left leading-tight">
+                      <div className="text-[13px] font-semibold whitespace-nowrap">{d.name}</div>
+                      <div className="text-[10.5px] text-nv-text-muted whitespace-nowrap">{d.model}</div>
+                    </div>
+                  </button>
+                ))
+              )}
+            </div>
+
+            {sel && (
+              <>
+                {/* vitals: always visible, whatever workspace is open */}
+                <div className="grid grid-cols-3 sm:grid-cols-5 gap-2.5">
+                  {isRack ? (
+                    <>
+                      <Tile icon={Cpu} label="Load (1m)" value={String(stats?.load1 ?? "—")}
+                        tone={Number(stats?.load1) > Number(stats?.cpus || 99) ? "text-nv-error" : "text-nv-text-primary"} />
+                      <Tile icon={Server} label="Memory"
+                        value={stats?.mem_pct != null ? `${stats.mem_pct}%` : "—"}
+                        tone={Number(stats?.mem_pct) > 90 ? "text-nv-error" : Number(stats?.mem_pct) > 75 ? "text-nv-warning" : "text-nv-text-primary"} />
+                      <Tile icon={Server} label="Disk C:"
+                        value={stats?.disk_c_pct != null ? `${stats.disk_c_pct}%` : "—"}
+                        tone={Number(stats?.disk_c_pct) > 90 ? "text-nv-error" : Number(stats?.disk_c_pct) > 80 ? "text-nv-warning" : "text-nv-text-primary"} />
+                      <Tile icon={Server} label="Free C:"
+                        value={stats?.disk_c_free_gb != null ? `${stats.disk_c_free_gb} GB` : "—"} tone="text-nv-text-primary" />
+                      <Tile icon={Clock} label="Uptime" value={fmtUptime(stats?.uptime)} tone="text-nv-text-primary" />
+                    </>
+                  ) : (
+                    <>
+                      <BatteryTile stats={stats} />
+                      <CpuTile stats={stats} />
+                      <Tile icon={Thermometer} label="Temp" value={stats?.temp != null ? `${stats.temp}°C` : "—"}
+                        tone={Number(stats?.temp) > 42 ? "text-nv-error" : "text-nv-text-primary"} />
+                      <Tile icon={ShieldCheck} label="Integrity"
+                        value={verdictShort(stats?.integrity)} tone={verdictTone(stats?.integrity)} />
+                      <Tile icon={Clock} label="Uptime" value={fmtUptime(stats?.uptime)} tone="text-nv-text-primary" />
+                    </>
                   )}
                 </div>
-              </Panel>
-              )}
 
-              {/* remote-access IDs — phones only (RustDesk/TeamViewer/charge mean nothing on a rack) */}
-              {!isRack && (
-              <Panel title="IDs & Remote Access" icon={KeyRound}>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-x-4 gap-y-3">
-                  <KV label="RustDesk ID" value={selDev?.rustdesk_id || "—"} />
-                  <KV label="RustDesk pw" value={selDev?.rustdesk_pw || "—"} />
-                  <KV label="TeamViewer ID" value={fmtTvId(stats?.tv_id)} />
-                  <KV label="TV assigned" value={Number(stats?.tv_assigned) ? "yes" : "no"} />
-                  <KV label="Tailnet IP" value={String(stats?.tun0 || "—")} />
-                  <KV label="Load (1m)" value={String(stats?.load1 || "—")} />
-                  <KV label="Charge in" value={fmtWatts(stats?.in_mw)} />
-                  <KV label="Charge state" value={String(stats?.chg_state || "—")} />
-                </div>
-                <div className="mt-3 pt-3 border-t border-nv-teal/10 text-[11px] text-nv-text-muted leading-snug">
-                  RustDesk&apos;s ID is stored encrypted on the device, so it is held in the backend registry —
-                  update it there if RustDesk is ever reinstalled (a reinstall mints a new ID).
-                  TeamViewer&apos;s is read live from the device.
-                </div>
-              </Panel>
-              )}
+                {/* "plugged in" != "actually charging": an underpowered port drains while it reads Charging */}
+                {stats?.chg_state === "draining" && (
+                  <div className="flex items-start gap-2.5 rounded-nv-md px-3.5 py-2.5 bg-nv-error/10 border border-nv-error/25">
+                    <AlertTriangle size={15} className="text-nv-error mt-0.5 shrink-0" />
+                    <div className="text-[12.5px] leading-snug">
+                      <span className="text-nv-error font-medium">Plugged in but draining.</span>{" "}
+                      <span className="text-nv-text-secondary">
+                        Input capped at {fmtWatts(stats?.in_mw)} ({String(stats?.usb_type || "USB")}) — less than the
+                        device is using{stats?.chg_now != null ? ` (${stats.chg_now} µA)` : ""}. Move to a higher-wattage charger.
+                      </span>
+                    </div>
+                  </div>
+                )}
 
-              {/* free-form shell */}
-              <Panel title="Shell" icon={Terminal}
-                right={shellOut ? (
-                  <button onClick={() => setShellOut("")}
-                    className="text-[11.5px] text-nv-text-muted hover:text-nv-teal">clear</button>
-                ) : undefined}>
-                <div className="flex flex-wrap gap-1.5 mb-2.5">
-                  {SNIPPETS.map((s) => (
-                    <button key={s.label} onClick={() => runShell(s.cmd)} disabled={!online || shellBusy}
-                      className="rounded-nv-sm px-2 py-1 text-[11px] nv-glass border border-nv-teal/15 text-nv-text-secondary hover:border-nv-teal/45 hover:text-nv-text-primary transition-all disabled:opacity-40">
-                      {s.label}
+                {/* workspace tabs */}
+                <div className="flex gap-1 overflow-x-auto border-b border-nv-teal/10">
+                  {tabs.map((t) => (
+                    <button key={t.id} onClick={() => setTab(t.id)}
+                      className={cn("shrink-0 flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-4 py-2.5 text-[13px] sm:text-[13.5px] font-medium border-b-2 -mb-px transition-colors",
+                        tab === t.id ? "border-nv-teal text-nv-text-primary" : "border-transparent text-nv-text-muted hover:text-nv-text-primary")}>
+                      <t.icon size={15} className={tab === t.id ? "text-nv-teal" : ""} /> {t.label}
                     </button>
                   ))}
                 </div>
-                {shellOut && (
-                  <pre className="h-48 overflow-auto rounded-nv-sm bg-nv-void/70 border border-nv-teal/10 p-2.5 font-mono text-[11.5px] text-nv-text-secondary whitespace-pre-wrap break-all mb-2.5">
-                    {shellOut}
-                  </pre>
-                )}
-                <div className="flex items-center gap-2">
-                  <span className="font-mono text-[13px] text-nv-teal select-none">#</span>
-                  <input
-                    value={shellCmd}
-                    onChange={(e) => setShellCmd(e.target.value)}
-                    onKeyDown={onShellKey}
-                    disabled={!online || shellBusy}
-                    spellCheck={false}
-                    placeholder="run as root on the device — ↑/↓ for history"
-                    className="flex-1 rounded-nv-sm bg-nv-void/60 border border-nv-teal/15 px-2.5 py-2 font-mono text-[12px] text-nv-text-primary placeholder:text-nv-text-muted focus:border-nv-teal/50 outline-none disabled:opacity-40"
-                  />
-                  <button onClick={() => runShell()} disabled={!online || shellBusy || !shellCmd.trim()}
-                    className="rounded-nv-md px-3 py-2 text-[12.5px] nv-glass border border-nv-teal/20 text-nv-text-secondary hover:border-nv-teal/50 hover:text-nv-text-primary transition-all disabled:opacity-40">
-                    {shellBusy ? <Loader2 size={13} className="animate-spin" /> : "Run"}
-                  </button>
-                </div>
-                <div className="mt-2 text-[11px] text-nv-text-muted leading-snug">
-                  Runs as root. Commands that can&apos;t be undone remotely (factory reset, bootloader
-                  lock, raw partition writes) are refused; ones that could cut remote access ask first.
-                </div>
-              </Panel>
 
-              {/* command console */}
-              <Panel title="Command Log" icon={Terminal}>
-                <div ref={logRef} className="h-40 overflow-y-auto font-mono text-[12px] space-y-1 pr-1">
+                {/* ============ CONTROL ============ */}
+                {tab === "control" && (
+                  <div className="space-y-4">
+                    {/* Rack: a real PTY (ttyd) with cyden/cyden2/listc preloaded. Lazy like Live Control. */}
+                    {selDev?.terminal_url && (
+                      <Panel title="Terminal" icon={Terminal}
+                        right={
+                          <div className="flex items-center gap-3 text-[12px]">
+                            <a href={selDev.terminal_url} target="_blank" rel="noopener noreferrer"
+                              className="flex items-center gap-1 text-nv-text-muted hover:text-nv-teal">
+                              New tab <ExternalLink size={12} />
+                            </a>
+                            {liveOpen && (
+                              <button onClick={() => setLiveOpen(false)} className="text-nv-text-muted hover:text-nv-error">Close</button>
+                            )}
+                          </div>
+                        }>
+                        {liveOpen ? (
+                          <RackTerminal url={selDev.terminal_url} onClose={() => setLiveOpen(false)} />
+                        ) : (
+                          <button onClick={() => setLiveOpen(true)} disabled={!online}
+                            className="w-full flex flex-col items-center gap-2 py-10 rounded-nv-md nv-glass border border-nv-teal/15 text-nv-text-secondary hover:border-nv-teal/45 hover:text-nv-text-primary transition-all disabled:opacity-40">
+                            <Terminal size={24} className="text-nv-teal" />
+                            <span className="text-[13px] font-medium">Open terminal</span>
+                            <span className="text-[11px] text-nv-text-muted">
+                              Root shell on the rack — <code>cyden</code>, <code>cyden2</code> and <code>listc</code> are ready
+                            </span>
+                          </button>
+                        )}
+                      </Panel>
+                    )}
+
+                    <div className={cn("grid gap-4", selDev?.control_url && !isRack ? "lg:grid-cols-5" : "")}>
+                      {/* Live control (WebRTC, peer-to-peer). Lazy: the session and the phone's encoder only
+                          start when you open it, so an idle dashboard costs the device nothing. */}
+                      {selDev?.control_url && (
+                        <div className="lg:col-span-3">
+                          <Panel title="Live Control" icon={MonitorSmartphone}
+                            right={
+                              <div className="flex items-center gap-3 text-[12px]">
+                                {liveOpen && (
+                                  <button onClick={() => liveRef.current?.requestFullscreen?.()}
+                                    className="flex items-center gap-1 text-nv-teal hover:opacity-80">
+                                    <Maximize size={13} /> Fullscreen
+                                  </button>
+                                )}
+                                <a href={selDev.control_url} target="_blank" rel="noopener noreferrer"
+                                  className="flex items-center gap-1 text-nv-text-muted hover:text-nv-teal">
+                                  New tab <ExternalLink size={12} />
+                                </a>
+                                {liveOpen && (
+                                  <button onClick={() => setLiveOpen(false)} className="text-nv-text-muted hover:text-nv-error">Disconnect</button>
+                                )}
+                              </div>
+                            }>
+                            {liveOpen ? (
+                              <div ref={liveRef} className="rounded-nv-md overflow-hidden bg-black border border-nv-teal/20">
+                                <iframe src={selDev.control_url} title="Live control"
+                                  allow="fullscreen; clipboard-read; clipboard-write; autoplay" allowFullScreen
+                                  className="w-full h-[72vh] border-0 bg-black" />
+                              </div>
+                            ) : (
+                              <button onClick={openLive} disabled={!online}
+                                className="w-full flex flex-col items-center gap-2 py-12 rounded-nv-md nv-glass border border-nv-teal/15 text-nv-text-secondary hover:border-nv-teal/45 hover:text-nv-text-primary transition-all disabled:opacity-40">
+                                <MonitorSmartphone size={26} className="text-nv-teal" />
+                                <span className="text-[14px] font-medium">Open live control</span>
+                                <span className="text-[11.5px] text-nv-text-muted">
+                                  Direct peer-to-peer stream — wakes the device and starts the session on open
+                                </span>
+                              </button>
+                            )}
+                          </Panel>
+                        </div>
+                      )}
+
+                      {/* Screenshot + hardware keys: the low-bandwidth way to look and poke. Phones only. */}
+                      {!isRack && (
+                        <div className={selDev?.control_url ? "lg:col-span-2" : ""}>
+                          <Panel title="Screen" icon={Camera}
+                            right={
+                              <div className="flex items-center gap-2.5">
+                                <label className="flex items-center gap-1.5 text-[11.5px] text-nv-text-muted cursor-pointer">
+                                  <input type="checkbox" checked={autoShot} onChange={(e) => setAutoShot(e.target.checked)} className="accent-nv-teal" /> Auto
+                                </label>
+                                {/* off by default so a stray click on the screenshot can't poke the phone */}
+                                <label className={cn("flex items-center gap-1.5 text-[11.5px] cursor-pointer", control ? "text-nv-teal" : "text-nv-text-muted")}>
+                                  <input type="checkbox" checked={control} onChange={(e) => setControl(e.target.checked)} className="accent-nv-teal" /> Tap
+                                </label>
+                                <button onClick={grabShot} disabled={shotLoading} className="flex items-center gap-1 text-[12px] text-nv-teal hover:opacity-80">
+                                  <Camera size={13} className={shotLoading ? "animate-pulse" : ""} /> Capture
+                                </button>
+                              </div>
+                            }>
+                            <div className={cn("rounded-nv-md overflow-hidden bg-nv-void/60 border flex items-center justify-center min-h-[220px]",
+                              control ? "border-nv-teal/50" : "border-nv-teal/10")}>
+                              {shot ? (
+                                // eslint-disable-next-line @next/next/no-img-element
+                                <img src={shot} alt="device screen" onClick={onScreenClick}
+                                  className={cn("max-h-[52vh] w-auto object-contain", control && "cursor-crosshair")} />
+                              ) : (
+                                <button onClick={grabShot} className="flex flex-col items-center gap-2 text-nv-text-muted py-10 hover:text-nv-teal transition-colors">
+                                  {shotLoading ? <Loader2 size={22} className="animate-spin" /> : <Camera size={22} />}
+                                  <span className="text-[12px]">Capture the screen</span>
+                                </button>
+                              )}
+                            </div>
+                            <div className="grid grid-cols-3 sm:grid-cols-6 lg:grid-cols-3 gap-1.5 mt-3">
+                              {NAV_KEYS.map((k) => (
+                                <button key={k.code} onClick={() => sendInput("key", { code: k.code }, k.label)} disabled={!online || tapping}
+                                  className="rounded-nv-sm px-2 py-2 text-[12px] nv-glass border border-nv-teal/15 text-nv-text-secondary hover:border-nv-teal/45 hover:text-nv-text-primary transition-all disabled:opacity-40">
+                                  {k.label}
+                                </button>
+                              ))}
+                            </div>
+                            <div className="mt-2 text-[11px] text-nv-text-muted leading-snug">
+                              {control ? "Tap is ON — clicking the image taps that exact spot on the phone." : "Turn on Tap to press the screen by clicking the image."}
+                            </div>
+                          </Panel>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* ============ ACTIONS ============ */}
+                {tab === "actions" && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 items-start">
+                    {Object.entries(activeCatalog).map(([cat, cmds], idx) => {
+                      const meta = CAT_META[cat] || { label: cat, icon: Zap, tone: "text-nv-teal" };
+                      return (
+                        <Fold key={cat} id={`cat-${cat}`} title={meta.label} icon={meta.icon} iconTone={meta.tone}
+                          count={cmds.length} defaultOpen={idx < 3}>
+                          <div className="space-y-2">
+                            {cmds.map((c) => (
+                              <div key={c.id} className="flex items-center gap-2">
+                                {c.arg && (
+                                  <input value={argVals[c.id] || ""} placeholder={c.argHint || "arg"}
+                                    onChange={(e) => setArgVals((v) => ({ ...v, [c.id]: e.target.value }))}
+                                    className="w-20 shrink-0 rounded-nv-sm bg-nv-void/60 border border-nv-teal/15 px-2 py-2 text-[12px] text-nv-text-primary placeholder:text-nv-text-muted focus:border-nv-teal/50 outline-none" />
+                                )}
+                                <button onClick={() => runCmd(c)} disabled={busy === c.id || !online}
+                                  className={cn("flex-1 flex items-center justify-between gap-2 rounded-nv-md px-3 py-2.5 text-[13px] border transition-all disabled:opacity-40",
+                                    DANGER.has(c.id)
+                                      ? "nv-glass border-nv-error/20 text-nv-text-secondary hover:border-nv-error/50 hover:text-nv-error"
+                                      : "nv-glass border-nv-teal/15 text-nv-text-secondary hover:border-nv-teal/45 hover:text-nv-text-primary")}>
+                                  <span>{c.label.replace(" {arg}", "")}</span>
+                                  {busy === c.id ? <Loader2 size={13} className="animate-spin" /> : <ChevronRight size={14} className="opacity-50" />}
+                                </button>
+                              </div>
+                            ))}
+                          </div>
+                        </Fold>
+                      );
+                    })}
+                  </div>
+                )}
+
+                {/* ============ STATUS ============ */}
+                {tab === "status" && (
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 items-start">
+                    {isRack ? (
+                      <Fold id="st-rack" title="Rack services" icon={Server} defaultOpen>
+                        <div className="grid grid-cols-2 gap-2.5">
+                          <Health label="NEXA AI :8787" ok={Number(stats?.nexa_up) > 0} detail={Number(stats?.nexa_up) > 0 ? "answering" : "down"} icon={Server} />
+                          <Health label="Cloudflare tunnel" ok={Number(stats?.cloudflared) > 0} detail={Number(stats?.cloudflared) > 0 ? "running" : "down"} icon={Wifi} />
+                          <Health label="phonectl :8790" ok={Number(stats?.phonectl_up) > 0} detail={Number(stats?.phonectl_up) > 0 ? "answering" : "down"} icon={Server} />
+                          <Health label="Cloud Phone :8443" ok={Number(stats?.cloudphone_up) > 0} detail={Number(stats?.cloudphone_up) > 0 ? "answering" : "down"} icon={MonitorSmartphone} />
+                          <Health label="Signalling" ok={Number(stats?.signaling) > 0} detail={Number(stats?.signaling) > 0 ? "running" : "down"} icon={Radio} />
+                          <Health label="Windows interop" ok={Number(stats?.win_interop) > 0} detail={Number(stats?.win_interop) > 0 ? "ok" : "unavailable"} icon={Cpu} />
+                        </div>
+                        <div className="flex flex-wrap gap-2 mt-3 pt-3 border-t border-nv-teal/10 text-[11.5px] text-nv-text-muted">
+                          <Chip>tmux server: {Number(stats?.tmux_server) ? "up" : "down"}</Chip>
+                          <Chip>tunnel: {Number(stats?.tmux_tunnel) ? "up" : "down"}</Chip>
+                          <Chip>phonectl: {Number(stats?.tmux_phonectl) ? "up" : "down"}</Chip>
+                          <Chip>cloudphone: {Number(stats?.tmux_cloudphone) ? "up" : "down"}</Chip>
+                          <Chip>CPUs: {String(stats?.cpus ?? "—")}</Chip>
+                          <Chip>RAM: {stats?.mem_used_mb}/{stats?.mem_total_mb} MB</Chip>
+                        </div>
+                      </Fold>
+                    ) : (
+                      <>
+                        <Fold id="st-svc" title="Services & remote access" icon={Server} defaultOpen>
+                          <div className="grid grid-cols-2 gap-2.5">
+                            <Health label="Tailscale" ok={!!stats?.tun0} detail={String(stats?.tun0 || "down")} icon={Wifi} />
+                            <Health label="SSH :8022" ok={Number(stats?.sshd) > 0} detail={Number(stats?.sshd) > 0 ? "listening" : "down"} icon={Server} />
+                            {/* Status only — deliberately NOT a link: the tap-server is tailnet-only. */}
+                            <Health label="Tap-server" ok={Number(stats?.tap) > 0} detail={Number(stats?.tap) > 0 ? "up (internal)" : "down"} icon={MonitorSmartphone} />
+                            <Health label="RustDesk" ok={Number(stats?.rustdesk) > 0} detail={Number(stats?.rustdesk) > 0 ? "capturing" : "idle"} icon={Camera} />
+                            <Health label="Watchdog" ok={Number(stats?.watchdog) > 0} detail={Number(stats?.watchdog) > 0 ? "running" : "down"} icon={Eye} />
+                            <Health label="Root" ok={Number(stats?.root_uid) === 0} detail={Number(stats?.root_uid) === 0 ? `Magisk · ${stats?.modules}mods` : "no root"} icon={Cpu} />
+                          </div>
+                          <div className="flex flex-wrap gap-2 mt-3 pt-3 border-t border-nv-teal/10 text-[11.5px] text-nv-text-muted">
+                            <Chip>Screen: {String(stats?.screen || "—")}</Chip>
+                            <Chip>Beacon: {String(stats?.beacon || "—")}</Chip>
+                            <Chip>Lockdown: {Number(stats?.lockdown) ? "ON" : "off"}</Chip>
+                            <Chip>Power-alarm: {Number(stats?.poweralarm) ? "armed" : "none"}</Chip>
+                            {stats?.pif_expiry && (
+                              <Chip tone={pifDays == null ? undefined : pifDays <= 0 ? "error" : pifDays <= 7 ? "warning" : undefined}>
+                                Integrity print: {String(stats.pif_expiry)}
+                                {pifDays != null && (pifDays <= 0 ? " · EXPIRED — re-run action.sh" : ` · ${pifDays}d left`)}
+                              </Chip>
+                            )}
+                          </div>
+                        </Fold>
+                        <Fold id="st-cell" title="Cellular" icon={Signal} defaultOpen>
+                          <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-2 xl:grid-cols-4 gap-x-4 gap-y-3">
+                            <KV label="Operator" value={String(stats?.op || (stats?.sim === "ABSENT" ? "No SIM" : "—"))} />
+                            <KV label="Network" value={String(stats?.rat || "—")} />
+                            <KV label="Band" value={stats?.band ? `B${stats.band}` : "—"} />
+                            <KV label="Signal" value={stats?.rsrp ? `${stats.rsrp} dBm` : "—"} sig={Number(stats?.rsrp)} />
+                            <KV label="EARFCN" value={String(stats?.earfcn || "—")} />
+                            <KV label="PCI" value={String(stats?.pci || "—")} />
+                            <KV label="SIM" value={String(stats?.sim || "—")} />
+                            <KV label="ADB-TCP" value={stats?.adbtcp ? `:${stats.adbtcp}` : "off"} />
+                          </div>
+                        </Fold>
+                        <Fold id="st-ids" title="IDs & remote access" icon={KeyRound}>
+                          <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-2 xl:grid-cols-4 gap-x-4 gap-y-3">
+                            <KV label="RustDesk ID" value={selDev?.rustdesk_id || "—"} />
+                            <KV label="RustDesk pw" value={selDev?.rustdesk_pw || "—"} />
+                            <KV label="TeamViewer ID" value={fmtTvId(stats?.tv_id)} />
+                            <KV label="TV assigned" value={Number(stats?.tv_assigned) ? "yes" : "no"} />
+                            <KV label="Tailnet IP" value={String(stats?.tun0 || "—")} />
+                            <KV label="Load (1m)" value={String(stats?.load1 || "—")} />
+                            <KV label="Charge in" value={fmtWatts(stats?.in_mw)} />
+                            <KV label="Charge state" value={String(stats?.chg_state || "—")} />
+                          </div>
+                          <div className="mt-3 pt-3 border-t border-nv-teal/10 text-[11px] text-nv-text-muted leading-snug">
+                            RustDesk&apos;s ID is stored encrypted on the device, so it is held in the backend registry —
+                            update it there if RustDesk is ever reinstalled (a reinstall mints a new ID).
+                            TeamViewer&apos;s is read live from the device.
+                          </div>
+                        </Fold>
+                      </>
+                    )}
+                  </div>
+                )}
+
+                {/* ============ SHELL ============ */}
+                {tab === "shell" && (
+                  <Panel title="Shell" icon={Terminal}
+                    right={shellOut ? (
+                      <button onClick={() => setShellOut("")} className="text-[11.5px] text-nv-text-muted hover:text-nv-teal">clear</button>
+                    ) : undefined}>
+                    <div className="flex gap-1.5 mb-2.5 overflow-x-auto pb-1">
+                      {SNIPPETS.map((s) => (
+                        <button key={s.label} onClick={() => runShell(s.cmd)} disabled={!online || shellBusy}
+                          className="shrink-0 rounded-nv-sm px-2.5 py-1.5 text-[11.5px] nv-glass border border-nv-teal/15 text-nv-text-secondary hover:border-nv-teal/45 hover:text-nv-text-primary transition-all disabled:opacity-40">
+                          {s.label}
+                        </button>
+                      ))}
+                    </div>
+                    <pre className="h-[30vh] sm:h-[46vh] overflow-auto rounded-nv-sm bg-nv-void/70 border border-nv-teal/10 p-2.5 font-mono text-[11.5px] text-nv-text-secondary whitespace-pre-wrap break-all mb-2.5">
+                      {shellOut || "Output appears here. Pick a check above or type a command."}
+                    </pre>
+                    <div className="flex items-center gap-2">
+                      <span className="font-mono text-[13px] text-nv-teal select-none">#</span>
+                      <input value={shellCmd} onChange={(e) => setShellCmd(e.target.value)} onKeyDown={onShellKey}
+                        disabled={!online || shellBusy} spellCheck={false} autoCapitalize="none" autoCorrect="off"
+                        placeholder="run as root on the device — ↑/↓ for history"
+                        className="flex-1 min-w-0 rounded-nv-sm bg-nv-void/60 border border-nv-teal/15 px-2.5 py-2.5 font-mono text-[12.5px] text-nv-text-primary placeholder:text-nv-text-muted focus:border-nv-teal/50 outline-none disabled:opacity-40" />
+                      <button onClick={() => runShell()} disabled={!online || shellBusy || !shellCmd.trim()}
+                        className="rounded-nv-md px-4 py-2.5 text-[12.5px] nv-glass border border-nv-teal/20 text-nv-text-secondary hover:border-nv-teal/50 hover:text-nv-text-primary transition-all disabled:opacity-40">
+                        {shellBusy ? <Loader2 size={13} className="animate-spin" /> : "Run"}
+                      </button>
+                    </div>
+                    <div className="mt-2 text-[11px] text-nv-text-muted leading-snug">
+                      Runs as root. Commands that can&apos;t be undone remotely (factory reset, bootloader
+                      lock, raw partition writes) are refused; ones that could cut remote access ask first.
+                    </div>
+                  </Panel>
+                )}
+              </>
+            )}
+          </>
+        )}
+      </div>
+
+      {/* Activity: docked, so a command's result is visible from any workspace. Tap to expand. */}
+      {area === "devices" && dock.width > 0 && (
+        <div className="fixed bottom-14 lg:bottom-0 z-30" style={{ left: dock.left, width: dock.width }}>
+          <div>
+            <div className="rounded-t-nv-lg border border-b-0 border-nv-teal/20 bg-nv-deep/95 backdrop-blur shadow-[0_-8px_30px_-12px_rgba(0,0,0,.7)]">
+              <button onClick={() => setLogOpen((o) => !o)} className="w-full flex items-center gap-2.5 px-3.5 py-2.5 text-left">
+                <Terminal size={14} className="text-nv-teal shrink-0" />
+                <span className="text-[12px] font-medium text-nv-text-secondary shrink-0">Activity</span>
+                <span className={cn("flex-1 min-w-0 truncate font-mono text-[11.5px]", lastLog ? (lastLog.ok ? "text-nv-text-muted" : "text-nv-error") : "text-nv-text-muted")}>
+                  {lastLog ? `${lastLog.t}  ${lastLog.m}` : "No commands run yet"}
+                </span>
+                {log.length > 0 && <span className="text-[11px] text-nv-text-muted shrink-0">{log.length}</span>}
+                <ChevronUp size={15} className={cn("text-nv-text-muted shrink-0 transition-transform", logOpen && "rotate-180")} />
+              </button>
+              {logOpen && (
+                <div ref={logRef} className="h-52 overflow-y-auto font-mono text-[12px] space-y-1 px-3.5 pb-3 border-t border-nv-teal/10 pt-2">
                   {log.length === 0 ? (
-                    <div className="text-nv-text-muted">No commands run yet. Fire one from the right →</div>
+                    <div className="text-nv-text-muted">Run something from Actions and the result lands here.</div>
                   ) : (
                     log.map((e, i) => (
                       <div key={i} className={cn("flex gap-2", e.ok ? "text-nv-text-secondary" : "text-nv-error")}>
@@ -618,111 +752,37 @@ export default function DevicesPage() {
                     ))
                   )}
                 </div>
-              </Panel>
-            </div>
-
-            {/* RIGHT: screenshot + commands */}
-            <div className="space-y-4">
-              {/* live screen — phones only; a rack has no MediaProjection to capture */}
-              {!isRack && (
-              <Panel title="Live Screen" icon={Camera}
-                right={
-                  <div className="flex items-center gap-2">
-                    <label className="flex items-center gap-1.5 text-[11.5px] text-nv-text-muted cursor-pointer">
-                      <input type="checkbox" checked={autoShot} onChange={(e) => setAutoShot(e.target.checked)}
-                        className="accent-nv-teal" /> Auto
-                    </label>
-                    {/* off by default so a stray click on the screenshot can't poke the phone */}
-                    <label className={cn("flex items-center gap-1.5 text-[11.5px] cursor-pointer",
-                      control ? "text-nv-teal" : "text-nv-text-muted")}>
-                      <input type="checkbox" checked={control} onChange={(e) => setControl(e.target.checked)}
-                        className="accent-nv-teal" /> Control
-                    </label>
-                    <button onClick={grabShot} disabled={shotLoading}
-                      className="flex items-center gap-1 text-[12px] text-nv-teal hover:opacity-80">
-                      <Camera size={13} className={shotLoading ? "animate-pulse" : ""} /> Capture
-                    </button>
-                  </div>
-                }>
-                <div className={cn(
-                  "rounded-nv-md overflow-hidden bg-nv-void/60 border flex items-center justify-center min-h-[280px]",
-                  control ? "border-nv-teal/50" : "border-nv-teal/10"
-                )}>
-                  {shot ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={shot} alt="device screen" onClick={onScreenClick}
-                      className={cn("max-h-[420px] w-auto object-contain", control && "cursor-crosshair")} />
-                  ) : (
-                    <button onClick={grabShot} className="flex flex-col items-center gap-2 text-nv-text-muted py-10 hover:text-nv-teal transition-colors">
-                      {shotLoading ? <Loader2 size={22} className="animate-spin" /> : <Camera size={22} />}
-                      <span className="text-[12px]">Tap to capture screen</span>
-                    </button>
-                  )}
-                </div>
-
-                {/* hardware keys — proxied through the backend, so no tailnet needed */}
-                <div className="flex flex-wrap items-center gap-1.5 mt-3">
-                  {NAV_KEYS.map((k) => (
-                    <button key={k.code} onClick={() => sendInput("key", { code: k.code }, k.label)}
-                      disabled={!online || tapping}
-                      className="rounded-nv-sm px-2.5 py-1.5 text-[11.5px] nv-glass border border-nv-teal/15 text-nv-text-secondary hover:border-nv-teal/45 hover:text-nv-text-primary transition-all disabled:opacity-40">
-                      {k.label}
-                    </button>
-                  ))}
-                  {tapping && <Loader2 size={13} className="animate-spin text-nv-teal" />}
-                </div>
-                <div className="mt-2 text-[11px] text-nv-text-muted leading-snug">
-                  {control
-                    ? "Control is ON — clicking the image taps that exact spot on the phone."
-                    : "Turn on Control to tap the screen by clicking it."}
-                </div>
-              </Panel>
               )}
-
-              {/* commands */}
-              {Object.entries(activeCatalog).map(([cat, cmds]) => {
-                const meta = CAT_META[cat] || { label: cat, icon: Zap, tone: "text-nv-teal" };
-                return (
-                  <Panel key={cat} title={meta.label} icon={meta.icon} iconTone={meta.tone}>
-                    <div className="space-y-2">
-                      {cmds.map((c) => (
-                        <div key={c.id} className="flex items-center gap-2">
-                          {c.arg && (
-                            <input
-                              value={argVals[c.id] || ""}
-                              onChange={(e) => setArgVals((v) => ({ ...v, [c.id]: e.target.value }))}
-                              placeholder={c.argHint || "arg"}
-                              className="w-20 shrink-0 rounded-nv-sm bg-nv-void/60 border border-nv-teal/15 px-2 py-1.5 text-[12px] text-nv-text-primary placeholder:text-nv-text-muted focus:border-nv-teal/50 outline-none"
-                            />
-                          )}
-                          <button
-                            onClick={() => runCmd(c)}
-                            disabled={busy === c.id || !online}
-                            className={cn(
-                              "flex-1 flex items-center justify-between gap-2 rounded-nv-md px-3 py-2 text-[12.5px] border transition-all disabled:opacity-40",
-                              DANGER.has(c.id)
-                                ? "nv-glass border-nv-error/20 text-nv-text-secondary hover:border-nv-error/50 hover:text-nv-error"
-                                : "nv-glass border-nv-teal/15 text-nv-text-secondary hover:border-nv-teal/45 hover:text-nv-text-primary"
-                            )}
-                          >
-                            <span>{c.label.replace(" {arg}", "")}</span>
-                            {busy === c.id ? <Loader2 size={13} className="animate-spin" /> : <ChevronRight size={14} className="opacity-50" />}
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  </Panel>
-                );
-              })}
             </div>
           </div>
-        )}
-      </div>
+        </div>
+      )}
     </AppShell>
   );
 }
 
 /* ---------- small presentational components ---------- */
+
+// A panel that folds. Open/closed is remembered per section, so the page keeps the shape you gave it.
+function Fold({ id, title, icon: Icon, iconTone, count, defaultOpen = false, children }: {
+  id: string; title: string; icon: React.ElementType; iconTone?: string; count?: number; defaultOpen?: boolean; children: React.ReactNode;
+}) {
+  const [open, setOpen] = useState(defaultOpen);
+  useEffect(() => { try { const v = localStorage.getItem(`pcc.fold.${id}`); if (v) setOpen(v === "1"); } catch {} }, [id]);
+  const toggle = () => setOpen((o) => { try { localStorage.setItem(`pcc.fold.${id}`, o ? "0" : "1"); } catch {} return !o; });
+  return (
+    <div className="nv-glass rounded-nv-lg border border-nv-teal/10 overflow-hidden">
+      <button onClick={toggle} aria-expanded={open}
+        className="w-full flex items-center gap-2.5 px-4 py-3 text-left hover:bg-white/[0.02] transition-colors">
+        <Icon size={16} className={iconTone || "text-nv-teal"} />
+        <span className="text-[13.5px] font-semibold text-nv-text-primary">{title}</span>
+        {count != null && <span className="text-[11px] text-nv-text-muted">{count}</span>}
+        <ChevronDown size={16} className={cn("ml-auto text-nv-text-muted transition-transform", open && "rotate-180")} />
+      </button>
+      {open && <div className="px-4 pb-4 pt-1">{children}</div>}
+    </div>
+  );
+}
 
 function Panel({ title, icon: Icon, iconTone, right, children }: {
   title: string; icon: React.ElementType; iconTone?: string; right?: React.ReactNode; children: React.ReactNode;
