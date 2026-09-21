@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Loader2, LogOut, RefreshCw, Smartphone, Maximize, CreditCard, ArrowLeft, Clock } from "lucide-react";
 import CloudShell, { CLOUD_INPUT, CLOUD_LABEL, BOOT_STAGES, PasswordField, type BootState } from "./CloudShell";
 
@@ -42,6 +42,15 @@ export default function VmClient({ user, phoneUrl, trial, payUrl }: Props) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [frameKey, setFrameKey] = useState(0);
+  const frameRef = useRef<HTMLIFrameElement>(null);
+  // True fullscreen = the PHONE only (not this page with its header). On Android that hides the browser
+  // and system bars; swipe up + Back leaves it, exactly like the player's own old fullscreen button.
+  const goFullscreen = () => {
+    const el = frameRef.current as (HTMLIFrameElement & { webkitRequestFullscreen?: () => void }) | null;
+    if (!el) return;
+    if (el.requestFullscreen) el.requestFullscreen({ navigationUI: "hide" }).catch(() => document.documentElement.requestFullscreen?.().catch(() => {}));
+    else el.webkitRequestFullscreen?.();
+  };
   const [unlocking, setUnlocking] = useState(false);
   const [payOpen, setPayOpen] = useState(false);
   const [endedNote, setEndedNote] = useState("");
@@ -190,7 +199,7 @@ export default function VmClient({ user, phoneUrl, trial, payUrl }: Props) {
                   className="p-2 rounded-nv-md text-nv-text-muted hover:text-nv-teal hover:bg-white/5">
                   <RefreshCw size={16} />
                 </button>
-                <button onClick={() => document.documentElement.requestFullscreen?.().catch(() => {})} title="Fullscreen"
+                <button onClick={goFullscreen} title="Fullscreen"
                   className="p-2 rounded-nv-md text-nv-text-muted hover:text-nv-teal hover:bg-white/5">
                   <Maximize size={16} />
                 </button>
@@ -203,7 +212,7 @@ export default function VmClient({ user, phoneUrl, trial, payUrl }: Props) {
           </div>
         </div>
         {phoneUrl ? (
-          <iframe key={frameKey} src={phoneUrl} title="Cloud phone" className="flex-1 w-full border-0 bg-black"
+          <iframe ref={frameRef} key={frameKey} src={phoneUrl} title="Cloud phone" allowFullScreen className="flex-1 w-full border-0 bg-black"
             allow="autoplay; fullscreen; clipboard-read; clipboard-write; microphone; camera" />
         ) : (
           <div className="flex-1 flex items-center justify-center p-6 text-center text-nv-text-secondary">
