@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Loader2 } from "lucide-react";
-import CloudShell, { CLOUD_INPUT, CLOUD_LABEL } from "../../CloudShell";
+import CloudShell, { CLOUD_INPUT, CLOUD_LABEL, PasswordField } from "../../CloudShell";
 
 // Opened from a one-time link. invite -> create username + password (twice). reset -> new password (twice).
 export default function JoinClient({ token }: { token: string }) {
@@ -66,13 +66,13 @@ export default function JoinClient({ token }: { token: string }) {
           </div>
           <div>
             <label className={CLOUD_LABEL} htmlFor="nc-pass">Password</label>
-            <input id="nc-pass" className={CLOUD_INPUT} type="password" value={password}
+            <PasswordField id="nc-pass" value={password}
               onChange={(e) => setPassword(e.target.value)} autoComplete="new-password"
               placeholder="At least 8 characters" minLength={8} required />
           </div>
           <div>
             <label className={CLOUD_LABEL} htmlFor="nc-pass2">Password again</label>
-            <input id="nc-pass2" className={CLOUD_INPUT} type="password" value={confirm}
+            <PasswordField id="nc-pass2" value={confirm}
               onChange={(e) => setConfirm(e.target.value)} autoComplete="new-password" minLength={8} required />
           </div>
           {error && <div className="nc-error" role="alert">{error}</div>}

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Loader2, LogOut, RefreshCw, Smartphone, Maximize, CreditCard, ArrowLeft, Clock } from "lucide-react";
-import CloudShell, { CLOUD_INPUT, CLOUD_LABEL, BOOT_STAGES, type BootState } from "./CloudShell";
+import CloudShell, { CLOUD_INPUT, CLOUD_LABEL, BOOT_STAGES, PasswordField, type BootState } from "./CloudShell";
 
 type Props = {
   user: { username: string; hasPhone: boolean } | null;
@@ -235,7 +235,7 @@ export default function VmClient({ user, phoneUrl, trial, payUrl }: Props) {
         </div>
         <div>
           <label className={CLOUD_LABEL} htmlFor="nc-pass">Password</label>
-          <input id="nc-pass" className={CLOUD_INPUT} type="password" value={password}
+          <PasswordField id="nc-pass" value={password}
             onChange={(e) => setPassword(e.target.value)} autoComplete="current-password" required />
         </div>
         {error && <div className="nc-error" role="alert">{error}</div>}

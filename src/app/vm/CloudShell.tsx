@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { Eye, EyeOff } from "lucide-react";
 
 // Nexa Cloud — the sign-in page IS the phone's lock screen.
 // One idea, spent in one place: a device that is already on and waiting for you. The page
@@ -11,6 +12,21 @@ export const CLOUD_INPUT =
   "w-full rounded-2xl bg-white/[0.06] border border-white/10 px-4 py-3.5 text-[16px] text-white " +
   "placeholder:text-white/35 outline-none transition-colors focus:border-[#00E5CC]/70 focus:bg-white/[0.09]";
 export const CLOUD_LABEL = "block text-[13px] text-white/60 mb-1.5 pl-1";
+
+// Password box with an eye to show what was typed (phones make typos easy and these boxes hide them).
+export function PasswordField(props: Omit<React.InputHTMLAttributes<HTMLInputElement>, "type" | "className">) {
+  const [show, setShow] = useState(false);
+  return (
+    <div className="relative">
+      <input {...props} type={show ? "text" : "password"} className={CLOUD_INPUT + " pr-12"}
+        autoCapitalize="none" autoCorrect="off" spellCheck={false} />
+      <button type="button" onClick={() => setShow((v) => !v)} aria-label={show ? "Hide password" : "Show password"}
+        aria-pressed={show} className="nc-eye">
+        {show ? <EyeOff size={19} /> : <Eye size={19} />}
+      </button>
+    </div>
+  );
+}
 
 function useClock() {
   const [now, setNow] = useState<Date | null>(null);
@@ -161,6 +177,10 @@ const CSS = `
 .nc-btn:focus-visible,.nc-stage input:focus-visible{outline:2px solid #7CFFEA;outline-offset:2px}
 .nc-error{font-size:14px;color:#FFB4B4;background:rgba(255,80,80,.10);border:1px solid rgba(255,120,120,.28);
   border-radius:14px;padding:10px 13px}
+.nc-eye{position:absolute;top:50%;right:6px;transform:translateY(-50%);display:flex;align-items:center;justify-content:center;
+  width:40px;height:40px;border:0;border-radius:12px;background:none;cursor:pointer;color:rgba(255,255,255,.5)}
+.nc-eye:hover{color:#7CFFEA}
+.nc-eye:focus-visible{outline:2px solid #7CFFEA;outline-offset:-2px}
 .nc-foot{margin-top:16px;text-align:center;font-size:13px;color:rgba(255,255,255,.45)}
 .nc-row{margin-top:16px;display:flex;align-items:center;justify-content:space-between;gap:12px}
 .nc-pay{flex:none;display:inline-flex;align-items:center;gap:6px;padding:7px 13px;border-radius:999px;cursor:pointer;
