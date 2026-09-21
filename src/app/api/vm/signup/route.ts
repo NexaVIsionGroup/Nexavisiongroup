@@ -11,7 +11,7 @@ export const dynamic = "force-dynamic";
 const EXPIRED = "This link is invalid or has expired. Ask for a new one.";
 
 async function findByToken(token: string): Promise<VmUser | null> {
-  if (!token || token.length < 16) return null;
+  if (!token || token.length < 8 || token.length > 64) return null;
   const { data } = await db().from("vm_users").select("*").eq("token_hash", sha256(token)).maybeSingle();
   const u = data as VmUser | null;
   if (!u || !u.token_expires || new Date(u.token_expires) < new Date()) return null;
@@ -59,6 +59,9 @@ export async function POST(req: NextRequest) {
     if (taken) return NextResponse.json({ error: "That username is taken. Pick another." }, { status: 409 });
     patch.username = username;
     patch.signed_up_at = new Date().toISOString();
+    if (u.plan === "trial" && !u.trial_ends_at) {
+      patch.trial_ends_at = new Date(Date.now() + (u.trial_days || 7) * 86400_000).toISOString();
+    }
   }
   const { error } = await db().from("vm_users").update(patch).eq("id", u.id);
   if (error) return NextResponse.json({ error: "Could not save. Try again." }, { status: 500 });

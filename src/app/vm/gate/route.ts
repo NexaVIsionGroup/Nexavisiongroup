@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { createServerClient } from "@supabase/ssr";
-import { VM_PHONES, VM_COOKIE, userFromCookie, mintGateToken } from "@/lib/vm";
+import { VM_PHONES, VM_COOKIE, userFromCookie, mintGateToken, trialState } from "@/lib/vm";
 
 // Token minter for the nexa-gate Worker on vmN.nexavisiongroup.com. Allowed callers:
 //   (a) the VM user that phone is assigned to, or
@@ -27,7 +27,7 @@ export async function GET(req: NextRequest) {
   const jar = await cookies();
   let allowed = false;
   const u = await userFromCookie(jar.get(VM_COOKIE)?.value);
-  if (u && u.phone_id === phone) allowed = true;
+  if (u && u.phone_id === phone && !trialState(u).expired) allowed = true;
   if (!allowed) {
     const supabase = createServerClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,

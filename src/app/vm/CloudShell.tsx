@@ -110,6 +110,17 @@ const CSS = `
 .nc-error{font-size:14px;color:#FFB4B4;background:rgba(255,80,80,.10);border:1px solid rgba(255,120,120,.28);
   border-radius:14px;padding:10px 13px}
 .nc-foot{margin-top:16px;text-align:center;font-size:13px;color:rgba(255,255,255,.45)}
+.nc-row{margin-top:16px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.nc-pay{flex:none;display:inline-flex;align-items:center;gap:6px;padding:7px 13px;border-radius:999px;cursor:pointer;
+  font-size:13px;font-weight:600;color:#7CFFEA;background:rgba(0,229,204,.08);border:1px solid rgba(0,229,204,.35);
+  transition:background .15s,border-color .15s}
+.nc-pay:hover{background:rgba(0,229,204,.16);border-color:rgba(0,229,204,.6)}
+.nc-pay:focus-visible,.nc-link:focus-visible{outline:2px solid #7CFFEA;outline-offset:2px}
+.nc-link{display:inline-flex;align-items:center;gap:6px;background:none;border:0;padding:4px 2px;cursor:pointer;
+  font-size:14px;color:rgba(255,255,255,.6)}
+.nc-link:hover{color:#fff}
+.nc-note{font-size:14.5px;line-height:1.5;color:rgba(255,255,255,.78);background:rgba(255,255,255,.05);
+  border:1px solid rgba(255,255,255,.10);border-radius:14px;padding:12px 14px}
 
 /* signing in: the lock screen slides away */
 .nc-unlocking .nc-clock,.nc-unlocking .nc-panel,.nc-unlocking .nc-status{

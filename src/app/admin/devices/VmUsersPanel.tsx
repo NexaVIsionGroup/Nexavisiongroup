@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import {
   Link2, Copy, Check, Loader2, Power, Trash2, KeyRound, ExternalLink, RotateCcw,
-  UserPlus, RefreshCw, Shuffle, Pencil, Unlock, AlertTriangle,
+  UserPlus, RefreshCw, Shuffle, Pencil, Unlock, AlertTriangle, Clock, CalendarPlus, BadgeCheck,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -15,6 +15,8 @@ type VmUser = {
   id: string; label: string; username: string | null; phone_id: string | null; enabled: boolean;
   signed_up: boolean; pending_link: "invite" | "reset" | null; link_expires: string | null;
   locked: boolean; created_at: string; last_login_at: string | null;
+  plan: "full" | "trial"; trial_days: number | null; trial_ends_at: string | null;
+  trial_expired: boolean; trial_days_left: number | null;
 };
 type VmPhone = {
   id: string; label: string; url: string; assigned: boolean;
@@ -44,6 +46,8 @@ export default function VmUsersPanel() {
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState("");
   const [label, setLabel] = useState("");
+  const [isTrial, setIsTrial] = useState(false);
+  const [trialDays, setTrialDays] = useState("3");
   const [lastLink, setLastLink] = useState<{ link: string; note: string; copied: boolean } | null>(null);
   const [msg, setMsg] = useState("");
 
@@ -91,11 +95,22 @@ export default function VmUsersPanel() {
         <div className="ml-auto flex flex-wrap items-center gap-2">
           <input value={label} onChange={(e) => setLabel(e.target.value)} placeholder="Who is it for? (optional)"
             className="w-52 px-3 py-2 bg-nv-void/60 border border-white/10 rounded-nv-md text-[13px] text-nv-text-primary placeholder:text-nv-text-muted focus:outline-none focus:border-nv-teal/50" />
+          <label className="flex items-center gap-2 text-[13px] text-nv-text-secondary select-none cursor-pointer">
+            <input type="checkbox" checked={isTrial} onChange={(e) => setIsTrial(e.target.checked)} className="accent-[#00E5CC] w-4 h-4" />
+            Free trial
+          </label>
+          {isTrial && (
+            <span className="flex items-center gap-1.5 text-[13px] text-nv-text-secondary">
+              <input type="number" min={1} max={365} value={trialDays} onChange={(e) => setTrialDays(e.target.value)}
+                className="w-16 px-2 py-2 bg-nv-void/60 border border-white/10 rounded-nv-md text-[13px] text-nv-text-primary focus:outline-none focus:border-nv-teal/50" />
+              days
+            </span>
+          )}
           <button disabled={busy !== "" || free === 0}
-            onClick={async () => { const d = await act("invite", { action: "invite", label }); if (d) { setLabel(""); await showLink(d, "New phone is being built and started. Sign-up link"); } }}
+            onClick={async () => { const d = await act("invite", { action: "invite", label, trial_days: isTrial ? trialDays : null }); if (d) { setLabel(""); await showLink(d, isTrial ? `New phone is being built and started. ${trialDays}-day free-trial link` : "New phone is being built and started. Sign-up link"); } }}
             className="nv-btn-primary px-4 py-2 text-[13px] flex items-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed">
             {busy === "invite" ? <Loader2 size={15} className="animate-spin" /> : <Link2 size={15} />}
-            {busy === "invite" ? "Building phone…" : "New sign-up link"}
+            {busy === "invite" ? "Building phone…" : isTrial ? "New free-trial link" : "New sign-up link"}
           </button>
           <button onClick={load} className={BTN} title="Refresh"><RefreshCw size={13} className="text-nv-teal" /></button>
         </div>
@@ -146,6 +161,13 @@ export default function VmUsersPanel() {
                     phoneState === "off" ? "border-white/15 text-nv-text-muted" : "border-nv-warning/30 text-nv-warning")}>
                     phone {phoneState}
                   </span>
+                  {u.plan === "trial" && (
+                    <span className={cn("inline-flex items-center gap-1 text-[11.5px] px-2 py-0.5 rounded-full border",
+                      u.trial_expired ? "border-nv-error/40 text-nv-error" : "border-nv-warning/40 text-nv-warning")}>
+                      <Clock size={11} />
+                      {u.trial_expired ? "trial ended" : u.trial_ends_at ? `trial: ${u.trial_days_left} ${u.trial_days_left === 1 ? "day" : "days"} left` : `${u.trial_days}-day trial, starts at sign-up`}
+                    </span>
+                  )}
                   {!u.enabled && <span className="text-[11.5px] px-2 py-0.5 rounded-full border border-nv-error/30 text-nv-error">turned off</span>}
                   {u.locked && <span className="text-[11.5px] px-2 py-0.5 rounded-full border border-nv-error/30 text-nv-error">locked out</span>}
                   {u.pending_link && <span className="text-[11.5px] text-nv-text-muted">{u.pending_link} link active</span>}
@@ -162,6 +184,17 @@ export default function VmUsersPanel() {
                     {busy === `link-${u.id}` ? <Loader2 size={13} className="animate-spin" /> : <KeyRound size={13} />}
                     {u.signed_up ? "Password reset link" : "New sign-up link"}
                   </button>
+                  <button className={BTN} disabled={busy !== ""} title={u.plan === "trial" ? "Add time to this trial (reactivates it if it ended)" : "Put this user on a timed trial"}
+                    onClick={() => { const v = window.prompt(u.plan === "trial" ? (u.trial_expired ? "Reactivate for how many days?" : "Add how many days?") : "Put on a trial of how many days (from now)?", "3"); if (v === null) return; act(`days-${u.id}`, u.plan === "trial" ? { action: "add_days", id: u.id, days: v } : { action: "set_plan", id: u.id, plan: "trial", days: v }); }}>
+                    {busy === `days-${u.id}` ? <Loader2 size={13} className="animate-spin" /> : <CalendarPlus size={13} className="text-nv-warning" />}
+                    {u.plan === "trial" ? (u.trial_expired ? "Reactivate" : "Add days") : "Set trial"}
+                  </button>
+                  {u.plan === "trial" && (
+                    <button className={BTN} disabled={busy !== ""} title="No expiry. This is what a paid invoice will do automatically later."
+                      onClick={() => act(`full-${u.id}`, { action: "set_plan", id: u.id, plan: "full" })}>
+                      {busy === `full-${u.id}` ? <Loader2 size={13} className="animate-spin" /> : <BadgeCheck size={13} className="text-nv-success" />} Make full access
+                    </button>
+                  )}
                   <button className={BTN} disabled={busy !== ""} onClick={() => act(`tog-${u.id}`, { action: "toggle", id: u.id, enabled: !u.enabled })}>
                     {busy === `tog-${u.id}` ? <Loader2 size={13} className="animate-spin" /> : <Power size={13} className={u.enabled ? "text-nv-success" : "text-nv-error"} />}
                     {u.enabled ? "Turn off" : "Turn on"}

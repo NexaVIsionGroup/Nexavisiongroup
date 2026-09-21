@@ -19,6 +19,7 @@ export type VmUser = {
   token_kind: "invite" | "reset" | null; token_expires: string | null;
   failed_logins: number; locked_until: string | null; created_at: string;
   signed_up_at: string | null; last_login_at: string | null;
+  plan: "full" | "trial"; trial_days: number | null; trial_ends_at: string | null;
 };
 
 export const db = () => createAdminClient();
@@ -40,8 +41,15 @@ export function verifyPassword(pw: string, stored: string | null): boolean {
 
 // ---- one-time tokens (invite / reset). Only the sha256 is stored. -------------------
 export const sha256 = (s: string) => crypto.createHash("sha256").update(s).digest("hex");
+// Short on purpose: the link is vm.nexavisiongroup.com/<10 chars>. 56^10 (~58 bits) from an alphabet
+// without look-alikes (0/O, 1/l/I). Safe because a code is single-use, expires, and only its hash is kept.
+const CODE_ALPHABET = "23456789abcdefghijkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ";
 export function newToken() {
-  const token = crypto.randomBytes(24).toString("base64url");
+  let token = "";
+  while (token.length < 10) {
+    const b = crypto.randomBytes(1)[0];
+    if (b < 224) token += CODE_ALPHABET[b % 56];          // 224 = 4*56 -> no modulo bias
+  }
   return { token, hash: sha256(token) };
 }
 
@@ -87,6 +95,19 @@ export async function userFromCookie(cookie: string | undefined): Promise<VmUser
   const u = data as VmUser | null;
   return u && u.enabled && u.username ? u : null;
 }
+// ---- free trials ---------------------------------------------------------------------------
+// plan='trial': the clock starts when the sign-up link is redeemed (trial_days -> trial_ends_at).
+// An expired trial keeps the account and the phone's data; it only blocks access until an admin
+// extends it or switches the plan to 'full' (later: a paid invoice will do that automatically).
+export const TRIAL_CHOICES = [1, 3, 7, 14, 30];
+export function trialState(u: Pick<VmUser, "plan" | "trial_ends_at" | "trial_days">) {
+  if (u.plan !== "trial") return { onTrial: false, expired: false, daysLeft: null as number | null };
+  if (!u.trial_ends_at) return { onTrial: true, expired: false, daysLeft: u.trial_days ?? null };   // not redeemed yet
+  const ms = new Date(u.trial_ends_at).getTime() - Date.now();
+  return { onTrial: true, expired: ms <= 0, daysLeft: Math.max(0, Math.ceil(ms / 86400_000)) };
+}
+export const TRIAL_ENDED = "Your free trial has ended. Pay to keep your phone, or contact your administrator.";
+
 export const cleanUsername = (s: unknown) => String(s ?? "").trim().toLowerCase();
 export const USERNAME_RE = /^[a-z0-9][a-z0-9._-]{2,29}$/;
 

@@ -18,3 +18,9 @@ create table if not exists public.vm_users (
 );
 create index if not exists vm_users_token_hash_idx on public.vm_users (token_hash);
 alter table public.vm_users enable row level security;
+
+-- 2026-09-20: free trials. plan='trial' -> access ends at trial_ends_at. The clock starts when the
+-- person redeems the sign-up link (trial_days is copied into trial_ends_at at that moment).
+alter table public.vm_users add column if not exists plan text not null default 'full' check (plan in ('full','trial'));
+alter table public.vm_users add column if not exists trial_days int;
+alter table public.vm_users add column if not exists trial_ends_at timestamptz;

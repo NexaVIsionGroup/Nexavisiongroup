@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { db, cleanUsername, verifyPassword, mintSession, VM_COOKIE, type VmUser } from "@/lib/vm";
+import { db, cleanUsername, verifyPassword, mintSession, VM_COOKIE, trialState, TRIAL_ENDED, pcc, type VmUser } from "@/lib/vm";
 
 export const dynamic = "force-dynamic";
 const MAX_FAILS = 6;
@@ -28,6 +28,11 @@ export async function POST(req: NextRequest) {
   }
   if (!u.enabled) {
     return NextResponse.json({ error: "This account is turned off. Contact your administrator." }, { status: 403 });
+  }
+
+  if (trialState(u).expired) {
+    if (u.phone_id) void pcc(`/vm/${u.phone_id}/off`, "POST");       // data is kept; this only frees RAM/GPU
+    return NextResponse.json({ error: TRIAL_ENDED, code: "trial_expired" }, { status: 402 });
   }
 
   await db().from("vm_users")
