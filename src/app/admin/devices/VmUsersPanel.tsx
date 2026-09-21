@@ -17,11 +17,18 @@ type VmUser = {
   locked: boolean; created_at: string; last_login_at: string | null;
   plan: "full" | "trial"; trial_days: number | null; trial_ends_at: string | null;
   trial_expired: boolean; trial_days_left: number | null;
+  last_active_at: string | null; minutes_used: number; active_now: boolean; signed_up_at?: string | null;
 };
 type VmPhone = {
   id: string; label: string; url: string; assigned: boolean;
-  state: { power?: boolean; running?: boolean; booted?: boolean } | null;
+  state: { power?: boolean; running?: boolean; booted?: boolean; in_use?: boolean; idle_min?: number | null; conf?: { ram_mb: number; cores: number; data_gb: number; sleep_min: number } } | null;
 };
+type Rack = { free_gb: number | null; running: number; in_use: number };
+function fmtUsed(min: number) {
+  if (!min) return "not used yet";
+  if (min < 60) return `${min} min used`;
+  const h = Math.floor(min / 60); return `${h}h ${min % 60}m used`;
+}
 
 const BTN =
   "inline-flex items-center gap-1.5 rounded-nv-md px-2.5 py-1.5 text-[12.5px] nv-glass border border-nv-teal/15 " +
@@ -43,6 +50,7 @@ export default function VmUsersPanel() {
   const [users, setUsers] = useState<VmUser[]>([]);
   const [phones, setPhones] = useState<VmPhone[]>([]);
   const [backendOk, setBackendOk] = useState(true);
+  const [rack, setRack] = useState<Rack | null>(null);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState("");
   const [label, setLabel] = useState("");
@@ -55,11 +63,11 @@ export default function VmUsersPanel() {
   const load = useCallback(async () => {
     const r = await fetch("/api/admin/vm", { cache: "no-store" });
     const d = await r.json().catch(() => ({}));
-    if (r.ok) { setUsers(d.users || []); setPhones(d.phones || []); setBackendOk(d.backend_ok !== false); }
+    if (r.ok) { setUsers(d.users || []); setPhones(d.phones || []); setBackendOk(d.backend_ok !== false); setRack(d.rack || null); }
     else setMsg(d.error || "Could not load cloud phone users.");
     setLoading(false);
   }, []);
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => { load(); const id = setInterval(load, 30000); return () => clearInterval(id); }, [load]);   // activity stays fresh
 
   async function act(key: string, body: Record<string, unknown>) {
     setBusy(key);
@@ -90,7 +98,12 @@ export default function VmUsersPanel() {
             <UserPlus size={17} className="text-nv-teal" /> Nexa Cloud users
           </h2>
           <p className="text-[12px] text-nv-text-muted mt-0.5">
-            People sign in at <span className="font-mono text-nv-text-secondary">nexavisiongroup.com/vm</span>. {free} of {phones.length || 3} phone slots free.
+            People sign in at <span className="font-mono text-nv-text-secondary">nexavisiongroup.com/vm</span>. {free} of {phones.length || 8} phone slots free.
+            {rack && (
+              <span className="block sm:inline sm:ml-1">
+                Right now: {rack.running} running, {rack.in_use} in use{rack.free_gb != null ? `, ${rack.free_gb} GB free on the rack` : ""}.
+              </span>
+            )}
           </p>
         </div>
         <div className="ml-auto flex flex-wrap items-center gap-2">
@@ -172,7 +185,19 @@ export default function VmUsersPanel() {
                   {!u.enabled && <span className="text-[11.5px] px-2 py-0.5 rounded-full border border-nv-error/30 text-nv-error">turned off</span>}
                   {u.locked && <span className="text-[11.5px] px-2 py-0.5 rounded-full border border-nv-error/30 text-nv-error">locked out</span>}
                   {u.pending_link && <span className="text-[11.5px] text-nv-text-muted">{u.pending_link} link active</span>}
-                  <span className="ml-auto text-[11.5px] text-nv-text-muted">last sign-in {ago(u.last_login_at)}</span>
+                  {(u.active_now || st?.in_use) && (
+                    <span className="inline-flex items-center gap-1.5 text-[11.5px] px-2 py-0.5 rounded-full border border-nv-teal/50 text-nv-teal">
+                      <span className="w-1.5 h-1.5 rounded-full bg-nv-teal animate-pulse" /> in use now
+                    </span>
+                  )}
+                </div>
+                {/* activity: when it was last really used (not just signed into), and how much in total */}
+                <div className="flex flex-wrap gap-x-4 gap-y-0.5 text-[11.5px] text-nv-text-muted">
+                  <span>last used {u.active_now || st?.in_use ? "now" : ago(u.last_active_at)}</span>
+                  <span>{fmtUsed(u.minutes_used)}</span>
+                  <span>last sign-in {ago(u.last_login_at)}</span>
+                  {st?.booted && !st.in_use && st.idle_min != null && st.idle_min >= 0 && <span>phone idle {st.idle_min < 60 ? `${st.idle_min} min` : `${Math.floor(st.idle_min / 60)}h`}</span>}
+                  {u.signed_up_at && <span>joined {new Date(u.signed_up_at).toLocaleDateString()}</span>}
                 </div>
                 {/* Everyday actions stay in view; the rest sits behind "More" so a user is one glanceable card. */}
                 <div className="flex flex-wrap gap-1.5">
@@ -258,11 +283,73 @@ export default function VmUsersPanel() {
                     </button>
                   </div>
                 )}
+                {more === u.id && p?.state?.conf && (
+                  <PhoneResources phone={p} busy={busy !== ""}
+                    onSave={(conf, restart) => act(`cfg-${u.id}`, { action: "config", phone: p.id, ...conf, restart })} />
+                )}
               </div>
             );
           })}
         </div>
       )}
     </section>
+  );
+}
+
+/* ---------- per-phone resources ---------- */
+// Memory, cores and storage are read by the emulator when the phone starts, so they take effect on the
+// next start ("Save and restart" does it now). The sleep timer applies straight away. Storage can only grow.
+type Conf = { ram_mb: number; cores: number; data_gb: number; sleep_min: number };
+const SEL = "rounded-nv-md px-2 py-1.5 text-[12.5px] bg-nv-void/60 border border-white/10 text-nv-text-primary focus:outline-none focus:border-nv-teal/50";
+const SLEEPS: [number, string][] = [[0, "Never"], [15, "15 min"], [30, "30 min"], [60, "1 hour"], [180, "3 hours"], [720, "12 hours"], [1440, "1 day"]];
+
+function PhoneResources({ phone, busy, onSave }: {
+  phone: VmPhone; busy: boolean; onSave: (c: Conf, restart: boolean) => void;
+}) {
+  const cur = phone.state!.conf as Conf;
+  const [c, setC] = useState<Conf>(cur);
+  useEffect(() => { setC(cur); }, [cur.ram_mb, cur.cores, cur.data_gb, cur.sleep_min]);   // eslint-disable-line react-hooks/exhaustive-deps
+  const dirty = c.ram_mb !== cur.ram_mb || c.cores !== cur.cores || c.data_gb !== cur.data_gb || c.sleep_min !== cur.sleep_min;
+  const needsRestart = c.ram_mb !== cur.ram_mb || c.cores !== cur.cores || c.data_gb !== cur.data_gb;
+  const field = (label: string, node: React.ReactNode) => (
+    <label className="flex flex-col gap-1 text-[11.5px] text-nv-text-muted">{label}{node}</label>
+  );
+  return (
+    <div className="pt-2.5 border-t border-white/10 space-y-2">
+      <div className="text-[12px] font-medium text-nv-text-secondary">{phone.label} resources</div>
+      <div className="flex flex-wrap items-end gap-3">
+        {field("Memory", (
+          <select className={SEL} value={c.ram_mb} onChange={(e) => setC({ ...c, ram_mb: Number(e.target.value) })}>
+            {[2048, 3072, 4096, 6144, 8192].map((v) => <option key={v} value={v}>{v / 1024} GB</option>)}
+          </select>
+        ))}
+        {field("Cores", (
+          <select className={SEL} value={c.cores} onChange={(e) => setC({ ...c, cores: Number(e.target.value) })}>
+            {[2, 3, 4, 6, 8].map((v) => <option key={v} value={v}>{v}</option>)}
+          </select>
+        ))}
+        {field("Storage", (
+          <select className={SEL} value={c.data_gb} onChange={(e) => setC({ ...c, data_gb: Number(e.target.value) })}>
+            {[16, 32, 64, 128].filter((v) => v >= cur.data_gb).map((v) => <option key={v} value={v}>{v} GB</option>)}
+          </select>
+        ))}
+        {field("Sleep when unused for", (
+          <select className={SEL} value={c.sleep_min} onChange={(e) => setC({ ...c, sleep_min: Number(e.target.value) })}>
+            {SLEEPS.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+          </select>
+        ))}
+        <button className={BTN} disabled={busy || !dirty} onClick={() => onSave(c, false)}>Save</button>
+        {needsRestart && phone.state?.running && (
+          <button className={cn(BTN, "hover:border-nv-warning/50")} disabled={busy}
+            onClick={() => { if (window.confirm(`Restart ${phone.label} now to apply? Anyone using it is disconnected for about a minute.`)) onSave(c, true); }}>
+            Save and restart
+          </button>
+        )}
+      </div>
+      <p className="text-[11px] text-nv-text-muted leading-snug">
+        Memory, cores and storage apply the next time the phone starts. Storage can grow but not shrink.
+        A sleeping phone uses no memory and wakes in about 35 seconds when its user signs in.
+      </p>
+    </div>
   );
 }

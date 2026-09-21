@@ -24,3 +24,7 @@ alter table public.vm_users enable row level security;
 alter table public.vm_users add column if not exists plan text not null default 'full' check (plan in ('full','trial'));
 alter table public.vm_users add column if not exists trial_days int;
 alter table public.vm_users add column if not exists trial_ends_at timestamptz;
+
+-- 2026-09-21: activity. /vm pings once a minute while the phone view is open and visible.
+alter table public.vm_users add column if not exists last_active_at timestamptz;
+alter table public.vm_users add column if not exists minutes_used int not null default 0;

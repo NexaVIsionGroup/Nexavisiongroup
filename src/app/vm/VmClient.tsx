@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Loader2, LogOut, RefreshCw, Smartphone, Maximize, CreditCard, ArrowLeft, Clock } from "lucide-react";
 import CloudShell, { CLOUD_INPUT, CLOUD_LABEL } from "./CloudShell";
 
@@ -45,6 +45,52 @@ export default function VmClient({ user, phoneUrl, trial, payUrl }: Props) {
   const [unlocking, setUnlocking] = useState(false);
   const [payOpen, setPayOpen] = useState(false);
   const [endedNote, setEndedNote] = useState("");
+  // A phone that nobody is using sleeps (it costs the rack ~5 GB of memory while it runs). Signing in
+  // wakes it: ask the backend to start it, then wait until it has booted before loading the stream.
+  const [phoneState, setPhoneState] = useState<"checking" | "starting" | "ready" | "full" | "error">("checking");
+  const live = !!user && !!phoneUrl && !trial?.expired;
+
+  useEffect(() => {
+    if (!live) return;
+    let stop = false;
+    let timer: ReturnType<typeof setTimeout>;
+    const poll = async () => {
+      if (stop) return;
+      try {
+        const r = await fetch("/api/vm/phone", { cache: "no-store" });
+        const d = await r.json().catch(() => ({}));
+        if (d.state === "ready") { setPhoneState("ready"); return; }
+        if (d.state === "off") { await start(); return; }
+        setPhoneState("starting");
+      } catch { /* keep trying */ }
+      timer = setTimeout(poll, 4000);
+    };
+    const start = async () => {
+      const r = await fetch("/api/vm/phone", { method: "POST" });
+      const d = await r.json().catch(() => ({}));
+      if (d.state === "ready") { setPhoneState("ready"); return; }
+      if (!r.ok) { setPhoneState(d.code === "rack_full" ? "full" : "error"); timer = setTimeout(poll, 20000); return; }
+      setPhoneState("starting");
+      timer = setTimeout(poll, 4000);
+    };
+    poll();
+    return () => { stop = true; clearTimeout(timer); };
+  }, [live]);
+
+  // Usage heartbeat: once a minute, only while the phone is on screen and the tab is visible.
+  useEffect(() => {
+    if (!live || phoneState !== "ready") return;
+    const beat = async () => {
+      if (document.visibilityState !== "visible") return;
+      fetch("/api/vm/ping", { method: "POST" }).catch(() => {});
+      // came back after the phone went to sleep? reload -> the waking screen takes over
+      try { const d = await (await fetch("/api/vm/phone", { cache: "no-store" })).json(); if (d.state === "off") window.location.reload(); } catch {}
+    };
+    document.addEventListener("visibilitychange", beat);
+    beat();
+    const id = setInterval(beat, 60000);
+    return () => { clearInterval(id); document.removeEventListener("visibilitychange", beat); };
+  }, [live, phoneState]);
 
   async function login(e: React.FormEvent) {
     e.preventDefault();
@@ -70,6 +116,30 @@ export default function VmClient({ user, phoneUrl, trial, payUrl }: Props) {
     return (
       <CloudShell subtitle={`Hi ${user.username}. Your phone is saved and waiting.`}>
         <PayPanel payUrl={payUrl} note="Your free trial has ended. Pay to pick your phone back up. Everything on it is kept." />
+        <button type="button" onClick={logout} className="nc-link" style={{ marginTop: 14 }}>
+          <LogOut size={15} /> Sign out
+        </button>
+      </CloudShell>
+    );
+  }
+
+  // ---------- signed in, phone asleep or waking ----------
+  if (live && phoneState !== "ready") {
+    const waiting = phoneState === "checking" || phoneState === "starting";
+    return (
+      <CloudShell subtitle={waiting ? "Waking your phone. This takes about half a minute." : `Hi ${user!.username}.`}>
+        {waiting ? (
+          <div className="flex flex-col items-center gap-3 py-6 text-white/70">
+            <Loader2 size={30} className="animate-spin text-[#7CFFEA]" />
+            <span className="text-[14px]">{phoneState === "checking" ? "Checking your phone" : "Starting up"}</span>
+          </div>
+        ) : (
+          <div className="nc-note">
+            {phoneState === "full"
+              ? "Every phone slot on the server is busy right now. This page keeps trying and will open your phone as soon as there is room."
+              : "Your phone did not start. This page keeps trying. If it stays like this, contact your administrator."}
+          </div>
+        )}
         <button type="button" onClick={logout} className="nc-link" style={{ marginTop: 14 }}>
           <LogOut size={15} /> Sign out
         </button>

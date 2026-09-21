@@ -25,6 +25,9 @@ function publicUser(u: VmUser) {
     created_at: u.created_at, signed_up_at: u.signed_up_at, last_login_at: u.last_login_at,
     plan: u.plan, trial_days: u.trial_days, trial_ends_at: u.trial_ends_at,
     trial_expired: trialState(u).expired, trial_days_left: trialState(u).daysLeft,
+    last_active_at: u.last_active_at, minutes_used: u.minutes_used || 0,
+    // "in use" from the web side: the /vm page pings every minute while the phone view is open
+    active_now: !!u.last_active_at && Date.now() - new Date(u.last_active_at).getTime() < 150_000,
   };
 }
 
@@ -41,7 +44,11 @@ export async function GET() {
     assigned: used.has(id),
     state: ((status.phones as Record<string, unknown> | undefined)?.[id] as Record<string, unknown>) || null,
   }));
-  return NextResponse.json({ users, phones, backend_ok: status.ok === true });
+  const slots = Object.values((status.phones as Record<string, { running?: boolean; in_use?: boolean }> | undefined) || {});
+  return NextResponse.json({
+    users, phones, backend_ok: status.ok === true,
+    rack: { free_gb: status.free_gb ?? null, running: slots.filter((x) => x.running).length, in_use: slots.filter((x) => x.in_use).length },
+  });
 }
 
 export async function POST(req: NextRequest) {
@@ -75,6 +82,8 @@ export async function POST(req: NextRequest) {
       }).select("*").single();
       if (error) return err(error.message, 500);
       await pcc(`/vm/${phone}/wipe`, "POST");            // fresh phone for a fresh person
+      // If the rack has no spare memory right now the link is still good: the phone is built (wiped) and
+      // simply starts when the person signs in.
       const on = await pcc(`/vm/${phone}/on`, "POST");
       return NextResponse.json({ ok: true, link: link(t.token), user: publicUser(data as VmUser), phone, phone_started: on.ok === true });
     }
@@ -169,6 +178,23 @@ export async function POST(req: NextRequest) {
       const phone = String(body.phone ?? "");
       if (!VM_PHONES[phone]) return err("Unknown phone.");
       return NextResponse.json(await pcc(`/vm/${phone}/${body.on ? "on" : "off"}`, "POST"));
+    }
+    // Per-phone resources. RAM / cores / storage are read by the emulator when the phone STARTS, so they
+    // apply on the next start (restart:true does that now). sleep_min applies immediately. Storage only grows.
+    case "config": {
+      const phone = String(body.phone ?? "");
+      if (!VM_PHONES[phone]) return err("Unknown phone.");
+      const conf: Record<string, number> = {};
+      for (const k of ["ram_mb", "cores", "data_gb", "sleep_min"]) {
+        if (body[k] != null && body[k] !== "") {
+          const n = Math.floor(Number(body[k]));
+          if (!Number.isFinite(n)) return err(`${k} must be a number.`);
+          conf[k] = n;
+        }
+      }
+      const r = await pcc(`/vm/${phone}/config`, "POST", conf);
+      if (body.restart === true) { await pcc(`/vm/${phone}/off`, "POST"); await pcc(`/vm/${phone}/on`, "POST"); }
+      return NextResponse.json(r);
     }
     // Factory reset: wipe, then boot again if it is assigned to someone.
     case "wipe": {

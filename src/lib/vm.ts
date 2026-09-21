@@ -5,11 +5,12 @@
 import crypto from "crypto";
 import { createAdminClient } from "@/lib/supabase/server";
 
-export const VM_PHONES: Record<string, { host: string; label: string }> = {
-  phone1: { host: "vm1.nexavisiongroup.com", label: "Cloud Phone 1" },
-  phone2: { host: "vm2.nexavisiongroup.com", label: "Cloud Phone 2" },
-  phone3: { host: "vm3.nexavisiongroup.com", label: "Cloud Phone 3" },
-};
+// Eight wired slots (vmN.nexavisiongroup.com -> that phone's private signalling instance). Wired is not
+// the same as running: memory on the rack decides how many run at once, so a phone starts when its
+// user signs in and idle, unwatched phones are stopped only when the memory is needed.
+export const VM_PHONES: Record<string, { host: string; label: string }> = Object.fromEntries(
+  Array.from({ length: 8 }, (_, i) => [`phone${i + 1}`, { host: `vm${i + 1}.nexavisiongroup.com`, label: `Cloud Phone ${i + 1}` }]),
+);
 export const VM_COOKIE = "vm_session";
 const SESSION_DAYS = 30;
 
@@ -20,6 +21,7 @@ export type VmUser = {
   failed_logins: number; locked_until: string | null; created_at: string;
   signed_up_at: string | null; last_login_at: string | null;
   plan: "full" | "trial"; trial_days: number | null; trial_ends_at: string | null;
+  last_active_at: string | null; minutes_used: number;
 };
 
 export const db = () => createAdminClient();
@@ -113,12 +115,13 @@ export const USERNAME_RE = /^[a-z0-9][a-z0-9._-]{2,29}$/;
 
 // ---- rack backend (phonectl) ----------------------------------------------------------
 const PCC = process.env.PHONE_API_URL || "https://ai.nexavisiongroup.com/pcc";
-export async function pcc(path: string, method: "GET" | "POST" = "GET"): Promise<Record<string, unknown>> {
+export async function pcc(path: string, method: "GET" | "POST" = "GET", body?: unknown): Promise<Record<string, unknown>> {
   try {
     const r = await fetch(`${PCC}${path}`, {
       method,
       cache: "no-store",
-      headers: { Authorization: `Bearer ${process.env.PHONE_API_TOKEN || ""}` },
+      headers: { Authorization: `Bearer ${process.env.PHONE_API_TOKEN || ""}`, ...(body ? { "Content-Type": "application/json" } : {}) },
+      body: body ? JSON.stringify(body) : undefined,
       signal: AbortSignal.timeout(100_000),
     });
     return (await r.json().catch(() => ({ ok: false, error: `http ${r.status}` }))) as Record<string, unknown>;
