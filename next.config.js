@@ -36,6 +36,11 @@ const nextConfig = {
   async redirects() {
     return [
       {
+        source: "/goodmandetailing",
+        destination: "/goodman",
+        permanent: true,
+      },
+      {
         source: "/verify/:token",
         missing: [{ type: "host", value: VERIFY_HOST }],
         destination: `https://${VERIFY_HOST}/:token`,
