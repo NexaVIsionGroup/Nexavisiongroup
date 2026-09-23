@@ -1,0 +1,88 @@
+{
+ "hero": {
+  "pexelsId": 2352277,
+  "photographer": "Lucas Pezeta",
+  "url": "https://www.pexels.com/photo/white-metal-tower-2352277/",
+  "alt": "A striking telecommunication tower stands beneath a vibrant starry night sky."
+ },
+ "tower-moon": {
+  "pexelsId": 2098404,
+  "photographer": "eberhard grossgasteiger",
+  "url": "https://www.pexels.com/photo/brown-anime-show-tower-2098404/",
+  "alt": "A telecommunication tower silhouetted by a full moon on a cold winter night, surrounded by a mountainous landscape."
+ },
+ "tower-dusk": {
+  "pexelsId": 16841056,
+  "photographer": "Saied Shohag",
+  "url": "https://www.pexels.com/photo/transmission-tower-at-sunset-16841056/",
+  "alt": "Silhouette of transmission towers against a vibrant orange sunset sky in Mymensingh, Bangladesh."
+ },
+ "factory": {
+  "pexelsId": 29988955,
+  "photographer": "Cemrecan Yurtman",
+  "url": "https://www.pexels.com/photo/industrial-worker-in-modern-factory-setting-29988955/",
+  "alt": "A worker in protective gear supervises operations in a modern Ankara factory."
+ },
+ "warehouse": {
+  "pexelsId": 4483938,
+  "photographer": "Tiger Lily",
+  "url": "https://www.pexels.com/photo/man-standing-in-warehouse-4483938/",
+  "alt": "A man in a green vest stands confidently in a warehouse, illuminated by natural light."
+ },
+ "construction": {
+  "pexelsId": 8487394,
+  "photographer": "Kindel Media",
+  "url": "https://www.pexels.com/photo/person-in-reflective-vest-using-phone-8487394/",
+  "alt": "A construction worker wearing PPE and a reflective vest, talking on the phone outdoors."
+ },
+ "field": {
+  "pexelsId": 17842832,
+  "photographer": "Fatih Yurtman",
+  "url": "https://www.pexels.com/photo/electrician-by-fuse-box-17842832/",
+  "alt": "Engineer in safety gear working on an outdoor electrical panel, ensuring system functionality."
+ },
+ "venue": {
+  "pexelsId": 14460275,
+  "photographer": "George  Zografidis",
+  "url": "https://www.pexels.com/photo/football-fans-cheering-on-stadium-14460275/",
+  "alt": "Exciting night soccer game with packed cheering fans and vibrant stadium lights."
+ },
+ "fleet": {
+  "pexelsId": 11114134,
+  "photographer": "Tony Mrst",
+  "url": "https://www.pexels.com/photo/driver-and-truck-11114134/",
+  "alt": "A truck driver in high-visibility gear unloading cargo at an industrial facility."
+ },
+ "plant": {
+  "pexelsId": 9477545,
+  "photographer": "Roy S.",
+  "url": "https://www.pexels.com/photo/city-skyline-during-night-time-9477545/",
+  "alt": "A vibrant night view of an industrial area with illuminated factories and city lights."
+ },
+ "phone-dark": {
+  "pexelsId": 950737,
+  "photographer": "NikAff",
+  "url": "https://www.pexels.com/photo/person-holding-space-gray-iphone-6-and-black-case-950737/",
+  "alt": "Close-up shot of hands holding and typing on a smartphone in low light."
+ },
+ "phone-lens": {
+  "pexelsId": 34213792,
+  "photographer": "Andre Moura",
+  "url": "https://www.pexels.com/photo/close-up-of-smartphone-camera-lens-in-monochrome-34213792/",
+  "alt": "Artistic black and white close-up of a smartphone camera lens highlighting its design."
+ },
+ "phone-reach": {
+  "pexelsId": 12660640,
+  "photographer": "Ho\u00c3\u00a0ng Ti\u00e1\u00ba\u00bfn Vi\u00e1\u00bb\u2021t",
+  "url": "https://www.pexels.com/photo/studio-shot-of-hands-reaching-on-black-background-12660640/",
+  "alt": "Dramatic shot of hands reaching for a suspended smartphone in a dark studio setting."
+ },
+ "flatlay": {
+  "pexelsId": 7989740,
+  "photographer": "Carlos Jairo"
+ },
+ "phone-outdoor": {
+  "pexelsId": 10226065,
+  "photographer": "Akshay Bineesh"
+ }
+}
