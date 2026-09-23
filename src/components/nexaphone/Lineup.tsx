@@ -115,7 +115,7 @@ export default function Lineup() {
                 <div className="np-card-body">
                   <div>
                     <h3 className="np-display np-h3">{d.name}</h3>
-                    <div className="np-card-base">Built on {d.base} hardware</div>
+                    <div className="np-card-base">{d.chip}</div>
                   </div>
                   <p>{d.tagline}</p>
                   <div className="np-beats">
@@ -149,9 +149,8 @@ export default function Lineup() {
           </AnimatePresence>
         </motion.div>
         <p style={{ marginTop: 26, fontSize: 13, color: "var(--ink-soft)", maxWidth: "52em" }}>
-          Galaxy comparisons use US launch specs. OnePlus, REDMAGIC
-          and Galaxy are trademarks of their owners. Nexa Pro phones are independently rebuilt and are not
-          made or endorsed by those companies.
+          Galaxy comparisons use Samsung&apos;s US launch specs. Galaxy is a trademark of Samsung; Nexa Pro is not
+          affiliated with Samsung. Questions about the hardware inside? Call, text or chat with us.
         </p>
       </div>
     </section>

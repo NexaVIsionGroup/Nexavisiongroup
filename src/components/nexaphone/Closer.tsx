@@ -1,5 +1,6 @@
 import Image from "next/image";
 import { LeadButton } from "./lead";
+import TalkToUs from "./TalkToUs";
 import { Mark } from "./Nav";
 import Title from "./Title";
 
@@ -25,6 +26,7 @@ export default function Closer() {
             <LeadButton kind="quote" className="np-btn np-btn-lock np-shine">Get a quote</LeadButton>
             <LeadButton kind="guide" className="np-btn np-btn-ghost">Request the technical guide</LeadButton>
           </div>
+          <TalkToUs title="Rather talk it through?" />
         </div>
       </section>
       <footer className="np-footer">

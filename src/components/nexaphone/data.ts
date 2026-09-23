@@ -223,13 +223,16 @@ export const controls = [
 export const gallery = [
   { src: "/nexaphone/v2/g-tunnel.jpg", alt: "A phone glowing in a dark blue tunnel", tall: true },
   { src: "/nexaphone/v2/g-circuit-lens.jpg", alt: "Circuit board seen through a lens ring" },
-  { src: "/nexaphone/v2/g-oneplus.jpg", alt: "A OnePlus phone on a dark surface", tall: true },
   { src: "/nexaphone/v2/g-welder.jpg", alt: "A welder working in blue light" },
   { src: "/nexaphone/v2/g-tower.jpg", alt: "A cell tower against a storm-blue sky", tall: true },
   { src: "/nexaphone/v2/g-rugged.jpg", alt: "A rugged dark phone case close up" },
   { src: "/nexaphone/v2/g-bokeh.jpg", alt: "A phone held in low light", tall: true },
   { src: "/nexaphone/v2/g-board.jpg", alt: "Macro of a circuit board" },
 ];
+
+// How people reach a human: call, text, or the in-page chat form.
+export const CONTACT_PHONE = "(864) 301-1806";
+export const CONTACT_TEL = "+18643011806";
 
 export const QUOTE_MAIL =
   "mailto:info@nexavisiongroup.com?subject=" + encodeURIComponent("Nexa Pro quote");

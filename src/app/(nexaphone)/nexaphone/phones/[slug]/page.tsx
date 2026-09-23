@@ -13,7 +13,7 @@ export function generateMetadata({ params }: { params: { slug: string } }): Meta
   if (!p) return {};
   return {
     title: { absolute: `${p.name} | Nexa Pro` },
-    description: `${p.headline} Built on ${p.base} hardware. From ${money(fromPrice(p))}.`,
+    description: `${p.headline} ${p.chip} flagship. From ${money(fromPrice(p))}.`,
   };
 }
 

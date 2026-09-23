@@ -109,7 +109,7 @@ export const catalog: Record<string, CatalogEntry> = {
       gpu: "Adreno 830",
       note: "Same chip family as the Galaxy S25 Ultra, single-core effectively tied.",
     },
-    hud: { camera: "Triple 50MP, Hasselblad tuned", chip: "Snapdragon 8 Elite", battery: "6,000 mAh", signal: "Snapdragon X80 modem" },
+    hud: { camera: "Triple 50MP, 3× periscope", chip: "Snapdragon 8 Elite", battery: "6,000 mAh", signal: "Snapdragon X80 modem" },
     specs: [
       { title: "Performance", rows: [["Chip", "Snapdragon 8 Elite"], ["CPU", "2 × 4.32GHz + 6 × 3.53GHz Oryon V2"], ["Graphics", "Adreno 830"], ["Process", "3nm"], ["Memory", "12GB or 16GB"], ["Storage", "256GB or 512GB"]] },
       { title: "Display", rows: [["Size", "6.82in LTPO 4.1 AMOLED"], ["Resolution", "1440 × 3168"], ["Refresh", "1 to 120Hz"], ["Peak brightness", "4,500 nits"]] },
@@ -255,9 +255,9 @@ export const catalog: Record<string, CatalogEntry> = {
       "A real liquid-cooling loop, a 24,000 RPM fan and Snapdragon 8 Elite Gen 5. Where other phones throttle after a few minutes, Nexa Turbo 11 holds full speed for hours: video, mapping, AI workloads, always-on stations.",
     colors: [c("Nightfreeze", "#15171c", "clear"), c("Subzero", "#c9ced6", "clear"), c("Shadow", "#101113", "matte")],
     configs: [
-      { ram: 12, storage: "256GB", price: 999 },
-      { ram: 16, storage: "512GB", price: 1099 },
-      { ram: 24, storage: "1TB", price: 1249 },
+      { ram: 12, storage: "256GB", price: 1500 },
+      { ram: 16, storage: "512GB", price: 1600 },
+      { ram: 24, storage: "1TB", price: 1750 },
     ],
     bands: {
       title: "Best on T-Mobile and AT&T",
@@ -288,9 +288,9 @@ export const catalog: Record<string, CatalogEntry> = {
       "Snapdragon 8 Elite with a 23,000 RPM fan, liquid metal and a 7,050 mAh battery. Made for always-on workloads that would cook an ordinary phone.",
     colors: [c("Shadow", "#16181b", "matte"), c("Dusk", "#1d1f27", "clear"), c("Moonlight", "#b8bdc5", "clear")],
     configs: [
-      { ram: 12, storage: "256GB", price: 599 },
-      { ram: 16, storage: "512GB", price: 699 },
-      { ram: 24, storage: "1TB", price: 849 },
+      { ram: 12, storage: "256GB", price: 1200 },
+      { ram: 16, storage: "512GB", price: 1300 },
+      { ram: 24, storage: "1TB", price: 1450 },
     ],
     bands: {
       title: "Best on T-Mobile and AT&T",
