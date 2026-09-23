@@ -19,7 +19,7 @@ const body = IBM_Plex_Sans({
 // Pre-launch home under nexavisiongroup.com — keep it out of the index until
 // it moves to its own domain.
 export const metadata: Metadata = {
-  title: "Nexa Pro | Phones that pick the tower",
+  title: { absolute: "Nexa Pro | Phones that pick the tower" },
   description:
     "Flagship phones rebuilt for work. Nexa Pro locks onto the strongest tower in range and keeps you on the fastest connection it offers.",
   robots: { index: false, follow: false },
