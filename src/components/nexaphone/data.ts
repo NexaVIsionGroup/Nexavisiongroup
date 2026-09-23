@@ -174,12 +174,12 @@ export const places = [
   {
     img: "/nexaphone/v2/construction.jpg",
     title: "Job sites",
-    line: "New builds sit at the edge of coverage. Reach the strong tower across town, not the weak one next door.",
+    line: "Site trailers and new builds sit at the edge of coverage. Lock onto the strong tower across town, not the weak one next door.",
   },
   {
     img: "/nexaphone/v2/field.jpg",
-    title: "Field service",
-    line: "Utility cabinets, rooftops, basements. Your crew's phone holds the connection they need to close the ticket.",
+    title: "Remote sites",
+    line: "Pump stations, equipment rooms, rooftops and basements. A phone installed there stays connected, day and night.",
   },
   {
     img: "/nexaphone/v2/venue.jpg",
@@ -188,8 +188,8 @@ export const places = [
   },
   {
     img: "/nexaphone/v2/fleet.jpg",
-    title: "Fleet and logistics",
-    line: "Drivers, docks and yards. Fast uploads of proof-of-delivery from places carriers forgot.",
+    title: "Docks and yards",
+    line: "Shipping offices, loading docks and gate houses. Scanners and check-in stations that never drop.",
   },
 ];
 

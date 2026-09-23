@@ -328,9 +328,9 @@ export default function DevicePage({ slug }: { slug: string }) {
           <Title text={p.bands.title} className="np-display np-h2" style={{ maxWidth: "10em" }} />
           <p className="np-lede">{p.bands.body}</p>
           <p className="np-lede">
-            It runs the Nexa Signal Engine: it finds the strongest tower around you, holds it on the fastest band,
-            and if data ever stops moving it switches to a tower that works. No more full bars with no internet,
-            no more airplane-mode resets.
+            It runs the Nexa Signal Engine: we lock it to the exact tower and frequency that perform best at your
+            location, and it stays there. No hopping onto dead towers, no full bars with no internet, no
+            airplane-mode resets, and no connecting to towers you haven&apos;t approved.
           </p>
         </div>
       </section>

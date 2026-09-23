@@ -9,7 +9,8 @@ const EASE = [0.22, 1, 0.36, 1] as [number, number, number, number];
 // with locked bootloaders and removed unlocking worldwide in One UI 8;
 // Galaxy S Ultras top out at 5,000 mAh, 45-60W wired, IP68, 120Hz.
 const ROWS: [string, string, string][] = [
-  ["Full bars, no internet", "Signal Engine moves you to a tower that's delivering", "Toggle airplane mode and hope"],
+  ["Full bars, no internet", "Locked to the tower and channel that deliver at your site", "Toggle airplane mode and hope"],
+  ["Fake cell sites", "Ignores towers you haven't approved, including IMSI catchers", "Connects to whatever looks strongest"],
   ["Exact tower", "Lock to the one tower you choose", "Whatever tower the network hands you"],
   ["Exact frequency", "Lock to the band and channel you choose", "Band settings at best, if any"],
   ["Access", "Full system access, built in", "Locked by Samsung, can't be opened"],

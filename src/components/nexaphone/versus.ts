@@ -57,7 +57,8 @@ export function versus(p: Product): { galaxy: string; rows: Row[]; wins: number 
   if (n.cooling) rows.push({ label: "Cooling", nexa: n.cooling, galaxy: "Passive, throttles under load", result: "win" });
 
   // What Samsung locks away and we build in.
-  rows.push({ label: "Full bars, no internet", nexa: "Moves you to a tower that's delivering", galaxy: "Toggle airplane mode and hope", result: "win" });
+  rows.push({ label: "Full bars, no internet", nexa: "Locked to a tower that delivers", galaxy: "Toggle airplane mode and hope", result: "win" });
+  rows.push({ label: "Fake cell sites", nexa: "Ignores towers you haven't approved", galaxy: "Connects to whatever looks strongest", result: "win" });
   rows.push({ label: "Lock to one exact tower", nexa: "Yes, and it holds", galaxy: "Not possible", result: "win" });
   rows.push({ label: "Lock to one exact frequency", nexa: "Yes, any band it supports", galaxy: "Not possible", result: "win" });
   rows.push({ label: "Full system access", nexa: "Built in", galaxy: "Bootloader locked by Samsung", result: "win" });

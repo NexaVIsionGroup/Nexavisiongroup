@@ -6,16 +6,16 @@ import SignalField from "./SignalField";
 
 const STEPS = [
   {
-    title: "It looks at every tower",
-    body: "Your Nexa Pro sweeps every tower in range and measures what each one can really deliver, not just which is closest.",
+    title: "We survey your site",
+    body: "Your Nexa Pro sweeps every tower and channel in range and measures what each one really delivers where you work, not just which is closest.",
   },
   {
-    title: "You pick the best one",
-    body: "The fastest clear tower rises to the top. Choose it yourself, or have your IT team set it once for the whole site.",
+    title: "We lock the best one",
+    body: "The fastest clear tower and channel rise to the top. We lock the phone to exactly that pair, or your IT team sets it once for the whole site.",
   },
   {
     title: "It holds on",
-    body: "Through walls, crowds and rush hour it stays on your tower. If that tower stops delivering, the Signal Engine moves you to one that does. No airplane mode.",
+    body: "Through walls, crowds and rush hour it stays on your tower. It won't hop to a weaker tower, a dead one, or a fake one. No airplane mode, ever.",
   },
 ];
 

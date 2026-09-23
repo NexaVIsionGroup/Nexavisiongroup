@@ -98,8 +98,8 @@ export default function Hero() {
           transition={{ duration: 0.9, delay: 0.9, ease: EASE }}
         >
           <p className="np-lede">
-            No more full bars and no internet. No more airplane-mode roulette. Nexa Pro finds the strongest
-            tower around you, locks on, and holds it on the fastest connection that tower offers.
+            No more full bars and no internet. No more airplane-mode roulette. Nexa Pro locks to the exact tower
+            and frequency that perform best where you work, and never hops away.
           </p>
           <div className="np-hero-ctas">
             <a href="#lineup" className="np-btn np-btn-lock np-shine">See the lineup</a>

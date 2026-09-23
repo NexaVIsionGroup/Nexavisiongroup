@@ -91,7 +91,7 @@ function Nexa({ active }: { active: boolean }) {
         <div className="np-db-msg">
           <Check size={30} />
           <b className="np-num">{mbps} Mbps, steady</b>
-          <span>Held on the tower and band that are actually moving data.</span>
+          <span>Locked to the one tower and channel that perform best right here.</span>
         </div>
         <div className="np-db-flow" aria-hidden>
           {Array.from({ length: 14 }).map((_, i) => (
@@ -120,8 +120,8 @@ export default function DeadBars() {
           transition={{ duration: 0.7, ease: EASE }}
         >
           Your phone says 4G and full bars, and nothing loads. So you flip airplane mode on and off and hope it
-          lands on 5G. It happens because ordinary phones trust the bars and let the network decide. A Nexa Pro
-          doesn&apos;t.
+          lands on 5G. It happens because ordinary phones pick their own tower, hop whenever they like, and park
+          on one that has stopped delivering. A Nexa Pro doesn&apos;t pick. You do.
         </motion.p>
 
         <div className="np-db-grid" ref={ref}>
@@ -132,13 +132,18 @@ export default function DeadBars() {
         <div className="np-engine">
           <h3 className="np-display">The Nexa Signal Engine</h3>
           <p>
-            Flagship radios plus our own software, working as one. It watches whether data is actually moving, not
-            how many bars you have. When a tower stops delivering, it moves you to one that does, on the fastest band
-            that tower offers. No airplane mode. No restarts. No guessing.
+            Flagship radios plus our own software, working as one. Ordinary phones hop between towers on their own,
+            and that hopping is how they end up stuck on a dead one. The Signal Engine turns it off. We lock each
+            phone to the exact tower and frequency that perform best at your location, and it stays there. No
+            hopping, no dead cells, no airplane mode.
+          </p>
+          <p>
+            It also means the phone ignores towers you haven&apos;t approved, including fake cell sites (IMSI
+            catchers) built to pull phones in.
           </p>
           <p className="np-engine-small">
-            Galaxy phones can&apos;t run it: Samsung locks its phones so this level of radio control is off-limits.
-            Ours are built open, then tuned in our shop.
+            Built for fixed locations: plant floors, warehouses, offices, kiosks and remote sites. Galaxy phones
+            can&apos;t do any of this. Samsung locks their radios, and ours are built open, then set up in our shop.
           </p>
         </div>
       </div>
