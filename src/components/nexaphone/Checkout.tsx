@@ -41,6 +41,7 @@ export default function Checkout() {
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
   const [done, setDone] = useState<string | null>(null);
+  const [payUrl, setPayUrl] = useState<string | null>(null);
 
   const submit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -69,6 +70,10 @@ export default function Checkout() {
       }
       clear();
       setDone(j.orderNumber);
+      if (j.payUrl) {
+        setPayUrl(j.payUrl);
+        setTimeout(() => window.location.assign(j.payUrl), 2500);
+      }
       window.scrollTo({ top: 0, behavior: "smooth" });
     } catch (x) {
       setErr(x instanceof Error ? x.message : "Something went wrong.");
@@ -88,13 +93,24 @@ export default function Checkout() {
           <p className="np-done-num np-num">
             <Scramble text={done} speed={30} />
           </p>
-          <p className="np-lede">
-            We&apos;re reserving your phones now. Within one business day you&apos;ll get a secure payment link by
-            email, with tax calculated for your address. Nothing is charged until you pay that link.
-          </p>
-          <Link href="/nexaphone" className="np-btn np-btn-ghost" style={{ marginTop: 28 }}>
-            Back to Nexa Pro
-          </Link>
+          {payUrl ? (
+            <>
+              <p className="np-lede">Taking you to secure checkout to pay for your order…</p>
+              <a href={payUrl} className="np-btn np-btn-lock np-shine" style={{ marginTop: 20 }}>
+                Pay securely now
+              </a>
+            </>
+          ) : (
+            <>
+              <p className="np-lede">
+                We&apos;re reserving your phones now. Within one business day you&apos;ll get a secure payment link by
+                email, with tax calculated for your address. Nothing is charged until you pay that link.
+              </p>
+              <Link href="/nexaphone" className="np-btn np-btn-ghost" style={{ marginTop: 28 }}>
+                Back to Nexa Pro
+              </Link>
+            </>
+          )}
         </div>
       </section>
     );

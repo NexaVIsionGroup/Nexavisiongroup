@@ -590,3 +590,15 @@
 .np-buy .np-btn-ghost { margin-top: 14px; }
 @media (min-width: 760px) { .np-lead { left: auto; top: 0; width: 460px; max-height: none; border-radius: 26px 0 0 26px; } }
 .np-field span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: calc(100% - 32px); }
+
+/* Order tracker */
+.np-track { list-style: none; margin: 26px 0 0; display: grid; gap: 0; }
+.np-track li { position: relative; display: flex; align-items: center; gap: 14px; padding: 12px 0 12px 2px; color: var(--fog); font-weight: 500; }
+.np-track li::before { content: ""; position: absolute; left: 9px; top: -12px; height: 24px; width: 2px; background: rgba(255,255,255,.12); }
+.np-track li:first-child::before { display: none; }
+.np-track-dot { width: 20px; height: 20px; border-radius: 50%; flex: none; box-shadow: inset 0 0 0 2px rgba(255,255,255,.2); background: var(--night); position: relative; z-index: 1; }
+.np-track li[data-state="done"] { color: var(--paper); }
+.np-track li[data-state="done"] .np-track-dot { background: var(--lock-deep); box-shadow: none; }
+.np-track li[data-state="done"]::before, .np-track li[data-state="now"]::before { background: var(--lock-deep); }
+.np-track li[data-state="now"] { color: var(--lock); font-weight: 700; }
+.np-track li[data-state="now"] .np-track-dot { background: var(--lock); box-shadow: 0 0 0 5px rgba(86,224,232,.2), 0 0 18px var(--lock); animation: np-live 2s infinite; }
