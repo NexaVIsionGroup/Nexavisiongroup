@@ -12,11 +12,11 @@ import SignalField from "./SignalField";
 import Scramble from "./Scramble";
 import Title from "./Title";
 import PhoneRender from "./PhoneRender";
+import { saving, versus } from "./versus";
 import type { AnchorName, AnchorPos } from "./three/Viewer3D";
 
 const Viewer3D = dynamic(() => import("./three/Viewer3D"), { ssr: false });
 const EASE = [0.22, 1, 0.36, 1] as [number, number, number, number];
-const TOP = Math.max(...products.flatMap((d) => [d.gb6, d.galaxy.gb6]));
 
 const GALLERY: Record<string, string[]> = {
   flagship: ["g-oneplus", "g-circuit-lens", "g-bokeh", "g-rugged"],
@@ -187,7 +187,8 @@ export default function DevicePage({ slug }: { slug: string }) {
   const unit = cfg.price + addons.reduce((s, id) => s + (ADDONS.find((a) => a.id === id)?.price ?? 0), 0);
   const total = unit * qty;
   const others = useMemo(() => products.filter((x) => x.slug !== slug), [slug]);
-  const code = ({ n11: "NX-11", n12: "NX-12", n13: "NX-13", n15: "NX-15", nfold: "NX-F1", nrm10: "NX-T10", nrm11: "NX-T11" } as Record<string, string>)[p.id];
+  const vs = useMemo(() => versus(p), [p]);
+  const code = ({ n10: "NX-10", n11: "NX-11", n12: "NX-12", n13: "NX-13", n15: "NX-15", nfold: "NX-F1", nrm10: "NX-T10", nrm11: "NX-T11" } as Record<string, string>)[p.id];
 
   const addToCart = () =>
     add({ slug: p.slug, ram: cfg.ram, storage: cfg.storage, color: color.name, addons, qty });
@@ -280,33 +281,44 @@ export default function DevicePage({ slug }: { slug: string }) {
         </div>
       </section>
 
-      {/* ── Galaxy face-off ── */}
+      {/* ── Nexa vs Galaxy scoreboard ── */}
       <section className="np-dsec">
         <div className="np-wrap">
-          <Title text={`Goes toe to toe with the ${p.galaxy.model}.`} className="np-display np-h2" style={{ maxWidth: "11em" }} />
-          <div className="np-duel">
-            {[
-              { n: p.name, v: p.gb6, us: true },
-              { n: p.galaxy.model, v: p.galaxy.gb6, us: false },
-            ].map((r) => (
-              <div key={r.n} className="np-duel-row" data-us={r.us}>
-                <div className="np-duel-name">{r.n}</div>
-                <div className="np-duel-track">
-                  <motion.div
-                    className="np-duel-fill"
-                    initial={{ width: 0 }}
-                    whileInView={{ width: `${(r.v / TOP) * 100}%` }}
-                    viewport={{ once: true }}
-                    transition={{ duration: 1.4, ease: EASE, delay: r.us ? 0 : 0.2 }}
-                  />
-                </div>
-                <div className="np-duel-v np-num">{r.v.toLocaleString()}</div>
-              </div>
+          <Title text={`${vs.wins} ways it beats the ${vs.galaxy}.`} className="np-display np-h2" style={{ maxWidth: "11em" }} />
+          <p className="np-lede np-dpitch">
+            {saving(p) > 0
+              ? `Same flagship class, ${money(saving(p))} less than the ${vs.galaxy} cost new, and a list of things Samsung simply won't let its phones do.`
+              : `Same flagship class as the ${vs.galaxy}, plus a list of things Samsung simply won't let its phones do.`}
+          </p>
+          <div className="np-score" role="table" aria-label={`${p.name} versus ${vs.galaxy}`}>
+            <div className="np-score-head" role="row">
+              <span role="columnheader" />
+              <span role="columnheader" className="np-score-us">{p.name}</span>
+              <span role="columnheader">{vs.galaxy}</span>
+            </div>
+            {vs.rows.map((r, i) => (
+              <motion.div
+                key={r.label}
+                role="row"
+                className="np-score-row"
+                data-result={r.result}
+                initial={{ opacity: 0, x: -16 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true, margin: "-30px" }}
+                transition={{ duration: 0.5, delay: Math.min(i, 6) * 0.05, ease: EASE }}
+              >
+                <span role="rowheader">{r.label}</span>
+                <span className="np-score-us">
+                  {r.result === "win" ? <Check size={16} /> : <span className="np-score-tie">=</span>} {r.nexa}
+                </span>
+                <span className="np-score-them">{r.galaxy}</span>
+              </motion.div>
             ))}
-            <p className="np-duel-note">
-              Geekbench 6 multi-core. {p.perf.note} {p.perf.cpu}, {p.perf.gpu}.
-            </p>
           </div>
+          <p className="np-duel-note">
+            Galaxy figures are US launch specs and prices. Speed compared with Geekbench 6 multi-core scores from
+            GSMArena reviews ({p.gb6.toLocaleString()} vs {p.galaxy.gb6.toLocaleString()}). {p.perf.cpu}, {p.perf.gpu}.
+          </p>
         </div>
       </section>
 

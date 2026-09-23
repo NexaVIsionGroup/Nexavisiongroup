@@ -52,7 +52,7 @@ export default function Viewer3D(props: Props) {
       }
       renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
       renderer.toneMapping = THREE.ACESFilmicToneMapping;
-      renderer.toneMappingExposure = 1.05;
+      renderer.toneMappingExposure = 1.15;
       renderer.outputColorSpace = THREE.SRGBColorSpace;
       el.appendChild(renderer.domElement);
       renderer.domElement.style.touchAction = "pan-y";
@@ -63,7 +63,7 @@ export default function Viewer3D(props: Props) {
       const pmrem = new THREE.PMREMGenerator(renderer);
       const envTex = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
       scene.environment = envTex;
-      scene.environmentIntensity = 0.55; // keep dark finishes reading as dark
+      scene.environmentIntensity = 0.9; // keep dark finishes reading as dark
 
       const camera = new THREE.PerspectiveCamera(30, 1, 0.1, 50);
       camera.position.set(0, 0.15, 4.4);
@@ -132,7 +132,7 @@ export default function Viewer3D(props: Props) {
 
       const mount = () => {
         const p = live.current;
-        const next = buildPhone(p.island, p.fold, p.swatch, p.label);
+        const next = buildPhone(p.island, p.fold, p.swatch, p.label, p.modelKey);
         if (phone) {
           rig.remove(phone.group);
           phone.dispose();

@@ -19,7 +19,7 @@ export type Device = {
   toughness: string;
   carriers: string;
   /** Shape + finish for the placeholder render until real photos exist. */
-  render: { island: "round" | "offset" | "wide" | "fan"; body: string; accent: string };
+  render: { island: "round" | "offset" | "wide" | "fan" | "wrap"; body: string; accent: string };
 };
 
 export const devices: Device[] = [
@@ -86,6 +86,22 @@ export const devices: Device[] = [
     toughness: "IP64",
     carriers: "T-Mobile, AT&T, Verizon. eSIM.",
     render: { island: "round", body: "#1F2326", accent: "#6B7277" },
+  },
+  {
+    id: "n10",
+    name: "Nexa Pro 10",
+    base: "OnePlus 10 Pro",
+    family: "flagship",
+    tagline: "Flagship QHD+ screen and Snapdragon 8 Gen 1 at the lowest price in the lineup.",
+    chip: "Snapdragon 8 Gen 1",
+    gb6: 3439,
+    galaxy: { model: "Galaxy S22 Ultra", gb6: 3933 },
+    display: "6.7in QHD+, 120Hz",
+    battery: "5,000 mAh",
+    memory: "8/128GB, 12/256GB",
+    toughness: "Splash resistant",
+    carriers: "T-Mobile, AT&T, Verizon. Physical SIM.",
+    render: { island: "wrap", body: "#1c1d20", accent: "#6d7277" },
   },
   {
     id: "nfold",

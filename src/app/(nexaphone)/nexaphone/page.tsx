@@ -6,6 +6,7 @@ import Marquee from "@/components/nexaphone/Marquee";
 import Places from "@/components/nexaphone/Places";
 import Control from "@/components/nexaphone/Control";
 import Lineup from "@/components/nexaphone/Lineup";
+import WhyNexa from "@/components/nexaphone/WhyNexa";
 import Gallery from "@/components/nexaphone/Gallery";
 import Closer from "@/components/nexaphone/Closer";
 
@@ -20,6 +21,7 @@ export default function NexaPhonePage() {
         <Marquee />
         <Places />
         <Control />
+        <WhyNexa />
         <Lineup />
         <Gallery />
         <Closer />

@@ -8,12 +8,12 @@ import { families, type Family } from "./data";
 import { fromPrice, money, products as devices } from "./catalog";
 import PhoneRender from "./PhoneRender";
 import { useCoverflow } from "./useCoverflow";
+import { priceLine, versus } from "./versus";
 
 const Viewer3D = dynamic(() => import("./three/Viewer3D"), { ssr: false });
 import Title from "./Title";
 
 const EASE = [0.22, 1, 0.36, 1] as [number, number, number, number];
-const TOP = Math.max(...devices.flatMap((d) => [d.gb6, d.galaxy.gb6]));
 const FAMILY_TAG: Record<Family, string> = { flagship: "Flagship", fold: "Foldable", turbo: "Turbo, fan-cooled" };
 
 export default function Lineup() {
@@ -49,10 +49,11 @@ export default function Lineup() {
   return (
     <section className="np-section np-light" id="lineup">
       <div className="np-wrap">
-        <Title text="Seven phones. All flagship fast." style={{ maxWidth: "10em" }} />
+        <Title text="Eight phones. Built to beat the Galaxy." style={{ maxWidth: "10em" }} />
         <p className="np-lede" style={{ marginTop: 22 }}>
-          Each Nexa Pro starts as a top-tier phone and is rebuilt, tested and tuned in our shop. Here is how
-          each one stacks up against the Galaxy it matches.
+          Each Nexa Pro starts as flagship hardware, then gets our in-house build: tower lock, full control
+          and no bloat, programmed and tested in our shop. Every one matches a Galaxy Ultra on speed and beats
+          it where it counts.
         </p>
 
         <div className="np-filter" role="group" aria-label="Filter phones">
@@ -117,25 +118,11 @@ export default function Lineup() {
                     <div className="np-card-base">Built on {d.base} hardware</div>
                   </div>
                   <p>{d.tagline}</p>
-                  <div className="np-vs" aria-label={`Benchmark versus ${d.galaxy.model}`}>
-                    {[
-                      { label: d.name, v: d.gb6, color: "var(--lock-deep)" },
-                      { label: d.galaxy.model, v: d.galaxy.gb6, color: "#9aa8b0" },
-                    ].map((r) => (
-                      <div className="np-vs-row" key={r.label}>
-                        <span>{r.label}</span>
-                        <div className="np-vs-bar">
-                          <motion.span
-                            style={{ background: r.color }}
-                            initial={{ width: 0 }}
-                            whileInView={{ width: `${(r.v / TOP) * 100}%` }}
-                            viewport={{ once: true }}
-                            transition={{ duration: 1.1, ease: EASE }}
-                          />
-                        </div>
-                        <span className="np-num">{r.v.toLocaleString()}</span>
-                      </div>
-                    ))}
+                  <div className="np-beats">
+                    <strong>
+                      Beats the {d.galaxy.model} in {versus(d).wins} ways
+                    </strong>
+                    <span>{priceLine(d)}</span>
                   </div>
                   <dl className="np-specs">
                     <div><dt>Chip</dt><dd>{d.chip}</dd></div>
@@ -164,7 +151,7 @@ export default function Lineup() {
           </AnimatePresence>
         </motion.div>
         <p style={{ marginTop: 26, fontSize: 13, color: "var(--ink-soft)", maxWidth: "52em" }}>
-          Performance compared using Geekbench 6 multi-core scores from GSMArena reviews. OnePlus, REDMAGIC
+          Galaxy comparisons use US launch specs and prices. OnePlus, REDMAGIC
           and Galaxy are trademarks of their owners. Nexa Pro phones are independently rebuilt and are not
           made or endorsed by those companies.
         </p>

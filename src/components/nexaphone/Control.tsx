@@ -22,7 +22,7 @@ export default function Control() {
       <div className="np-wrap">
         <Title text="A phone that answers to you." style={{ maxWidth: "10em" }} />
         <p className="np-lede" style={{ marginTop: 22, color: "#cfd9df" }}>
-          Every Nexa Pro ships with full control opened up. The same access that lets it choose a tower
+          Every Nexa Pro runs our in-house build with full control opened up. The same access that lets it choose a tower
           also lets you strip it down, lock it down and make it yours.
         </p>
         <div className="np-control">
