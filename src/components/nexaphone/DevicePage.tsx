@@ -12,7 +12,7 @@ import SignalField from "./SignalField";
 import Scramble from "./Scramble";
 import Title from "./Title";
 import PhoneRender from "./PhoneRender";
-import { saving, versus } from "./versus";
+import { versus } from "./versus";
 import type { AnchorName, AnchorPos } from "./three/Viewer3D";
 
 const Viewer3D = dynamic(() => import("./three/Viewer3D"), { ssr: false });
@@ -284,11 +284,10 @@ export default function DevicePage({ slug }: { slug: string }) {
       {/* ── Nexa vs Galaxy scoreboard ── */}
       <section className="np-dsec">
         <div className="np-wrap">
-          <Title text={`${vs.wins} ways it beats the ${vs.galaxy}.`} className="np-display np-h2" style={{ maxWidth: "11em" }} />
+          <Title text={`What the ${vs.galaxy} can't do.`} className="np-display np-h2" style={{ maxWidth: "11em" }} />
           <p className="np-lede np-dpitch">
-            {saving(p) > 0
-              ? `Same flagship class, ${money(saving(p))} less than the ${vs.galaxy} cost new, and a list of things Samsung simply won't let its phones do.`
-              : `Same flagship class as the ${vs.galaxy}, plus a list of things Samsung simply won't let its phones do.`}
+            Same flagship class as the {vs.galaxy}. The difference is control: Samsung locks its phones, so none of
+            this is possible on a Galaxy.
           </p>
           <div className="np-score" role="table" aria-label={`${p.name} versus ${vs.galaxy}`}>
             <div className="np-score-head" role="row">
@@ -316,7 +315,7 @@ export default function DevicePage({ slug }: { slug: string }) {
             ))}
           </div>
           <p className="np-duel-note">
-            Galaxy figures are US launch specs and prices. Speed compared with Geekbench 6 multi-core scores from
+            Galaxy figures are US launch specs. Speed compared with Geekbench 6 multi-core scores from
             GSMArena reviews ({p.gb6.toLocaleString()} vs {p.galaxy.gb6.toLocaleString()}). {p.perf.cpu}, {p.perf.gpu}.
           </p>
         </div>
@@ -329,8 +328,9 @@ export default function DevicePage({ slug }: { slug: string }) {
           <Title text={p.bands.title} className="np-display np-h2" style={{ maxWidth: "10em" }} />
           <p className="np-lede">{p.bands.body}</p>
           <p className="np-lede">
-            Like every Nexa Pro, it finds the strongest tower around you, locks on, and holds it on the fastest
-            connection that tower offers.
+            It runs the Nexa Signal Engine: it finds the strongest tower around you, holds it on the fastest band,
+            and if data ever stops moving it switches to a tower that works. No more full bars with no internet,
+            no more airplane-mode resets.
           </p>
         </div>
       </section>

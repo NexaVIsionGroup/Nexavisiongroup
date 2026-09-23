@@ -8,7 +8,7 @@ import { families, type Family } from "./data";
 import { fromPrice, money, products as devices } from "./catalog";
 import PhoneRender from "./PhoneRender";
 import { useCoverflow } from "./useCoverflow";
-import { priceLine, versus } from "./versus";
+
 
 const Viewer3D = dynamic(() => import("./three/Viewer3D"), { ssr: false });
 import Title from "./Title";
@@ -49,11 +49,11 @@ export default function Lineup() {
   return (
     <section className="np-section np-light" id="lineup">
       <div className="np-wrap">
-        <Title text="Eight phones. Built to beat the Galaxy." style={{ maxWidth: "10em" }} />
+        <Title text="Eight phones. One thing no Galaxy can do." style={{ maxWidth: "10em" }} />
         <p className="np-lede" style={{ marginTop: 22 }}>
-          Each Nexa Pro starts as flagship hardware, then gets our in-house build: tower lock, full control
-          and no bloat, programmed and tested in our shop. Every one matches a Galaxy Ultra on speed and beats
-          it where it counts.
+          Each Nexa Pro starts as flagship hardware, then gets our in-house build and the Nexa Signal Engine:
+          lock to the exact tower and frequency you choose, full control, no bloat. Programmed and tested in our
+          shop.
         </p>
 
         <div className="np-filter" role="group" aria-label="Filter phones">
@@ -119,10 +119,8 @@ export default function Lineup() {
                   </div>
                   <p>{d.tagline}</p>
                   <div className="np-beats">
-                    <strong>
-                      Beats the {d.galaxy.model} in {versus(d).wins} ways
-                    </strong>
-                    <span>{priceLine(d)}</span>
+                    <strong>Performs like a {d.galaxy.model}</strong>
+                    <span>Locks to the exact tower and frequency you choose. No Galaxy can.</span>
                   </div>
                   <dl className="np-specs">
                     <div><dt>Chip</dt><dd>{d.chip}</dd></div>
@@ -151,7 +149,7 @@ export default function Lineup() {
           </AnimatePresence>
         </motion.div>
         <p style={{ marginTop: 26, fontSize: 13, color: "var(--ink-soft)", maxWidth: "52em" }}>
-          Galaxy comparisons use US launch specs and prices. OnePlus, REDMAGIC
+          Galaxy comparisons use US launch specs. OnePlus, REDMAGIC
           and Galaxy are trademarks of their owners. Nexa Pro phones are independently rebuilt and are not
           made or endorsed by those companies.
         </p>

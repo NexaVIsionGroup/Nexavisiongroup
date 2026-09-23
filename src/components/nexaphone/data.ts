@@ -200,7 +200,7 @@ export const controls = [
   },
   {
     title: "Runs the tools other phones block",
-    body: "Professional network, diagnostic and automation apps get the deeper access they need to actually work.",
+    body: "Professional network, diagnostic and automation apps get the deeper access they need. Things a Galaxy simply won't allow.",
   },
   {
     title: "Your rules for every app",

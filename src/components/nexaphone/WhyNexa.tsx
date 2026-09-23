@@ -9,7 +9,9 @@ const EASE = [0.22, 1, 0.36, 1] as [number, number, number, number];
 // with locked bootloaders and removed unlocking worldwide in One UI 8;
 // Galaxy S Ultras top out at 5,000 mAh, 45-60W wired, IP68, 120Hz.
 const ROWS: [string, string, string][] = [
-  ["Tower choice", "Picks the strongest tower and holds it", "Whatever tower the phone decides on"],
+  ["Full bars, no internet", "Signal Engine moves you to a tower that's delivering", "Toggle airplane mode and hope"],
+  ["Exact tower", "Lock to the one tower you choose", "Whatever tower the network hands you"],
+  ["Exact frequency", "Lock to the band and channel you choose", "Band settings at best, if any"],
   ["Access", "Full system access, built in", "Locked by Samsung, can't be opened"],
   ["Network control", "Rules per app, per connection, system-wide", "Basic data on and off"],
   ["Out of the box", "Nothing you didn't ask for", "Samsung and carrier apps preloaded"],
@@ -18,7 +20,6 @@ const ROWS: [string, string, string][] = [
   ["Fastest charging", "Up to 100W wired, 80W wireless", "Up to 60W wired, 25W wireless"],
   ["Toughest rating", "IP69K, survives hot high-pressure washdown", "IP68"],
   ["Screen speed", "Up to 165Hz", "120Hz"],
-  ["Flagship price", "From $375", "$1,299 new"],
   ["Who sets it up", "Programmed, tested and backed by our shop", "A carrier store"],
 ];
 
@@ -43,9 +44,9 @@ export default function WhyNexa() {
       <div className="np-wrap">
         <Title text="Why not just buy a Galaxy?" style={{ maxWidth: "10em" }} />
         <p className="np-lede" style={{ marginTop: 22, color: "#cfd9df" }}>
-          A Galaxy Ultra is a great phone, and it&apos;s built for everyone. Samsung locks it down, fills it with
-          apps and decides when it changes. A Nexa Pro is built for work: the same flagship speed, more battery,
-          faster charging, and the control Samsung won&apos;t give you.
+          A Galaxy Ultra is a great phone, built for everyone, and Samsung keeps it locked. You can&apos;t choose its
+          tower, you can&apos;t lock its frequency, and you can&apos;t change how its radio behaves. That control is the
+          whole point of a Nexa Pro, and it&apos;s why our customers buy them.
         </p>
 
         <div className="np-why-table">

@@ -1,8 +1,9 @@
-// Nexa vs Galaxy head-to-head. Every Galaxy figure is the US launch spec
-// (Samsung / GSMArena / Android Central, checked 2026-09-22). We only show
-// rows we win or tie; the full truth is always in each phone's spec sheet.
+// Nexa vs Galaxy: what a Galaxy can't do. We don't compete on price; buyers
+// come for tower/frequency lock and full control, which Samsung's locked
+// phones can't offer. Galaxy hardware figures are US launch specs
+// (Samsung / GSMArena / Android Central, checked 2026-09-22).
 
-import { fromPrice, money, type Product } from "./catalog";
+import type { Product } from "./catalog";
 
 type G = { price: number; battery: number; wired: number; wireless: number; water: string; refresh: number };
 
@@ -37,8 +38,6 @@ export function versus(p: Product): { galaxy: string; rows: Row[]; wins: number 
   const rows: Row[] = [];
   if (!g || !n) return { galaxy: p.galaxy.model, rows, wins: 0 };
 
-  const price = fromPrice(p);
-  if (price < g.price) rows.push({ label: "Price", nexa: money(price), galaxy: `${money(g.price)} new at launch`, result: "win" });
 
   const diff = (p.gb6 - p.galaxy.gb6) / p.galaxy.gb6;
   rows.push({
@@ -58,7 +57,9 @@ export function versus(p: Product): { galaxy: string; rows: Row[]; wins: number 
   if (n.cooling) rows.push({ label: "Cooling", nexa: n.cooling, galaxy: "Passive, throttles under load", result: "win" });
 
   // What Samsung locks away and we build in.
-  rows.push({ label: "Tower lock", nexa: "Pick and hold the best tower", galaxy: "Not available", result: "win" });
+  rows.push({ label: "Full bars, no internet", nexa: "Moves you to a tower that's delivering", galaxy: "Toggle airplane mode and hope", result: "win" });
+  rows.push({ label: "Lock to one exact tower", nexa: "Yes, and it holds", galaxy: "Not possible", result: "win" });
+  rows.push({ label: "Lock to one exact frequency", nexa: "Yes, any band it supports", galaxy: "Not possible", result: "win" });
   rows.push({ label: "Full system access", nexa: "Built in", galaxy: "Bootloader locked by Samsung", result: "win" });
   rows.push({ label: "Network rules per app", nexa: "System-wide, every connection", galaxy: "Basic data toggles", result: "win" });
   rows.push({ label: "Preinstalled apps", nexa: "None you didn't ask for", galaxy: "Samsung and carrier apps", result: "win" });
@@ -67,14 +68,3 @@ export function versus(p: Product): { galaxy: string; rows: Row[]; wins: number 
 
   return { galaxy: p.galaxy.model, rows, wins: rows.filter((r) => r.result === "win").length };
 }
-
-export const saving = (p: Product) => {
-  const g = GALAXY[p.galaxy.model];
-  return g ? g.price - fromPrice(p) : 0;
-};
-
-/** One honest line about price versus the Galaxy. */
-export const priceLine = (p: Product) => {
-  const s = saving(p);
-  return s > 0 ? `${money(s)} less than it cost new. Same flagship class.` : "Priced like a new Galaxy. Built to outwork it.";
-};

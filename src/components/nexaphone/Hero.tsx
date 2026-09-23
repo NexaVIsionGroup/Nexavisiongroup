@@ -98,8 +98,8 @@ export default function Hero() {
           transition={{ duration: 0.9, delay: 0.9, ease: EASE }}
         >
           <p className="np-lede">
-            Nexa Pro finds the strongest cell tower around you, locks on, and holds it on the fastest
-            connection that tower offers. Flagship hardware for people whose work can&apos;t drop.
+            No more full bars and no internet. No more airplane-mode roulette. Nexa Pro finds the strongest
+            tower around you, locks on, and holds it on the fastest connection that tower offers.
           </p>
           <div className="np-hero-ctas">
             <a href="#lineup" className="np-btn np-btn-lock np-shine">See the lineup</a>

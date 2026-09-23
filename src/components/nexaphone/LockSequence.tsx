@@ -15,7 +15,7 @@ const STEPS = [
   },
   {
     title: "It holds on",
-    body: "Through walls, crowds and rush hour, the phone stays on your tower instead of drifting to a weaker one.",
+    body: "Through walls, crowds and rush hour it stays on your tower. If that tower stops delivering, the Signal Engine moves you to one that does. No airplane mode.",
   },
 ];
 

@@ -1,6 +1,7 @@
 import Nav from "@/components/nexaphone/Nav";
 import Hero from "@/components/nexaphone/Hero";
 import SignalStory from "@/components/nexaphone/SignalStory";
+import DeadBars from "@/components/nexaphone/DeadBars";
 import LockSequence from "@/components/nexaphone/LockSequence";
 import Marquee from "@/components/nexaphone/Marquee";
 import Places from "@/components/nexaphone/Places";
@@ -16,6 +17,7 @@ export default function NexaPhonePage() {
       <Nav />
       <main>
         <Hero />
+        <DeadBars />
         <SignalStory />
         <LockSequence />
         <Marquee />
