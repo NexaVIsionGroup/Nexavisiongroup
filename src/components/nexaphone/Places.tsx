@@ -4,9 +4,12 @@ import Image from "next/image";
 import { useRef } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { places } from "./data";
+import { useCoverflow } from "./useCoverflow";
+import Title from "./Title";
 
 export default function Places() {
   const rail = useRef<HTMLDivElement>(null);
+  useCoverflow(rail, ".np-place");
   const nudge = (dir: 1 | -1) => {
     const el = rail.current;
     if (!el) return;
@@ -17,9 +20,7 @@ export default function Places() {
   return (
     <section className="np-section" id="where">
       <div className="np-wrap">
-        <h2 className="np-display np-h2" style={{ maxWidth: "10em" }}>
-          Built for the places signal goes to die.
-        </h2>
+        <Title text="Built for the places signal goes to die." style={{ maxWidth: "10em" }} />
         <p className="np-lede" style={{ marginTop: 22, color: "#cfd9df" }}>
           Metal, concrete, crowds and distance all push ordinary phones onto weak connections. Nexa Pro is
           made for exactly those spots.
@@ -27,7 +28,9 @@ export default function Places() {
         <div className="np-rail" ref={rail}>
           {places.map((p) => (
             <article className="np-place" key={p.title}>
-              <Image src={p.img} alt="" fill sizes="(max-width: 700px) 82vw, 380px" />
+              <div className="np-place-img" data-parallax>
+                <Image src={p.img} alt="" fill sizes="(max-width: 700px) 90vw, 420px" />
+              </div>
               <div className="np-place-copy">
                 <h3 className="np-display np-h3">{p.title}</h3>
                 <p>{p.line}</p>

@@ -1,9 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { devices, families, QUOTE_MAIL, type Family } from "./data";
 import PhoneRender from "./PhoneRender";
+import { useCoverflow } from "./useCoverflow";
+import Title from "./Title";
 
 const EASE = [0.22, 1, 0.36, 1] as [number, number, number, number];
 const TOP = Math.max(...devices.flatMap((d) => [d.gb6, d.galaxy.gb6]));
@@ -11,14 +13,14 @@ const FAMILY_TAG: Record<Family, string> = { flagship: "Flagship", fold: "Foldab
 
 export default function Lineup() {
   const [family, setFamily] = useState<Family | "all">("all");
+  const rail = useRef<HTMLDivElement>(null);
+  useCoverflow(rail, ".np-card", 0.7);
   const shown = devices.filter((d) => family === "all" || d.family === family);
 
   return (
     <section className="np-section np-light" id="lineup">
       <div className="np-wrap">
-        <h2 className="np-display np-h2" style={{ maxWidth: "10em" }}>
-          Seven phones. All flagship fast.
-        </h2>
+        <Title text="Seven phones. All flagship fast." style={{ maxWidth: "10em" }} />
         <p className="np-lede" style={{ marginTop: 22 }}>
           Each Nexa Pro starts as a top-tier phone and is rebuilt, tested and tuned in our shop. Here is how
           each one stacks up against the Galaxy it matches.
@@ -26,7 +28,11 @@ export default function Lineup() {
 
         <div className="np-filter" role="group" aria-label="Filter phones">
           {families.map((f) => (
-            <button key={f.id} aria-pressed={family === f.id} onClick={() => setFamily(f.id)}>
+            <button key={f.id} aria-pressed={family === f.id} onClick={() => {
+                setFamily(f.id);
+                try { navigator.vibrate?.(8); } catch {}
+                rail.current?.scrollTo({ left: 0, behavior: "smooth" });
+              }}>
               {f.label}
             </button>
           ))}
@@ -35,11 +41,11 @@ export default function Lineup() {
         <p className="np-lineup-count">
           {shown.length} {shown.length === 1 ? "phone" : "phones"}. Swipe to compare.
         </p>
-        <motion.div className="np-lineup" layout>
+        <motion.div className="np-lineup" layout ref={rail}>
           <AnimatePresence mode="popLayout">
             {shown.map((d) => (
               <motion.article
-                className="np-card"
+                className="np-card-slot"
                 key={d.id}
                 layout
                 initial={{ opacity: 0, scale: 0.96 }}
@@ -47,6 +53,7 @@ export default function Lineup() {
                 exit={{ opacity: 0, scale: 0.96 }}
                 transition={{ duration: 0.45, ease: EASE }}
               >
+                <div className="np-card">
                 <div className="np-card-stage">
                   <span className="np-card-tag">{FAMILY_TAG[d.family]}</span>
                   <PhoneRender d={d} />
@@ -95,6 +102,7 @@ export default function Lineup() {
                       Ask about this phone
                     </a>
                   </div>
+                </div>
                 </div>
               </motion.article>
             ))}

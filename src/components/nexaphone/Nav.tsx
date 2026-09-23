@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, motion, useScroll, useSpring } from "framer-motion";
 import { QUOTE_MAIL } from "./data";
 
 export function Mark({ className = "np-wordmark-mark" }: { className?: string }) {
@@ -18,6 +18,8 @@ export function Mark({ className = "np-wordmark-mark" }: { className?: string })
 export default function Nav() {
   const [solid, setSolid] = useState(false);
   const [dock, setDock] = useState(false);
+  const { scrollYProgress } = useScroll();
+  const bar = useSpring(scrollYProgress, { stiffness: 200, damping: 30 });
 
   useEffect(() => {
     const onScroll = () => {
@@ -47,6 +49,7 @@ export default function Nav() {
             Get a quote
           </a>
         </div>
+        <motion.div className="np-progress" style={{ scaleX: bar }} />
       </header>
 
       <AnimatePresence>

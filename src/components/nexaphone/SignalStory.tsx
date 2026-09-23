@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { animate, motion, useMotionValue, useTransform } from "framer-motion";
+import Title from "./Title";
 
 const EASE = [0.22, 1, 0.36, 1] as [number, number, number, number];
 
@@ -19,21 +20,6 @@ const NEXA = [
   { title: "Tower C", note: "Clear line, fastest band. Locked.", picked: true },
   { title: "Tower E", note: "Weak through the walls", picked: false },
   { title: "Every band", note: "Stays on. Nothing fast gets sacrificed.", picked: false },
-];
-
-const STEPS = [
-  {
-    title: "It looks at every tower",
-    body: "Your Nexa Pro sees all the towers in range and what each one can really deliver, not just which is closest.",
-  },
-  {
-    title: "You pick the best one",
-    body: "Choose the tower with the fastest connection, or have your IT team set it once for the whole site.",
-  },
-  {
-    title: "It holds on",
-    body: "Through walls, crowds and rush hour, the phone stays on your tower instead of drifting to a weaker one.",
-  },
 ];
 
 function Meter({ mode }: { mode: Mode }) {
@@ -54,10 +40,11 @@ function Meter({ mode }: { mode: Mode }) {
         </div>
         <div className="np-meter-track">
           <motion.div
-            className="np-meter-fill"
+            className="np-meter-fill np-flow"
+            data-mode={mode}
             animate={{
               width: mode === "nexa" ? "92%" : "9%",
-              background: mode === "nexa" ? "var(--lock-deep)" : "var(--weak)",
+              backgroundColor: mode === "nexa" ? "#0c8f9a" : "#d99a3e",
             }}
             transition={{ duration: 1.1, ease: EASE }}
           />
@@ -74,13 +61,19 @@ function Meter({ mode }: { mode: Mode }) {
 
 export default function SignalStory() {
   const [mode, setMode] = useState<Mode>("everyday");
+  const pick = (m: Mode) => {
+    setMode(m);
+    try {
+      navigator.vibrate?.(m === "nexa" ? [12, 40, 24] : 10);
+    } catch {
+      /* no haptics */
+    }
+  };
 
   return (
     <section className="np-section np-light" id="signal">
       <div className="np-wrap">
-        <h2 className="np-display np-h2" style={{ maxWidth: "11em" }}>
-          Other phones turn the fast lanes off.
-        </h2>
+        <Title text="Other phones turn the fast lanes off." style={{ maxWidth: "11em" }} />
         <p className="np-lede" style={{ marginTop: 22 }}>
           When the signal at work is bad, most phones give you one fix: switch bands off in settings. That stops
           the phone from bouncing between towers, but it usually leaves you on the slow, long-range band,
@@ -93,10 +86,10 @@ export default function SignalStory() {
             animate={{ x: mode === "nexa" ? "100%" : "0%" }}
             transition={{ type: "spring", stiffness: 420, damping: 36 }}
           />
-          <button aria-pressed={mode === "everyday"} onClick={() => setMode("everyday")}>
+          <button aria-pressed={mode === "everyday"} onClick={() => pick("everyday")}>
             Everyday phone
           </button>
-          <button aria-pressed={mode === "nexa"} onClick={() => setMode("nexa")}>
+          <button aria-pressed={mode === "nexa"} onClick={() => pick("nexa")}>
             Nexa Pro
           </button>
         </div>
@@ -144,16 +137,6 @@ export default function SignalStory() {
           </div>
           <Meter mode={mode} />
         </div>
-
-        <ol className="np-steps">
-          {STEPS.map((s, i) => (
-            <li className="np-step" key={s.title} style={{ listStyle: "none" }}>
-              <div className="np-step-n">{i + 1}</div>
-              <h3>{s.title}</h3>
-              <p>{s.body}</p>
-            </li>
-          ))}
-        </ol>
         <p style={{ marginTop: 34, fontSize: 13, color: "var(--ink-soft)", maxWidth: "46em" }}>
           Speeds shown illustrate the difference and are not a guarantee. Real results depend on your carrier,
           location and plan.

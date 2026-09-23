@@ -1,6 +1,7 @@
 import Image from "next/image";
 import { GUIDE_MAIL, QUOTE_MAIL } from "./data";
 import { Mark } from "./Nav";
+import Title from "./Title";
 
 export default function Closer() {
   return (
@@ -9,16 +10,19 @@ export default function Closer() {
         <div className="np-closer-photo">
           <Image src="/nexaphone/stock/tower-moon.jpg" alt="" fill sizes="100vw" />
         </div>
+        <div className="np-closer-rings" aria-hidden>
+          <span />
+          <span />
+          <span />
+        </div>
         <div className="np-wrap">
-          <h2 className="np-display np-h2" style={{ maxWidth: "9em" }}>
-            Put your crew on the right tower.
-          </h2>
+          <Title text="Put your crew on the right tower." style={{ maxWidth: "9em" }} />
           <p className="np-lede" style={{ marginTop: 22, color: "#cfd9df" }}>
             Online ordering opens soon. Tell us how many phones you need and where they&apos;ll work, and
             we&apos;ll quote your fleet today. Want the details? Ask for the technical guide.
           </p>
           <div className="np-hero-ctas" style={{ marginTop: 30 }}>
-            <a href={QUOTE_MAIL} className="np-btn np-btn-lock">Get a quote</a>
+            <a href={QUOTE_MAIL} className="np-btn np-btn-lock np-shine">Get a quote</a>
             <a href={GUIDE_MAIL} className="np-btn np-btn-ghost">Request the technical guide</a>
           </div>
         </div>

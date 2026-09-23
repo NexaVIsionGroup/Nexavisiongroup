@@ -178,7 +178,7 @@
 }
 .np-hero-photo {
   position: absolute;
-  inset: 0;
+  inset: -10% 0 0 0;
   z-index: -2;
   opacity: 0.42;
 }
@@ -194,11 +194,19 @@
 }
 .np-hero-grid {
   display: grid;
-  gap: 40px;
+  gap: 18px;
   align-items: center;
+  grid-template-areas: "copy" "scene" "foot";
 }
+.np-hero-copy { grid-area: copy; }
+.np-scene { grid-area: scene; }
+.np-hero-foot { grid-area: foot; }
 @media (min-width: 980px) {
-  .np-hero-grid { grid-template-columns: 1.05fr 0.95fr; gap: 56px; }
+  .np-hero-grid {
+    grid-template-columns: 1.05fr 0.95fr;
+    grid-template-areas: "copy scene" "foot scene";
+    column-gap: 56px;
+  }
 }
 .np-hero-kicker {
   color: var(--lock);
@@ -223,7 +231,7 @@
 }
 .np-hero h1 .np-line { display: block; overflow: hidden; }
 .np-hero h1 .np-line > span { display: block; }
-.np-hero-copy .np-lede { color: #cfd9df; margin: 22px 0 30px; }
+.np-hero-foot .np-lede { color: #cfd9df; margin: 4px 0 26px; }
 .np-hero-ctas { display: flex; flex-wrap: wrap; gap: 12px; }
 
 /* Tower lock instrument */
@@ -599,4 +607,278 @@
     animation-iteration-count: 1 !important;
     transition-duration: 0.001ms !important;
   }
+}
+
+
+/* ═══════════ Motion layer ═══════════ */
+
+/* Scroll progress under the nav */
+.np-progress {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--lock-deep), var(--lock));
+  box-shadow: 0 0 12px var(--lock);
+  transform-origin: 0 50%;
+}
+
+/* Hero scene */
+.np-scene {
+  position: relative;
+  margin: 0 calc(var(--gutter) * -1);
+  height: min(54svh, 105vw);
+}
+@media (min-width: 980px) {
+  .np-scene { margin: 0; height: auto; aspect-ratio: 1 / 1.05; }
+}
+.np-scene-canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.np-readout {
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-radius: 18px;
+  background: rgba(13, 20, 25, 0.62);
+  backdrop-filter: blur(14px) saturate(1.5);
+  -webkit-backdrop-filter: blur(14px) saturate(1.5);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.09), 0 20px 50px rgba(0, 0, 0, 0.4);
+}
+.np-readout-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex: none;
+  background: var(--weak);
+  box-shadow: 0 0 12px var(--weak);
+  animation: np-blink 0.8s steps(1) infinite;
+}
+.np-readout-dot[data-phase="lock"] { background: var(--lock); box-shadow: 0 0 14px var(--lock); animation: none; }
+.np-readout-text { display: flex; flex-direction: column; min-width: 0; flex: 1; }
+.np-readout-text strong { font-weight: 600; font-size: 15px; white-space: nowrap; }
+.np-readout-text span { color: var(--fog); font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.np-readout-speed { text-align: right; line-height: 1; }
+.np-readout-speed b {
+  display: block;
+  font-family: var(--f-display);
+  font-weight: 800;
+  font-size: 34px;
+  color: var(--lock);
+  text-shadow: 0 0 18px rgba(86, 224, 232, 0.55);
+}
+.np-readout-speed small { color: var(--fog); font-size: 12px; }
+
+.np-scroll-cue {
+  position: absolute;
+  left: 50%;
+  bottom: 18px;
+  width: 26px;
+  height: 42px;
+  margin-left: -13px;
+  border-radius: 14px;
+  box-shadow: inset 0 0 0 1.5px rgba(255, 255, 255, 0.35);
+  display: none;
+}
+.np-scroll-cue span {
+  position: absolute;
+  left: 50%;
+  top: 8px;
+  width: 4px;
+  height: 8px;
+  margin-left: -2px;
+  border-radius: 2px;
+  background: var(--lock);
+  animation: np-cue 1.6s var(--ease) infinite;
+}
+@keyframes np-cue { 0% { transform: translateY(0); opacity: 1; } 80% { transform: translateY(14px); opacity: 0; } 100% { opacity: 0; } }
+@media (min-width: 980px) { .np-scroll-cue { display: block; } }
+
+/* Light sweep across primary buttons */
+.np-shine { position: relative; overflow: hidden; isolation: isolate; }
+.np-shine::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(105deg, transparent 35%, rgba(255, 255, 255, 0.75) 50%, transparent 65%);
+  transform: translateX(-120%);
+  animation: np-shine 3.6s var(--ease) infinite 2.2s;
+}
+@keyframes np-shine { 0% { transform: translateX(-120%); } 40%, 100% { transform: translateX(120%); } }
+
+/* Word-mask titles */
+.np-word { display: inline-block; overflow: hidden; vertical-align: top; padding-bottom: 0.08em; margin-bottom: -0.08em; }
+.np-word-in { display: inline-block; transform-origin: 0 100%; }
+
+/* Pinned lock sequence */
+.np-seq { position: relative; height: 330svh; background: var(--night); }
+.np-seq-sticky {
+  position: sticky;
+  top: 0;
+  height: 100svh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 80px 0 28px;
+}
+.np-seq-canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+.np-seq-sticky::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 50%;
+  background: linear-gradient(180deg, transparent, rgba(13, 20, 25, 0.9) 55%);
+  pointer-events: none;
+}
+.np-seq-top { position: relative; z-index: 2; }
+.np-seq-steps { display: flex; gap: 8px; }
+.np-seq-steps span {
+  flex: 1;
+  height: 4px;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.14);
+  transition: background 0.4s, box-shadow 0.4s;
+}
+.np-seq-steps span[data-on="true"] { background: var(--lock); box-shadow: 0 0 10px var(--lock); }
+.np-seq-bar {
+  height: 2px;
+  margin-top: 10px;
+  background: rgba(86, 224, 232, 0.5);
+}
+.np-seq-copy { position: relative; z-index: 2; min-height: 30svh; display: flex; align-items: flex-end; }
+.np-seq-copy p { color: #cfd9df; font-size: 17px; max-width: 30em; margin-top: 10px; }
+.np-seq-n {
+  font-size: 96px;
+  line-height: 0.8;
+  color: transparent;
+  -webkit-text-stroke: 1.5px var(--lock);
+  margin-bottom: 10px;
+}
+
+/* Velocity marquee */
+.np-marquee {
+  padding: 22px 0;
+  overflow: hidden;
+  background: var(--lock);
+  color: var(--night);
+  transform: rotate(-3deg) scale(1.08);
+  margin: 60px 0 0;
+  box-shadow: 0 30px 60px -30px rgba(86, 224, 232, 0.6);
+  position: relative;
+  z-index: 2;
+}
+.np-marquee-row { overflow: hidden; }
+.np-marquee-row + .np-marquee-row { margin-top: 6px; opacity: 0.5; }
+.np-marquee-track { display: flex; width: max-content; will-change: transform; }
+.np-marquee-set { display: flex; }
+.np-marquee-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 22px;
+  padding-right: 22px;
+  font-size: clamp(2.6rem, 11vw, 5rem);
+  line-height: 1;
+  white-space: nowrap;
+}
+.np-marquee-mark { width: 0.7em; height: 0.7em; color: var(--night); --lock: var(--night); }
+
+/* Rails: 3D coverflow */
+.np-rail, .np-lineup { perspective: 1000px; }
+.np-place { will-change: transform; }
+.np-place-img { position: absolute; inset: 0; z-index: -1; transform: scale(1.25); will-change: transform; }
+.np-place-img img { transition: none; }
+.np-card-slot { display: flex; scroll-snap-align: center; }
+.np-card-slot > .np-card { flex: 1; will-change: transform; }
+
+/* Phone renders float */
+.np-card-stage svg { animation: np-float 5s ease-in-out infinite; }
+.np-card-slot:nth-child(2n) .np-card-stage svg { animation-delay: -2.5s; }
+@keyframes np-float {
+  0%, 100% { transform: translateX(-50%) translateY(0) rotate(-1.5deg); }
+  50% { transform: translateX(-50%) translateY(-10px) rotate(1.5deg); }
+}
+
+/* Control tiles: finger-follow glow + self-drawing icons */
+.np-control > .np-control-tile { position: relative; overflow: hidden; background: var(--night); padding: 28px 26px 30px; }
+.np-control-tile::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(260px circle at var(--mx, 50%) var(--my, -40%), rgba(86, 224, 232, 0.16), transparent 60%);
+  pointer-events: none;
+}
+.np-control-icon { display: inline-flex; color: var(--lock); filter: drop-shadow(0 0 8px rgba(86, 224, 232, 0.5)); }
+.np-control-icon svg * { stroke-dasharray: 90; stroke-dashoffset: var(--draw, 0); }
+
+/* Speed meter flow */
+.np-flow {
+  background-image: repeating-linear-gradient(115deg, rgba(255, 255, 255, 0.28) 0 8px, transparent 8px 18px);
+  background-size: 200% 100%;
+  animation: np-flow 2.2s linear infinite;
+}
+.np-flow[data-mode="nexa"] { animation-duration: 0.45s; box-shadow: 0 0 18px rgba(12, 143, 154, 0.6); }
+@keyframes np-flow { to { background-position: -38px 0; } }
+
+/* Closer rings */
+.np-closer-rings { position: absolute; right: -20vw; top: 45%; z-index: -1; pointer-events: none; }
+.np-closer-rings span {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 110vw;
+  height: 110vw;
+  max-width: 900px;
+  max-height: 900px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(86, 224, 232, 0.5);
+  transform: translate(-50%, -50%) scale(0.2);
+  opacity: 0;
+  animation: np-ring 4.5s cubic-bezier(0.2, 0.6, 0.3, 1) infinite;
+}
+.np-closer-rings span:nth-child(2) { animation-delay: 1.5s; }
+.np-closer-rings span:nth-child(3) { animation-delay: 3s; }
+@keyframes np-ring {
+  0% { transform: translate(-50%, -50%) scale(0.2); opacity: 0.9; }
+  100% { transform: translate(-50%, -50%) scale(1); opacity: 0; }
+}
+
+/* The site's global CSS sets overflow-x: hidden on html AND body, which
+   turns body into a scroll container and silently breaks position: sticky.
+   clip keeps the no-sideways-scroll guarantee without that side effect. */
+html:has(.np),
+body:has(.np) {
+  overflow-x: clip;
+}
+
+/* Gallery as a real grid (column masonry fought the clip reveals) */
+.np-gallery {
+  columns: auto;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  grid-auto-rows: 88px;
+  grid-auto-flow: dense;
+  gap: 10px;
+}
+@media (min-width: 900px) {
+  .np-gallery { grid-template-columns: repeat(4, 1fr); grid-auto-rows: 120px; gap: 14px; }
+}
+.np-gallery > .np-shot { margin: 0; grid-row: span 2; height: 100%; }
+.np-gallery > .np-shot[data-tall="true"] { grid-row: span 3; }
+.np-gallery > .np-shot img { height: 100%; object-fit: cover; aspect-ratio: auto !important; }
+.np-gallery > .np-shot {
+  clip-path: inset(100% 0 0 0 round 18px);
+  transition: clip-path 1.1s cubic-bezier(0.76, 0, 0.24, 1);
+}
+.np-gallery > .np-shot img { transform: scale(1.15); transition: transform 1.6s var(--ease), filter 0.8s; }
+.np-gallery > .np-shot[data-in="true"] { clip-path: inset(0 0 0 0 round 18px); }
+.np-gallery > .np-shot[data-in="true"] img { transform: scale(1); }
+@media (max-width: 859px) {
+  /* leave room for the floating dock */
+  .np-seq-sticky { padding-bottom: 104px; }
 }

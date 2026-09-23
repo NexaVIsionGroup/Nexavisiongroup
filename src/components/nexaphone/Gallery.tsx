@@ -1,15 +1,29 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { X } from "lucide-react";
 import { gallery } from "./data";
+import Title from "./Title";
 
 const step = (i: number, dir: number) => (i + dir + gallery.length) % gallery.length;
 
 export default function Gallery() {
   const [open, setOpen] = useState<number | null>(null);
+  const grid = useRef<HTMLDivElement>(null);
+
+  // Wipe each photo in as it enters the screen.
+  useEffect(() => {
+    const shots = grid.current?.querySelectorAll<HTMLElement>(".np-shot");
+    if (!shots) return;
+    const io = new IntersectionObserver(
+      (entries) => entries.forEach((e) => e.isIntersecting && (e.target as HTMLElement).setAttribute("data-in", "true")),
+      { rootMargin: "0px 0px -10% 0px" }
+    );
+    shots.forEach((s) => io.observe(s));
+    return () => io.disconnect();
+  }, []);
 
   useEffect(() => {
     if (open === null) return;
@@ -25,10 +39,18 @@ export default function Gallery() {
   return (
     <section className="np-section" id="gallery">
       <div className="np-wrap">
-        <h2 className="np-display np-h2">In the field.</h2>
-        <div className="np-gallery">
+        <Title text="In the field." />
+        <div className="np-gallery" ref={grid}>
           {gallery.map((g, i) => (
-            <button className="np-shot" key={g.src} onClick={() => setOpen(i)} aria-label={`View photo: ${g.alt}`}>
+            <motion.button
+              className="np-shot"
+              key={g.src}
+              onClick={() => setOpen(i)}
+              aria-label={`View photo: ${g.alt}`}
+              whileTap={{ scale: 0.97 }}
+              data-tall={!!g.tall}
+              style={{ transitionDelay: `${(i % 2) * 0.12}s` }}
+            >
               <Image
                 src={g.src}
                 alt={g.alt}
@@ -37,7 +59,7 @@ export default function Gallery() {
                 sizes="(max-width: 900px) 50vw, 25vw"
                 style={{ aspectRatio: g.tall ? "8 / 11" : "10 / 7", objectFit: "cover" }}
               />
-            </button>
+            </motion.button>
           ))}
         </div>
       </div>
