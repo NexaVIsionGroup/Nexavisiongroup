@@ -1,0 +1,104 @@
+/* ============================================================
+   GOODMAN DETAILING — "Liquid Chrome" capsule theme
+   Fully scoped under .gd-root so it never affects NexaVision.
+   ============================================================ */
+
+.gd-root {
+  /* palette */
+  --gd-ink: #05070d;
+  --gd-abyss: #0a0f1a;
+  --gd-navy: #0e1a33;
+  --gd-navy-2: #12274a;
+  --gd-steel: #1a2740;
+  --gd-line: rgba(150, 180, 220, 0.12);
+  --gd-line-strong: rgba(150, 180, 220, 0.24);
+  --gd-ice: #eaf2ff;
+  --gd-mist: #9bb0ce;
+  --gd-mute: #61748f;
+  --gd-cyan: #3ad6ff;
+  --gd-blue: #2f7bff;
+  --gd-cyan-soft: rgba(58, 214, 255, 0.5);
+
+  position: relative;
+  isolation: isolate;
+  min-height: 100vh;
+  color: var(--gd-ice);
+  font-family: var(--font-gd-body), system-ui, sans-serif;
+  background:
+    radial-gradient(1200px 720px at 80% -10%, rgba(47, 123, 255, 0.18), transparent 60%),
+    radial-gradient(1000px 820px at 4% 112%, rgba(58, 214, 255, 0.10), transparent 55%),
+    linear-gradient(180deg, #0a1120 0%, #05070d 62%, #04060b 100%);
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+.gd-root ::selection { background: rgba(58, 214, 255, 0.28); color: #fff; }
+.gd-display { font-family: var(--font-gd-display), system-ui, sans-serif; }
+.gd-root h1, .gd-root h2, .gd-root h3 { font-family: var(--font-gd-display), system-ui, sans-serif; }
+
+/* frosted glass panel */
+.gd-glass {
+  background: linear-gradient(160deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.015));
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid var(--gd-line);
+}
+.gd-hairline { border: 1px solid var(--gd-line); }
+
+/* eyebrow chip */
+.gd-chip {
+  display: inline-flex; align-items: center; gap: 0.5rem;
+  padding: 0.4rem 0.85rem; border-radius: 999px;
+  font-size: 0.72rem; letter-spacing: 0.16em; text-transform: uppercase;
+  color: var(--gd-mist);
+  background: rgba(58, 214, 255, 0.06);
+  border: 1px solid var(--gd-line-strong);
+}
+.gd-chip-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--gd-cyan); box-shadow: 0 0 10px var(--gd-cyan); animation: gd-pulse 2.4s ease-in-out infinite; }
+
+/* primary CTA */
+.gd-cta {
+  --_g: linear-gradient(120deg, var(--gd-cyan), var(--gd-blue));
+  position: relative; display: inline-flex; align-items: center; justify-content: center; gap: 0.55rem;
+  padding: 0.95rem 1.6rem; border-radius: 0.7rem; font-weight: 700; letter-spacing: 0.01em;
+  color: #05121f; background: var(--_g); border: none; cursor: pointer;
+  box-shadow: 0 8px 30px rgba(47, 123, 255, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.4);
+  transition: transform 0.25s ease, box-shadow 0.25s ease; overflow: hidden;
+}
+.gd-cta:hover { transform: translateY(-2px); box-shadow: 0 14px 44px rgba(58, 214, 255, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.5); }
+.gd-cta-ghost {
+  display: inline-flex; align-items: center; justify-content: center; gap: 0.55rem;
+  padding: 0.95rem 1.6rem; border-radius: 0.7rem; font-weight: 600; cursor: pointer;
+  color: var(--gd-ice); background: rgba(255, 255, 255, 0.04); border: 1px solid var(--gd-line-strong);
+  transition: border-color 0.25s ease, background 0.25s ease, transform 0.25s ease;
+}
+.gd-cta-ghost:hover { border-color: var(--gd-cyan-soft); background: rgba(58, 214, 255, 0.08); transform: translateY(-2px); }
+
+/* shine sweep — rakes a specular highlight across a surface */
+.gd-shine { position: relative; overflow: hidden; }
+.gd-shine::after {
+  content: ""; position: absolute; inset: -1px; pointer-events: none;
+  background: linear-gradient(115deg, transparent 32%, rgba(255, 255, 255, 0.16) 48%, rgba(255, 255, 255, 0.04) 55%, transparent 66%);
+  transform: translateX(-130%); animation: gd-shine 6.5s ease-in-out infinite;
+}
+
+/* subtle top border light */
+.gd-topglow { position: relative; }
+.gd-topglow::before {
+  content: ""; position: absolute; top: 0; left: 10%; right: 10%; height: 1px;
+  background: linear-gradient(90deg, transparent, var(--gd-cyan-soft), transparent);
+}
+
+@keyframes gd-shine { 0% { transform: translateX(-130%); } 55%, 100% { transform: translateX(130%); } }
+@keyframes gd-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.35; } }
+@keyframes gd-float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-9px); } }
+@keyframes gd-scrollcue { 0% { transform: translateY(0); opacity: 0; } 40% { opacity: 1; } 80%, 100% { transform: translateY(10px); opacity: 0; } }
+
+.gd-floaty { animation: gd-float 6s ease-in-out infinite; }
+
+/* number counters / stat labels */
+.gd-stat-value { font-family: var(--font-gd-display), system-ui, sans-serif; font-weight: 800; line-height: 1; }
+.gd-stat-label { color: var(--gd-mist); font-size: 0.72rem; letter-spacing: 0.14em; text-transform: uppercase; }
+
+.gd-muted { color: var(--gd-mist); }
+.gd-faint { color: var(--gd-mute); }
