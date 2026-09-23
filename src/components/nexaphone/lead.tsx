@@ -140,8 +140,8 @@ function LeadSheet({ kind, device, onClose }: { kind: Kind; device?: string; onC
               <Field label="Company" name="company" half auto="organization" />
               {kind === "quote" && (
                 <>
-                  <Field label="How many phones" name="units" type="number" half />
-                  <Field label="Site city and state" name="location" half />
+                  <Field label="Phones needed" name="units" type="number" half />
+                  <Field label="City, state" name="location" half />
                 </>
               )}
               <label className="np-field">

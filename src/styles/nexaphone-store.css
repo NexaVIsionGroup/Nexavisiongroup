@@ -589,3 +589,4 @@
 .np-link-btn { background: none; border: 0; padding: 0; color: var(--lock); font: inherit; font-weight: 600; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
 .np-buy .np-btn-ghost { margin-top: 14px; }
 @media (min-width: 760px) { .np-lead { left: auto; top: 0; width: 460px; max-height: none; border-radius: 26px 0 0 26px; } }
+.np-field span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: calc(100% - 32px); }
