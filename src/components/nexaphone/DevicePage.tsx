@@ -19,9 +19,9 @@ const EASE = [0.22, 1, 0.36, 1] as [number, number, number, number];
 const TOP = Math.max(...products.flatMap((d) => [d.gb6, d.galaxy.gb6]));
 
 const GALLERY: Record<string, string[]> = {
-  flagship: ["phone-outdoor", "phone-lens", "phone-dark", "flatlay"],
-  fold: ["phone-outdoor", "phone-dark", "phone-lens", "plant"],
-  turbo: ["phone-lens", "phone-reach", "flatlay", "phone-dark"],
+  flagship: ["g-oneplus", "g-circuit-lens", "g-bokeh", "g-rugged"],
+  fold: ["g-bokeh", "g-tunnel", "g-circuit-lens", "g-board"],
+  turbo: ["g-tunnel", "g-board", "g-rugged", "g-welder"],
 };
 
 const buzz = (ms: number | number[]) => {
@@ -338,7 +338,7 @@ export default function DevicePage({ slug }: { slug: string }) {
               viewport={{ once: true }}
               transition={{ duration: 0.8, delay: i * 0.08, ease: EASE }}
             >
-              <Image src={`/nexaphone/stock/${g}.jpg`} alt="" fill sizes="80vw" />
+              <Image src={`/nexaphone/v2/${g}.jpg`} alt="" fill sizes="80vw" />
             </motion.figure>
           ))}
         </div>

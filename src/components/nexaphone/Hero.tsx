@@ -57,7 +57,7 @@ export default function Hero() {
   return (
     <section className="np-hero" id="top" ref={ref}>
       <motion.div className="np-hero-photo" style={{ y: photoY, scale: photoScale }}>
-        <Image src="/nexaphone/stock/hero.jpg" alt="" fill priority sizes="100vw" />
+        <Image src="/nexaphone/v2/hero.jpg" alt="" fill priority sizes="100vw" />
       </motion.div>
 
       <motion.div className="np-wrap np-hero-grid" style={{ y: copyY, opacity: fade }}>

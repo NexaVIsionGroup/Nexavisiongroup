@@ -1,0 +1,98 @@
+{
+ "hero": {
+  "source": "pexels",
+  "id": 36976439,
+  "photographer": "Fernando  Alanis",
+  "url": "https://www.pexels.com/photo/full-moon-over-cell-tower-at-twilight-36976439/"
+ },
+ "factory": {
+  "source": "pexels",
+  "id": 32845694,
+  "photographer": "Sergey Sergeev",
+  "url": "https://www.pexels.com/photo/engineer-in-industrial-factory-using-tablet-32845694/"
+ },
+ "warehouse": {
+  "source": "pexels",
+  "id": 7018656,
+  "photographer": "cottonbro studio",
+  "url": "https://www.pexels.com/photo/female-employee-holding-clipboard-7018656/"
+ },
+ "construction": {
+  "source": "pexels",
+  "id": 31428953,
+  "photographer": "Peter BK\ud83c\uddf3\ud83c\uddf5",
+  "url": "https://www.pexels.com/photo/nighttime-urban-construction-worker-scene-31428953/"
+ },
+ "field": {
+  "source": "pexels",
+  "id": 9679179,
+  "photographer": "Aizat Ramlan",
+  "url": "https://www.pexels.com/photo/a-man-working-on-the-circuit-breaker-switch-9679179/"
+ },
+ "venue": {
+  "source": "pexels",
+  "id": 35898730,
+  "photographer": "ShotsBy Csongii",
+  "url": "https://www.pexels.com/photo/night-football-match-at-budapest-stadium-35898730/"
+ },
+ "fleet": {
+  "source": "pexels",
+  "id": 14091245,
+  "photographer": "Shady Elfaham",
+  "url": "https://www.pexels.com/photo/a-truck-moving-on-the-road-14091245/"
+ },
+ "closer": {
+  "source": "pexels",
+  "id": 8149710,
+  "photographer": "Elton Dantas de Oliveira",
+  "url": "https://www.pexels.com/photo/towers-against-night-starry-sky-8149710/"
+ },
+ "g-circuit-lens": {
+  "source": "pexels",
+  "id": 6755140,
+  "photographer": "Tima Miroshnichenko",
+  "url": "https://www.pexels.com/photo/man-person-smartphone-broken-6755140/"
+ },
+ "g-rugged": {
+  "source": "pexels",
+  "id": 7989741,
+  "photographer": "Carlos Jairo",
+  "url": "https://www.pexels.com/photo/an-expensive-cellphone-on-a-black-surface-7989741/"
+ },
+ "g-oneplus": {
+  "source": "pexels",
+  "id": 11711515,
+  "photographer": "Akarsh Kanodia",
+  "url": "https://www.pexels.com/photo/photo-of-a-blue-phone-11711515/"
+ },
+ "g-tunnel": {
+  "source": "pexels",
+  "id": 13807653,
+  "photographer": "Tahir Osman",
+  "url": "https://www.pexels.com/photo/person-taking-a-photo-of-a-tunnel-13807653/"
+ },
+ "g-board": {
+  "source": "pexels",
+  "id": 3520697,
+  "photographer": "Miguel \u00c1. Padri\u00f1\u00e1n",
+  "url": "https://www.pexels.com/photo/circuits-on-pcb-board-3520697/"
+ },
+ "g-tower": {
+  "source": "pexels",
+  "id": 35467437,
+  "photographer": "ADENIUSO Gomes",
+  "url": "https://www.pexels.com/photo/telecommunications-tower-against-stormy-sky-35467437/"
+ },
+ "g-welder": {
+  "source": "pexels",
+  "id": 3678226,
+  "photographer": "Kateryna Babaieva",
+  "url": "https://www.pexels.com/photo/man-using-a-electric-welding-3678226/"
+ },
+ "g-bokeh": {
+  "source": "pexels",
+  "id": 6415574,
+  "photographer": "RDNE Stock project",
+  "url": "https://www.pexels.com/photo/person-holding-black-android-smartphone-6415574/"
+ }
+}

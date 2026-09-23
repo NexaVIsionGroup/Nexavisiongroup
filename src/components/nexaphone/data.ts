@@ -146,32 +146,32 @@ export const families: { id: Family | "all"; label: string }[] = [
 
 export const places = [
   {
-    img: "/nexaphone/stock/factory.jpg",
+    img: "/nexaphone/v2/factory.jpg",
     title: "Plant floors",
     line: "Steel, machinery and concrete swallow signal. Stay on the one tower that actually reaches the line.",
   },
   {
-    img: "/nexaphone/stock/warehouse.jpg",
+    img: "/nexaphone/v2/warehouse.jpg",
     title: "Warehouses",
     line: "Racking turns a building into a maze. Scanners and handhelds stay connected aisle to aisle.",
   },
   {
-    img: "/nexaphone/stock/construction.jpg",
+    img: "/nexaphone/v2/construction.jpg",
     title: "Job sites",
     line: "New builds sit at the edge of coverage. Reach the strong tower across town, not the weak one next door.",
   },
   {
-    img: "/nexaphone/stock/field.jpg",
+    img: "/nexaphone/v2/field.jpg",
     title: "Field service",
     line: "Utility cabinets, rooftops, basements. Your crew's phone holds the connection they need to close the ticket.",
   },
   {
-    img: "/nexaphone/stock/venue.jpg",
+    img: "/nexaphone/v2/venue.jpg",
     title: "Venues and events",
     line: "When 40,000 phones crowd the same towers, pick the one that isn't full.",
   },
   {
-    img: "/nexaphone/stock/fleet.jpg",
+    img: "/nexaphone/v2/fleet.jpg",
     title: "Fleet and logistics",
     line: "Drivers, docks and yards. Fast uploads of proof-of-delivery from places carriers forgot.",
   },
@@ -205,14 +205,14 @@ export const controls = [
 ];
 
 export const gallery = [
-  { src: "/nexaphone/stock/phone-reach.jpg", alt: "Hands reaching toward a smartphone in the dark", tall: true },
-  { src: "/nexaphone/stock/plant.jpg", alt: "Industrial plant lit up at night" },
-  { src: "/nexaphone/stock/phone-lens.jpg", alt: "Close-up of a phone camera module", tall: true },
-  { src: "/nexaphone/stock/tower-dusk.jpg", alt: "Cell tower silhouetted at sunset" },
-  { src: "/nexaphone/stock/phone-outdoor.jpg", alt: "A dark flagship phone held up outdoors", tall: true },
-  { src: "/nexaphone/stock/flatlay.jpg", alt: "Phone and accessories on a black surface" },
-  { src: "/nexaphone/stock/phone-dark.jpg", alt: "Hands using a phone in low light", tall: true },
-  { src: "/nexaphone/stock/tower-moon.jpg", alt: "Cell tower beneath a full moon", tall: true },
+  { src: "/nexaphone/v2/g-tunnel.jpg", alt: "A phone glowing in a dark blue tunnel", tall: true },
+  { src: "/nexaphone/v2/g-circuit-lens.jpg", alt: "Circuit board seen through a lens ring" },
+  { src: "/nexaphone/v2/g-oneplus.jpg", alt: "A OnePlus phone on a dark surface", tall: true },
+  { src: "/nexaphone/v2/g-welder.jpg", alt: "A welder working in blue light" },
+  { src: "/nexaphone/v2/g-tower.jpg", alt: "A cell tower against a storm-blue sky", tall: true },
+  { src: "/nexaphone/v2/g-rugged.jpg", alt: "A rugged dark phone case close up" },
+  { src: "/nexaphone/v2/g-bokeh.jpg", alt: "A phone held in low light", tall: true },
+  { src: "/nexaphone/v2/g-board.jpg", alt: "Macro of a circuit board" },
 ];
 
 export const QUOTE_MAIL =

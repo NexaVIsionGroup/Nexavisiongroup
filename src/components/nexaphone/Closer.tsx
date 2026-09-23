@@ -8,7 +8,7 @@ export default function Closer() {
     <>
       <section className="np-section np-closer">
         <div className="np-closer-photo">
-          <Image src="/nexaphone/stock/tower-moon.jpg" alt="" fill sizes="100vw" />
+          <Image src="/nexaphone/v2/closer.jpg" alt="" fill sizes="100vw" />
         </div>
         <div className="np-closer-rings" aria-hidden>
           <span />
@@ -33,7 +33,7 @@ export default function Closer() {
             <Mark />
             Nexa Pro
           </a>
-          <span>A NexaVision Group company. Stock photography from Pexels.</span>
+          <span>A NexaVision Group company. Photography from Pexels.</span>
         </div>
       </footer>
     </>
