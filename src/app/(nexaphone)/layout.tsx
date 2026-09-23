@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Big_Shoulders_Display, IBM_Plex_Sans } from "next/font/google";
 import "@/styles/nexaphone.css";
+import "@/styles/nexaphone-store.css";
+import { CartProvider } from "@/components/nexaphone/cart";
 
 const display = Big_Shoulders_Display({
   subsets: ["latin"],
@@ -26,5 +28,9 @@ export const metadata: Metadata = {
 };
 
 export default function NexaPhoneLayout({ children }: { children: React.ReactNode }) {
-  return <div className={`${display.variable} ${body.variable} np`}>{children}</div>;
+  return (
+    <div className={`${display.variable} ${body.variable} np`}>
+      <CartProvider>{children}</CartProvider>
+    </div>
+  );
 }

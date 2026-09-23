@@ -1,8 +1,10 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion, useScroll, useSpring } from "framer-motion";
-import { QUOTE_MAIL } from "./data";
+import { ShoppingBag } from "lucide-react";
+import { useCart } from "./cart";
 
 export function Mark({ className = "np-wordmark-mark" }: { className?: string }) {
   // A tower with one locked ring — the product in one glyph.
@@ -15,7 +17,30 @@ export function Mark({ className = "np-wordmark-mark" }: { className?: string })
   );
 }
 
-export default function Nav() {
+function CartButton() {
+  const { count, setOpen } = useCart();
+  return (
+    <button className="np-cart-btn" aria-label={`Cart, ${count} items`} onClick={() => setOpen(true)}>
+      <ShoppingBag size={20} />
+      <AnimatePresence>
+        {count > 0 && (
+          <motion.span
+            key={count}
+            className="np-cart-count np-num"
+            initial={{ scale: 0.3, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0.3, opacity: 0 }}
+            transition={{ type: "spring", stiffness: 500, damping: 22 }}
+          >
+            {count}
+          </motion.span>
+        )}
+      </AnimatePresence>
+    </button>
+  );
+}
+
+export default function Nav({ dock: showDock = true }: { dock?: boolean }) {
   const [solid, setSolid] = useState(false);
   const [dock, setDock] = useState(false);
   const { scrollYProgress } = useScroll();
@@ -35,25 +60,28 @@ export default function Nav() {
     <>
       <header className="np-nav" data-solid={solid}>
         <div className="np-wrap np-nav-inner">
-          <a href="#top" className="np-wordmark" aria-label="Nexa Pro home">
+          <Link href="/nexaphone" className="np-wordmark" aria-label="Nexa Pro home">
             <Mark />
             Nexa Pro
-          </a>
+          </Link>
           <nav className="np-nav-links" aria-label="Sections">
-            <a href="#signal">How it connects</a>
-            <a href="#where">Where it works</a>
-            <a href="#control">Control</a>
-            <a href="#lineup">Lineup</a>
+            <Link href="/nexaphone#signal">How it connects</Link>
+            <Link href="/nexaphone#where">Where it works</Link>
+            <Link href="/nexaphone#control">Control</Link>
+            <Link href="/nexaphone#lineup">Lineup</Link>
           </nav>
-          <a href={QUOTE_MAIL} className="np-btn np-btn-lock" style={{ minHeight: 42, padding: "0 18px", fontSize: 15 }}>
-            Get a quote
-          </a>
+          <div className="np-nav-actions">
+            <Link href="/nexaphone#lineup" className="np-btn np-btn-lock np-nav-shop">
+              Shop
+            </Link>
+            <CartButton />
+          </div>
         </div>
         <motion.div className="np-progress" style={{ scaleX: bar }} />
       </header>
 
       <AnimatePresence>
-        {dock && (
+        {showDock && dock && (
           <motion.nav
             className="np-dock"
             aria-label="Quick links"
@@ -62,9 +90,10 @@ export default function Nav() {
             exit={{ y: 90, x: "-50%", opacity: 0 }}
             transition={{ type: "spring", stiffness: 380, damping: 32 }}
           >
-            <a href="#signal">How</a>
-            <a href="#lineup">Lineup</a>
-            <a href={QUOTE_MAIL} className="np-dock-cta">Get a quote</a>
+            <Link href="/nexaphone#signal">How</Link>
+            <Link href="/nexaphone#lineup" className="np-dock-cta">
+              Shop phones
+            </Link>
           </motion.nav>
         )}
       </AnimatePresence>

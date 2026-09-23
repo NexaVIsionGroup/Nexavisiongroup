@@ -1,10 +1,15 @@
 "use client";
 
-import { useRef, useState } from "react";
+import Link from "next/link";
+import dynamic from "next/dynamic";
+import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { devices, families, QUOTE_MAIL, type Family } from "./data";
+import { families, type Family } from "./data";
+import { fromPrice, money, products as devices } from "./catalog";
 import PhoneRender from "./PhoneRender";
 import { useCoverflow } from "./useCoverflow";
+
+const Viewer3D = dynamic(() => import("./three/Viewer3D"), { ssr: false });
 import Title from "./Title";
 
 const EASE = [0.22, 1, 0.36, 1] as [number, number, number, number];
@@ -16,6 +21,30 @@ export default function Lineup() {
   const rail = useRef<HTMLDivElement>(null);
   useCoverflow(rail, ".np-card", 0.7);
   const shown = devices.filter((d) => family === "all" || d.family === family);
+  const [active, setActive] = useState(0);
+  const cur = shown[Math.min(active, shown.length - 1)] ?? shown[0];
+
+  // The phone nearest the middle of the rail drives the 3D stage.
+  useEffect(() => {
+    const el = rail.current;
+    if (!el) return;
+    const pick = () => {
+      const mid = el.getBoundingClientRect().left + el.clientWidth / 2;
+      let best = 0;
+      let bestD = Infinity;
+      el.querySelectorAll<HTMLElement>(".np-card-slot").forEach((c, i) => {
+        const r = c.getBoundingClientRect();
+        const d = Math.abs(r.left + r.width / 2 - mid);
+        if (d < bestD) {
+          bestD = d;
+          best = i;
+        }
+      });
+      setActive(best);
+    };
+    el.addEventListener("scroll", pick, { passive: true });
+    return () => el.removeEventListener("scroll", pick);
+  }, [shown.length]);
 
   return (
     <section className="np-section np-light" id="lineup">
@@ -30,12 +59,36 @@ export default function Lineup() {
           {families.map((f) => (
             <button key={f.id} aria-pressed={family === f.id} onClick={() => {
                 setFamily(f.id);
+                setActive(0);
                 try { navigator.vibrate?.(8); } catch {}
                 rail.current?.scrollTo({ left: 0, behavior: "smooth" });
               }}>
               {f.label}
             </button>
           ))}
+        </div>
+
+        <div className="np-stage3d">
+          <Viewer3D
+            className="np-viewer"
+            modelKey={cur.id}
+            island={cur.render.island}
+            fold={cur.family === "fold"}
+            folded
+            swatch={cur.colors[0]}
+            label={cur.name}
+          />
+          <div className="np-stage3d-cap">
+            <AnimatePresence mode="wait">
+              <motion.div key={cur.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.3 }}>
+                <strong className="np-display">{cur.name}</strong>
+                <span>Drag to spin. Swipe below to switch phones.</span>
+              </motion.div>
+            </AnimatePresence>
+            <Link href={`/nexaphone/phones/${cur.slug}`} className="np-btn np-btn-lock np-shine">
+              Explore
+            </Link>
+          </div>
         </div>
 
         <p className="np-lineup-count">
@@ -54,10 +107,10 @@ export default function Lineup() {
                 transition={{ duration: 0.45, ease: EASE }}
               >
                 <div className="np-card">
-                <div className="np-card-stage">
+                <Link href={`/nexaphone/phones/${d.slug}`} className="np-card-stage" aria-label={`Explore ${d.name}`}>
                   <span className="np-card-tag">{FAMILY_TAG[d.family]}</span>
                   <PhoneRender d={d} />
-                </div>
+                </Link>
                 <div className="np-card-body">
                   <div>
                     <h3 className="np-display np-h3">{d.name}</h3>
@@ -93,14 +146,16 @@ export default function Lineup() {
                     <div><dt>Carriers</dt><dd>{d.carriers}</dd></div>
                   </dl>
                   <div className="np-card-foot">
-                    <span>Pricing soon</span>
-                    <a
-                      href={`${QUOTE_MAIL}${encodeURIComponent(`: ${d.name}`)}`}
+                    <span>
+                      From <b className="np-num">{money(fromPrice(d))}</b>
+                    </span>
+                    <Link
+                      href={`/nexaphone/phones/${d.slug}`}
                       className="np-btn np-btn-ghost"
                       style={{ minHeight: 44, padding: "0 18px", fontSize: 15 }}
                     >
-                      Ask about this phone
-                    </a>
+                      Explore
+                    </Link>
                   </div>
                 </div>
                 </div>
