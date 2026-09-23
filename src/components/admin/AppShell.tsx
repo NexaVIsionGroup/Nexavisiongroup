@@ -18,6 +18,7 @@ import {
   ChevronLeft,
   ShieldCheck,
   Smartphone,
+  ShoppingBag,
   Sparkles,
   ExternalLink,
 } from "lucide-react";
@@ -43,6 +44,7 @@ const navItems: NavItem[] = [
   { label: "Invoices", icon: Receipt, path: "/admin/invoices" },
   { label: "Analytics", icon: BarChart3, path: "/admin/analytics" },
   { label: "Devices", icon: Smartphone, path: "/admin/devices" },
+  { label: "Phone Store", icon: ShoppingBag, path: "/admin/phones" },
   { label: "NEXA AI", icon: Sparkles, path: "https://ai.nexavisiongroup.com", external: true },
   { label: "Settings", icon: Settings, path: "/admin/settings" },
 ];

@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import { animate, motion, useMotionValue, useScroll, useTransform } from "framer-motion";
-import { QUOTE_MAIL } from "./data";
+import { LeadButton } from "./lead";
 import SignalField, { SCENES, type FieldState } from "./SignalField";
 import Scramble from "./Scramble";
 
@@ -103,7 +103,7 @@ export default function Hero() {
           </p>
           <div className="np-hero-ctas">
             <a href="#lineup" className="np-btn np-btn-lock np-shine">See the lineup</a>
-            <a href={QUOTE_MAIL} className="np-btn np-btn-ghost">Quote a fleet</a>
+            <LeadButton kind="quote" className="np-btn np-btn-ghost">Quote a fleet</LeadButton>
           </div>
         </motion.div>
       </motion.div>

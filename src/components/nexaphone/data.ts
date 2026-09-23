@@ -167,22 +167,22 @@ export const places = [
     line: "Steel, machinery and concrete swallow signal. Stay on the one tower that actually reaches the line.",
   },
   {
-    img: "/nexaphone/v2/warehouse.jpg",
+    img: "/nexaphone/v3/work-warehouse.jpg",
     title: "Warehouses",
     line: "Racking turns a building into a maze. Scanners and handhelds stay connected aisle to aisle.",
   },
   {
-    img: "/nexaphone/v2/construction.jpg",
+    img: "/nexaphone/v3/work-construction.jpg",
     title: "Job sites",
     line: "Site trailers and new builds sit at the edge of coverage. Lock onto the strong tower across town, not the weak one next door.",
   },
   {
-    img: "/nexaphone/v2/field.jpg",
+    img: "/nexaphone/v3/work-field.jpg",
     title: "Remote sites",
     line: "Pump stations, equipment rooms, rooftops and basements. A phone installed there stays connected, day and night.",
   },
   {
-    img: "/nexaphone/v2/venue.jpg",
+    img: "/nexaphone/v3/work-venue.jpg",
     title: "Venues and events",
     line: "When 40,000 phones crowd the same towers, pick the one that isn't full.",
   },

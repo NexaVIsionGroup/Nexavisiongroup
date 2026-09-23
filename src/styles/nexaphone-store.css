@@ -563,3 +563,29 @@
 .np-engine h3 { font-size: clamp(2rem, 7vw, 3rem); line-height: 0.95; color: var(--lock); margin-bottom: 12px; }
 .np-engine p { color: #d7e2e8; font-size: 16.5px; }
 .np-engine-small { margin-top: 12px; color: var(--fog) !important; font-size: 14.5px !important; }
+
+/* Real-hardware photo in the device gallery */
+.np-dgal-real figcaption {
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  bottom: 12px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: rgba(13, 20, 25, 0.72);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  font-weight: 600;
+  font-size: 14px;
+}
+.np-dgal-real figcaption small { display: block; font-weight: 400; font-size: 11px; color: var(--fog); margin-top: 2px; }
+.np-dgal-real { box-shadow: inset 0 0 0 1.5px rgba(86, 224, 232, 0.5); }
+
+/* Lead sheet */
+.np-lead { max-height: 92svh; overflow-y: auto; }
+.np-lead-intro { color: #cfd9df; font-size: 15px; margin: 6px 0 16px; }
+.np-lead-form fieldset { margin-bottom: 14px; }
+.np-lead-done { display: grid; justify-items: center; gap: 16px; text-align: center; padding: 20px 0 10px; color: #cfd9df; }
+.np-link-btn { background: none; border: 0; padding: 0; color: var(--lock); font: inherit; font-weight: 600; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+.np-buy .np-btn-ghost { margin-top: 14px; }
+@media (min-width: 760px) { .np-lead { left: auto; top: 0; width: 460px; max-height: none; border-radius: 26px 0 0 26px; } }

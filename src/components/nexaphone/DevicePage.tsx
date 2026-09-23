@@ -8,6 +8,7 @@ import { AnimatePresence, animate, motion, useInView, useMotionValue, useTransfo
 import { ArrowLeft, Check, ChevronDown, Minus, Plus, Lock } from "lucide-react";
 import { ADDONS, CONDITION, EDITIONS, fromPrice, money, products, type Product } from "./catalog";
 import { useCart } from "./cart";
+import { LeadButton } from "./lead";
 import SignalField from "./SignalField";
 import Scramble from "./Scramble";
 import Title from "./Title";
@@ -17,6 +18,16 @@ import type { AnchorName, AnchorPos } from "./three/Viewer3D";
 
 const Viewer3D = dynamic(() => import("./three/Viewer3D"), { ssr: false });
 const EASE = [0.22, 1, 0.36, 1] as [number, number, number, number];
+
+// Real photos of the actual hardware (Pexels / Wikimedia Commons, see public/nexaphone/v3/CREDITS.json).
+// CC BY-SA images must show their credit.
+const REAL: Record<string, { src: string; credit?: string }> = {
+  n10: { src: "/nexaphone/v3/n10.jpg" },
+  n11: { src: "/nexaphone/v3/n11.jpg" },
+  n12: { src: "/nexaphone/v3/n12.jpg" },
+  n13: { src: "/nexaphone/v3/n13.jpg" },
+  nfold: { src: "/nexaphone/v3/nfold.jpg", credit: "Photo: Miyako Fujimiya, CC BY-SA 4.0, via Wikimedia Commons" },
+};
 
 const GALLERY: Record<string, string[]> = {
   flagship: ["g-oneplus", "g-circuit-lens", "g-bokeh", "g-rugged"],
@@ -341,7 +352,21 @@ export default function DevicePage({ slug }: { slug: string }) {
           <Title text="Up close." />
         </div>
         <div className="np-dgal">
-          {GALLERY[p.family].map((g, i) => (
+          {REAL[p.id] && (
+            <motion.figure
+              className="np-dgal-item np-dgal-real"
+              initial={{ opacity: 0, scale: 0.9 }}
+              whileInView={{ opacity: 1, scale: 1 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.8, ease: EASE }}
+            >
+              <Image src={REAL[p.id].src} alt={`The ${p.base} hardware that ${p.name} is built on`} fill sizes="80vw" />
+              <figcaption>
+                {p.base} hardware{REAL[p.id].credit ? <small>{REAL[p.id].credit}</small> : null}
+              </figcaption>
+            </motion.figure>
+          )}
+          {GALLERY[p.family].slice(0, REAL[p.id] ? 3 : 4).map((g, i) => (
             <motion.figure
               key={g}
               className="np-dgal-item"
@@ -355,7 +380,9 @@ export default function DevicePage({ slug }: { slug: string }) {
           ))}
         </div>
         <div className="np-wrap">
-          <p className="np-footnote">Shop photos of this model are on the way. Images shown are representative.</p>
+          <p className="np-footnote">
+            {REAL[p.id] ? "First photo shows the real hardware. " : ""}Photos of our own units are on the way; other images are representative.
+          </p>
         </div>
       </section>
 
@@ -468,7 +495,14 @@ export default function DevicePage({ slug }: { slug: string }) {
                 <Plus size={18} />
               </button>
             </div>
-            {qty >= 5 && <p className="np-fleet-note">Ordering 5 or more? We&apos;ll add fleet pricing and setup to your quote.</p>}
+            {qty >= 5 && (
+              <p className="np-fleet-note">
+                Ordering 5 or more?{" "}
+                <LeadButton kind="quote" device={p.slug} className="np-link-btn">
+                  Get fleet pricing and site setup
+                </LeadButton>
+              </p>
+            )}
           </div>
 
           <div className="np-buy-total">
@@ -485,6 +519,9 @@ export default function DevicePage({ slug }: { slug: string }) {
             </button>
           </div>
           <p className="np-footnote">Free insured shipping. Like-new condition, tested in our shop. Prices shown are preview pricing.</p>
+          <LeadButton kind="question" device={p.slug} className="np-btn np-btn-ghost" >
+            Ask about this phone
+          </LeadButton>
         </div>
       </section>
 
