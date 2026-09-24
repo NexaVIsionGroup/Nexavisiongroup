@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Big_Shoulders_Display, IBM_Plex_Sans } from "next/font/google";
 import "@/styles/nexaphone.css";
 import "@/styles/nexaphone-store.css";
+import "@/styles/nexaphone-shop.css";
 import { CartProvider } from "@/components/nexaphone/cart";
 import { LeadProvider } from "@/components/nexaphone/lead";
 

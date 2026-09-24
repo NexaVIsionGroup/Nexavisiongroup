@@ -39,6 +39,15 @@ export default function PhoneRender({ d }: { d: Device }) {
           ))}
         </g>
       )}
+      {island === "wrap" && (
+        <g transform="translate(10 22)">
+          <rect width="62" height="66" rx="16" fill="rgba(0,0,0,.35)" stroke={accent} strokeOpacity=".6" />
+          {[[18, 20], [18, 46], [44, 20]].map(([x, y], i) => (
+            <circle key={i} cx={x} cy={y} r="9.5" fill="#07090b" stroke="rgba(255,255,255,.25)" />
+          ))}
+          <circle cx="44" cy="46" r="4" fill="#e9e2cf" />
+        </g>
+      )}
       {island === "fan" && (
         <g>
           <rect x={10 + w / 2 - 22} y="92" width="44" height="44" rx="22" fill="rgba(0,0,0,.4)" stroke={accent} strokeOpacity=".8" />

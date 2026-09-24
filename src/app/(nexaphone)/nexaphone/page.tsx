@@ -6,7 +6,9 @@ import LockSequence from "@/components/nexaphone/LockSequence";
 import Marquee from "@/components/nexaphone/Marquee";
 import Places from "@/components/nexaphone/Places";
 import Control from "@/components/nexaphone/Control";
-import Lineup from "@/components/nexaphone/Lineup";
+import ShopRail from "@/components/nexaphone/ShopRail";
+import LandingBar from "@/components/nexaphone/LandingBar";
+import MiniCta from "@/components/nexaphone/MiniCta";
 import WhyNexa from "@/components/nexaphone/WhyNexa";
 import Gallery from "@/components/nexaphone/Gallery";
 import Closer from "@/components/nexaphone/Closer";
@@ -14,20 +16,23 @@ import Closer from "@/components/nexaphone/Closer";
 export default function NexaPhonePage() {
   return (
     <>
-      <Nav />
+      <Nav dock={false} />
       <main>
         <Hero />
+        <ShopRail />
         <DeadBars />
         <SignalStory />
         <LockSequence />
+        <MiniCta />
         <Marquee />
         <Places />
         <Control />
         <WhyNexa />
-        <Lineup />
+        <MiniCta />
         <Gallery />
         <Closer />
       </main>
+      <LandingBar />
     </>
   );
 }

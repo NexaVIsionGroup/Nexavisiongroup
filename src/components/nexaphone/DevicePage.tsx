@@ -3,10 +3,11 @@
 import Image from "next/image";
 import Link from "next/link";
 import dynamic from "next/dynamic";
+import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, animate, motion, useInView, useMotionValue, useTransform } from "framer-motion";
-import { ArrowLeft, Check, ChevronDown, Minus, Plus, Lock } from "lucide-react";
-import { ADDONS, CONDITION, EDITIONS, fromPrice, money, products, type Product } from "./catalog";
+import { ArrowLeft, Check, ChevronDown, Minus, Plus } from "lucide-react";
+import { ADDONS, money, products, type Product } from "./catalog";
 import { useCart } from "./cart";
 import { LeadButton } from "./lead";
 import TalkToUs from "./TalkToUs";
@@ -15,6 +16,7 @@ import Scramble from "./Scramble";
 import Title from "./Title";
 import PhoneRender from "./PhoneRender";
 import { versus } from "./versus";
+import { shopProducts } from "./ShopRail";
 import type { AnchorName, AnchorPos } from "./three/Viewer3D";
 
 const Viewer3D = dynamic(() => import("./three/Viewer3D"), { ssr: false });
@@ -25,6 +27,14 @@ const GALLERY: Record<string, string[]> = {
   fold: ["g-bokeh", "g-tunnel", "g-circuit-lens", "g-board"],
   turbo: ["g-tunnel", "g-board", "g-rugged", "g-welder"],
 };
+const CODES: Record<string, string> = { n10: "NX-10", n11: "NX-11", n12: "NX-12", n13: "NX-13", n15: "NX-15", nfold: "NX-F1", nrm10: "NX-T10", nrm11: "NX-T11" };
+const STOCK = { in: "In stock", low: "Low stock", out: "Sold out" };
+const JUMPS = [
+  { id: "overview", label: "Overview" },
+  { id: "specs", label: "Specs" },
+  { id: "compare", label: "Compare" },
+  { id: "talk", label: "Talk to us" },
+];
 
 const buzz = (ms: number | number[]) => {
   try {
@@ -93,8 +103,9 @@ function Hud({ p, anchors }: { p: Product; anchors: React.MutableRefObject<Ancho
           data-side={HUD_SIDE[k]}
           style={{ top: `${HUD_Y[k] * 100}%` }}
           initial={{ opacity: 0, x: HUD_SIDE[k] === "left" ? -20 : 20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: 1 + i * 0.15, duration: 0.6, ease: EASE }}
+          whileInView={{ opacity: 1, x: 0 }}
+          viewport={{ once: true }}
+          transition={{ delay: 0.6 + i * 0.15, duration: 0.6, ease: EASE }}
         >
           <small>{HUD_LABEL[k]}</small>
           <span>{p.hud[k]}</span>
@@ -124,10 +135,10 @@ function Stat({ value, suffix, label }: { value: number; suffix: string; label: 
   );
 }
 
-function parseNum(s: string) {
+const parseNum = (s: string) => {
   const m = s.replace(/,/g, "").match(/[\d.]+/);
   return m ? Number(m[0]) : 0;
-}
+};
 
 /* ── Spec accordion ── */
 function Specs({ p }: { p: Product }) {
@@ -144,13 +155,7 @@ function Specs({ p }: { p: Product }) {
             </button>
             <AnimatePresence initial={false}>
               {on && (
-                <motion.dl
-                  className="np-acc-body"
-                  initial={{ height: 0, opacity: 0 }}
-                  animate={{ height: "auto", opacity: 1 }}
-                  exit={{ height: 0, opacity: 0 }}
-                  transition={{ duration: 0.4, ease: EASE }}
-                >
+                <motion.dl className="np-acc-body" initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.4, ease: EASE }}>
                   {g.rows.map(([k, v]) => (
                     <div key={k}>
                       <dt>{k}</dt>
@@ -167,8 +172,30 @@ function Specs({ p }: { p: Product }) {
   );
 }
 
+/** Mount the (heavy) 3D viewer only once its section is near the screen. */
+function useNear(ref: React.RefObject<HTMLElement>, margin = "500px") {
+  const [near, setNear] = useState(false);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const io = new IntersectionObserver(
+      ([e]) => {
+        if (e.isIntersecting) {
+          setNear(true);
+          io.disconnect();
+        }
+      },
+      { rootMargin: margin }
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, [ref, margin]);
+  return near;
+}
+
 export default function DevicePage({ slug }: { slug: string }) {
   const p = products.find((x) => x.slug === slug)!;
+  const router = useRouter();
   const { add } = useCart();
   const [color, setColor] = useState(p.colors[0]);
   const [cfg, setCfg] = useState(p.configs[0]);
@@ -177,10 +204,21 @@ export default function DevicePage({ slug }: { slug: string }) {
   const [folded, setFolded] = useState(true);
   const anchors = useRef<AnchorPos | null>(null);
   const buyRef = useRef<HTMLElement>(null);
-  const buyInView = useInView(buyRef, { margin: "0px 0px -30% 0px" });
-  const [pastHero, setPastHero] = useState(false);
+  const buyInView = useInView(buyRef, { margin: "-64px 0px 0px 0px" });
+  const stageRef = useRef<HTMLDivElement>(null);
+  const showViewer = useNear(stageRef);
+  const [active, setActive] = useState("overview");
+
+  // Highlight the jump chip for the section nearest the top of the screen.
   useEffect(() => {
-    const on = () => setPastHero(window.scrollY > window.innerHeight * 0.75);
+    const on = () => {
+      let best = "overview";
+      for (const j of JUMPS) {
+        const el = document.getElementById(j.id);
+        if (el && el.getBoundingClientRect().top <= 140) best = j.id;
+      }
+      setActive(best);
+    };
     on();
     window.addEventListener("scroll", on, { passive: true });
     return () => window.removeEventListener("scroll", on);
@@ -188,13 +226,15 @@ export default function DevicePage({ slug }: { slug: string }) {
 
   const unit = cfg.price + addons.reduce((s, id) => s + (ADDONS.find((a) => a.id === id)?.price ?? 0), 0);
   const total = unit * qty;
-  const others = useMemo(() => products.filter((x) => x.slug !== slug), [slug]);
+  const others = useMemo(() => shopProducts().filter((x) => x.slug !== slug), [slug]);
   const vs = useMemo(() => versus(p), [p]);
-  const code = ({ n10: "NX-10", n11: "NX-11", n12: "NX-12", n13: "NX-13", n15: "NX-15", nfold: "NX-F1", nrm10: "NX-T10", nrm11: "NX-T11" } as Record<string, string>)[p.id];
+  const line = { slug: p.slug, ram: cfg.ram, storage: cfg.storage, color: color.name, addons, qty };
 
-  const addToCart = () =>
-    add({ slug: p.slug, ram: cfg.ram, storage: cfg.storage, color: color.name, addons, qty });
-
+  const addToCart = () => add(line);
+  const buyNow = () => {
+    add(line, { open: false });
+    router.push("/nexaphone/checkout");
+  };
   const pickColor = (c: typeof color) => {
     setColor(c);
     buzz(8);
@@ -202,52 +242,70 @@ export default function DevicePage({ slug }: { slug: string }) {
 
   return (
     <div className="np-device">
-      {/* ── 3D hero ── */}
-      <section className="np-dhero">
-        <div className="np-dhero-bg" aria-hidden />
-        <div className="np-wrap np-dhero-top">
-          <Link href="/nexaphone#lineup" className="np-back">
-            <ArrowLeft size={18} /> Lineup
-          </Link>
-          <span className="np-code np-num">{code}</span>
-        </div>
-
-        <div className="np-dhero-stage">
-          <Viewer3D
-            className="np-viewer"
-            modelKey={p.id}
-            island={p.render.island}
-            fold={p.family === "fold"}
-            folded={folded}
-            swatch={color}
-            label={p.name}
-            onAnchors={(a) => (anchors.current = a)}
-          />
-          <Hud p={p} anchors={anchors} />
-          <div className="np-drag-hint" aria-hidden>
-            <span /> Drag to spin
+      {/* ── Screen 1: the buy box ── */}
+      <section className="np-buybox" ref={buyRef}>
+        <div className="np-wrap">
+          <div className="np-buybox-top">
+            <Link href="/nexaphone#shop" className="np-back">
+              <ArrowLeft size={18} /> All models
+            </Link>
+            <span className="np-code np-num">{CODES[p.id]}</span>
           </div>
-        </div>
-
-        <div className="np-wrap np-dhero-copy">
-          <p className="np-dhero-base">{p.chip} flagship</p>
-          <h1 className="np-display np-dhero-title">
+          <div className="np-buybox-flags">
+            {p.bestSeller && (
+              <span className="np-flag" data-kind="best">
+                Best seller
+              </span>
+            )}
+            <span className="np-flag" data-kind="stock">
+              {STOCK[p.stock]}
+            </span>
+            <span className="np-flag">Free insured shipping</span>
+          </div>
+          <h1 className="np-display">
             <Scramble text={p.name} speed={34} />
           </h1>
           <p className="np-dhero-head">{p.headline}</p>
 
+          <div className="np-buybox-price">
+            <AnimatePresence mode="popLayout">
+              <motion.b key={total} className="np-num" initial={{ y: 10, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: -10, opacity: 0 }}>
+                {money(total)}
+              </motion.b>
+            </AnimatePresence>
+            <span>
+              {cfg.ram}GB / {cfg.storage}, {color.name}
+              {qty > 1 ? `, × ${qty}` : ""}
+            </span>
+          </div>
+
+          <div className="np-keyspecs">
+            {[
+              ["Screen", p.chips[0]],
+              ["Battery", p.chips[1]],
+              ["Chip", p.chip],
+            ].map(([k, v]) => (
+              <div key={k}>
+                <small>{k}</small>
+                <strong>{v}</strong>
+              </div>
+            ))}
+          </div>
+
+          <h3>Memory and storage</h3>
+          <div className="np-cfg" role="radiogroup" aria-label="Memory and storage">
+            {p.configs.map((c) => (
+              <button key={c.storage} role="radio" aria-checked={c === cfg} aria-pressed={c === cfg} onClick={() => { setCfg(c); buzz(8); }}>
+                {c.ram}GB / {c.storage}
+                <small>{c === p.configs[0] ? "" : `+${money(c.price - p.configs[0].price)}`}</small>
+              </button>
+            ))}
+          </div>
+
+          <h3>Color</h3>
           <div className="np-swatches" role="radiogroup" aria-label="Color">
             {p.colors.map((c) => (
-              <button
-                key={c.name}
-                role="radio"
-                aria-checked={c.name === color.name}
-                aria-label={c.name}
-                className="np-swatch"
-                data-finish={c.finish}
-                style={{ "--sw": c.hex } as React.CSSProperties}
-                onClick={() => pickColor(c)}
-              />
+              <button key={c.name} role="radio" aria-checked={c.name === color.name} aria-label={c.name} className="np-swatch" data-finish={c.finish} style={{ "--sw": c.hex } as React.CSSProperties} onClick={() => pickColor(c)} />
             ))}
             <AnimatePresence mode="wait">
               <motion.span key={color.name} className="np-swatch-name" initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }}>
@@ -256,185 +314,23 @@ export default function DevicePage({ slug }: { slug: string }) {
             </AnimatePresence>
           </div>
 
-          {p.family === "fold" && (
-            <button className="np-btn np-btn-ghost np-fold-btn" onClick={() => { setFolded((f) => !f); buzz(12); }}>
-              {folded ? "Unfold it" : "Fold it"}
+          <div className="np-buybox-actions">
+            <button className="np-btn np-btn-lock np-shine" onClick={buyNow} disabled={p.stock === "out"}>
+              Buy now
             </button>
-          )}
-
-          <div className="np-dhero-price">
-            <span>From</span>
-            <b className="np-num">{money(fromPrice(p))}</b>
-            <a href="#buy" className="np-btn np-btn-lock np-shine">Configure yours</a>
+            <button className="np-btn np-btn-ghost" onClick={addToCart} disabled={p.stock === "out"}>
+              Add to cart
+            </button>
           </div>
-        </div>
-      </section>
-
-      {/* ── Stats ── */}
-      <section className="np-dsec">
-        <div className="np-wrap">
-          <div className="np-stats">
-            <Stat value={parseNum(p.perf.antutu)} suffix="M" label="AnTuTu score" />
-            <Stat value={parseNum(p.battery)} suffix="mAh" label="Battery" />
-            <Stat value={parseNum(p.display.match(/(\d+)Hz/)?.[1] ?? "120")} suffix="Hz" label="Refresh rate" />
-            <Stat value={parseNum(p.perf.process)} suffix="nm" label="Chip process" />
-          </div>
-          <p className="np-lede np-dpitch">{p.pitch}</p>
-        </div>
-      </section>
-
-      {/* ── Nexa vs Galaxy scoreboard ── */}
-      <section className="np-dsec">
-        <div className="np-wrap">
-          <Title text={`What the ${vs.galaxy} can't do.`} className="np-display np-h2" style={{ maxWidth: "11em" }} />
-          <p className="np-lede np-dpitch">
-            Same flagship class as the {vs.galaxy}. The difference is control: Samsung locks its phones, so none of
-            this is possible on a Galaxy.
-          </p>
-          <div className="np-score" role="table" aria-label={`${p.name} versus ${vs.galaxy}`}>
-            <div className="np-score-head" role="row">
-              <span role="columnheader" />
-              <span role="columnheader" className="np-score-us">{p.name}</span>
-              <span role="columnheader">{vs.galaxy}</span>
-            </div>
-            {vs.rows.map((r, i) => (
-              <motion.div
-                key={r.label}
-                role="row"
-                className="np-score-row"
-                data-result={r.result}
-                initial={{ opacity: 0, x: -16 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                viewport={{ once: true, margin: "-30px" }}
-                transition={{ duration: 0.5, delay: Math.min(i, 6) * 0.05, ease: EASE }}
-              >
-                <span role="rowheader">{r.label}</span>
-                <span className="np-score-us">
-                  {r.result === "win" ? <Check size={16} /> : <span className="np-score-tie">=</span>} {r.nexa}
-                </span>
-                <span className="np-score-them">{r.galaxy}</span>
-              </motion.div>
-            ))}
-          </div>
-          <p className="np-duel-note">
-            Galaxy figures are US launch specs. Speed compared with Geekbench 6 multi-core scores from
-            GSMArena reviews ({p.gb6.toLocaleString()} vs {p.galaxy.gb6.toLocaleString()}). {p.perf.cpu}, {p.perf.gpu}.
-          </p>
-        </div>
-      </section>
-
-      {/* ── Tower lock ── */}
-      <section className="np-dsec np-dlock">
-        <SignalField className="np-dlock-canvas" phoneY={0.82} />
-        <div className="np-wrap np-dlock-copy">
-          <Title text={p.bands.title} className="np-display np-h2" style={{ maxWidth: "10em" }} />
-          <p className="np-lede">{p.bands.body}</p>
-          <p className="np-lede">
-            It runs the Nexa Signal Engine: we lock it to the exact tower and frequency that perform best at your
-            location, and it stays there. No hopping onto dead towers, no full bars with no internet, no
-            airplane-mode resets, and no connecting to towers you haven&apos;t approved.
-          </p>
-        </div>
-      </section>
-
-      {/* ── Gallery ── */}
-      <section className="np-dsec">
-        <div className="np-wrap">
-          <Title text="Up close." />
-        </div>
-        <div className="np-dgal">
-          {GALLERY[p.family].map((g, i) => (
-            <motion.figure
-              key={g}
-              className="np-dgal-item"
-              initial={{ opacity: 0, scale: 0.9 }}
-              whileInView={{ opacity: 1, scale: 1 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.8, delay: i * 0.08, ease: EASE }}
-            >
-              <Image src={`/nexaphone/v2/${g}.jpg`} alt="" fill sizes="80vw" />
-            </motion.figure>
-          ))}
-        </div>
-        <div className="np-wrap">
-          <p className="np-footnote">
-            Photos of our own units are on the way; images shown are representative.
-          </p>
-        </div>
-      </section>
-
-      {/* ── Specs ── */}
-      <section className="np-dsec">
-        <div className="np-wrap">
-          <Title text="Every spec." />
-          <Specs p={p} />
-        </div>
-      </section>
-
-      {/* ── Configurator ── */}
-      <section className="np-dsec np-buy" id="buy" ref={buyRef}>
-        <div className="np-wrap">
-          <Title text={`Build your ${p.name}.`} style={{ maxWidth: "10em" }} />
-
-          <div className="np-step-block">
-            <h3>Memory and storage</h3>
-            <div className="np-opts">
-              {p.configs.map((c) => {
-                const on = c === cfg;
-                return (
-                  <button key={c.storage} className="np-opt" aria-pressed={on} onClick={() => { setCfg(c); buzz(8); }}>
-                    <span>
-                      {c.ram}GB / {c.storage}
-                    </span>
-                    <b className="np-num">{money(c.price)}</b>
-                    {on && <motion.span layoutId="opt-ring" className="np-opt-ring" />}
-                  </button>
-                );
-              })}
-            </div>
+          <div className="np-buybox-trust">
+            <span>Free insured shipping</span>
+            <span>Like new, tested in our shop</span>
+            <span>Set up before it ships</span>
           </div>
 
-          <div className="np-step-block">
-            <h3>Color</h3>
-            <div className="np-opts np-opts-color">
-              {p.colors.map((c) => (
-                <button key={c.name} className="np-opt" aria-pressed={c.name === color.name} onClick={() => pickColor(c)}>
-                  <span className="np-opt-sw" style={{ background: c.hex }} />
-                  <span>{c.name}</span>
-                  {c.name === color.name && <motion.span layoutId="color-ring" className="np-opt-ring" />}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="np-step-block">
-            <h3>Condition</h3>
-            <div className="np-opt np-opt-static" aria-pressed="true">
-              <span>
-                <Check size={16} /> {CONDITION.name}
-              </span>
-              <small>{CONDITION.body}</small>
-            </div>
-          </div>
-
-          <div className="np-step-block">
-            <h3>Edition</h3>
-            <div className="np-opts">
-              {EDITIONS.map((e) => (
-                <div key={e.id} className="np-opt np-opt-static" aria-pressed={e.id === "pro"} data-disabled={!e.available}>
-                  <span>
-                    {e.available ? <Check size={16} /> : <Lock size={16} />} {e.name}
-                    {!e.available && <em>Coming soon</em>}
-                  </span>
-                  <small>{e.body}</small>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div className="np-step-block">
-            <h3>Add-ons</h3>
-            <div className="np-opts">
+          <details className="np-more">
+            <summary>Add-ons and quantity</summary>
+            <div className="np-more-body">
               {ADDONS.map((a) => {
                 const on = addons.includes(a.id);
                 return (
@@ -458,52 +354,151 @@ export default function DevicePage({ slug }: { slug: string }) {
                   </button>
                 );
               })}
+              <div className="np-more-qty">
+                <span>Quantity</span>
+                <div className="np-qty">
+                  <button aria-label="Fewer" onClick={() => setQty((q) => Math.max(1, q - 1))}>
+                    <Minus size={16} />
+                  </button>
+                  <span className="np-num">{qty}</span>
+                  <button aria-label="More" onClick={() => setQty((q) => Math.min(99, q + 1))}>
+                    <Plus size={16} />
+                  </button>
+                </div>
+              </div>
+              {qty >= 5 && (
+                <p className="np-fleet-note">
+                  Ordering 5 or more?{" "}
+                  <LeadButton kind="quote" device={p.slug} className="np-link-btn">
+                    Get fleet pricing and site setup
+                  </LeadButton>
+                </p>
+              )}
             </div>
-          </div>
+          </details>
+        </div>
+      </section>
 
-          <div className="np-step-block np-qty-block">
-            <h3>Quantity</h3>
-            <div className="np-qty np-qty-lg">
-              <button aria-label="Fewer" onClick={() => setQty((q) => Math.max(1, q - 1))}>
-                <Minus size={18} />
-              </button>
-              <span className="np-num">{qty}</span>
-              <button aria-label="More" onClick={() => setQty((q) => Math.min(99, q + 1))}>
-                <Plus size={18} />
-              </button>
-            </div>
-            {qty >= 5 && (
-              <p className="np-fleet-note">
-                Ordering 5 or more?{" "}
-                <LeadButton kind="quote" device={p.slug} className="np-link-btn">
-                  Get fleet pricing and site setup
-                </LeadButton>
-              </p>
-            )}
-          </div>
+      {/* ── Sticky jump chips ── */}
+      <div className="np-wrap">
+        <nav className="np-jump" aria-label="On this page">
+          {JUMPS.map((j) => (
+            <a key={j.id} href={`#${j.id}`} data-on={active === j.id}>
+              {j.label}
+            </a>
+          ))}
+        </nav>
+      </div>
 
-          <div className="np-buy-total">
-            <div>
-              <span>Total</span>
-              <AnimatePresence mode="popLayout">
-                <motion.b key={total} className="np-num" initial={{ y: 12, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: -12, opacity: 0 }}>
-                  {money(total)}
-                </motion.b>
-              </AnimatePresence>
-            </div>
-            <button className="np-btn np-btn-lock np-shine" onClick={addToCart}>
-              Add to cart
+      {/* ── Overview: the 3D model ── */}
+      <section className="np-dhero np-overview" id="overview">
+        <div className="np-dhero-bg" aria-hidden />
+        <div className="np-dhero-stage" ref={stageRef}>
+          {showViewer && (
+            <>
+              <Viewer3D className="np-viewer" modelKey={p.id} island={p.render.island} fold={p.family === "fold"} folded={folded} swatch={color} label={p.name} onAnchors={(a) => (anchors.current = a)} />
+              <Hud p={p} anchors={anchors} />
+            </>
+          )}
+          <div className="np-drag-hint" aria-hidden>
+            <span /> Drag to spin
+          </div>
+        </div>
+        <div className="np-wrap np-dhero-copy">
+          {p.family === "fold" && (
+            <button className="np-btn np-btn-ghost np-fold-btn" onClick={() => { setFolded((f) => !f); buzz(12); }}>
+              {folded ? "Unfold it" : "Fold it"}
             </button>
+          )}
+          <p className="np-lede np-dpitch" style={{ marginTop: 0 }}>{p.pitch}</p>
+        </div>
+      </section>
+
+      <section className="np-dsec" style={{ paddingTop: 0 }}>
+        <div className="np-wrap">
+          <div className="np-stats">
+            <Stat value={parseNum(p.perf.antutu)} suffix="M" label="AnTuTu score" />
+            <Stat value={parseNum(p.battery)} suffix="mAh" label="Battery" />
+            <Stat value={parseNum(p.display.match(/(\d+)Hz/)?.[1] ?? "120")} suffix="Hz" label="Refresh rate" />
+            <Stat value={parseNum(p.perf.process)} suffix="nm" label="Chip process" />
           </div>
-          <p className="np-footnote">Free insured shipping. Like-new condition, tested in our shop. Prices shown are preview pricing.</p>
-          <TalkToUs device={p.slug} />
+        </div>
+      </section>
+
+      {/* ── Tower lock ── */}
+      <section className="np-dsec np-dlock">
+        <SignalField className="np-dlock-canvas" phoneY={0.82} />
+        <div className="np-wrap np-dlock-copy">
+          <Title text={p.bands.title} className="np-display np-h2" style={{ maxWidth: "10em" }} />
+          <p className="np-lede">{p.bands.body}</p>
+          <p className="np-lede">
+            It runs the Nexa Signal Engine: we lock it to the exact tower and frequency that perform best at your
+            location, and it stays there. No hopping onto dead towers, no full bars with no internet, no
+            airplane-mode resets, and no connecting to towers you haven&apos;t approved.
+          </p>
+        </div>
+      </section>
+
+      {/* ── Specs ── */}
+      <section className="np-dsec" id="specs">
+        <div className="np-wrap">
+          <Title text="Every spec." />
+          <Specs p={p} />
         </div>
       </section>
 
       {/* ── Compare ── */}
-      <section className="np-dsec">
+      <section className="np-dsec" id="compare">
         <div className="np-wrap">
-          <Title text="The rest of the lineup." />
+          <Title text={`What the ${vs.galaxy} can't do.`} className="np-display np-h2" style={{ maxWidth: "11em" }} />
+          <p className="np-lede np-dpitch">
+            Same flagship class as the {vs.galaxy}. The difference is control: Samsung locks its phones, so none of
+            this is possible on a Galaxy.
+          </p>
+          <div className="np-score" role="table" aria-label={`${p.name} versus ${vs.galaxy}`}>
+            <div className="np-score-head" role="row">
+              <span role="columnheader" />
+              <span role="columnheader" className="np-score-us">{p.name}</span>
+              <span role="columnheader">{vs.galaxy}</span>
+            </div>
+            {vs.rows.map((r, i) => (
+              <motion.div key={r.label} role="row" className="np-score-row" data-result={r.result} initial={{ opacity: 0, x: -16 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true, margin: "-30px" }} transition={{ duration: 0.5, delay: Math.min(i, 6) * 0.05, ease: EASE }}>
+                <span role="rowheader">{r.label}</span>
+                <span className="np-score-us">
+                  {r.result === "win" ? <Check size={16} /> : <span className="np-score-tie">=</span>} {r.nexa}
+                </span>
+                <span className="np-score-them">{r.galaxy}</span>
+              </motion.div>
+            ))}
+          </div>
+          <p className="np-duel-note">
+            Galaxy figures are US launch specs. Speed compared with Geekbench 6 multi-core scores from GSMArena reviews ({p.gb6.toLocaleString()} vs {p.galaxy.gb6.toLocaleString()}). {p.perf.cpu}, {p.perf.gpu}.
+          </p>
+        </div>
+      </section>
+
+      {/* ── Gallery ── */}
+      <section className="np-dsec" style={{ paddingTop: 0 }}>
+        <div className="np-wrap">
+          <Title text="Up close." />
+        </div>
+        <div className="np-dgal">
+          {GALLERY[p.family].map((g, i) => (
+            <motion.figure key={g} className="np-dgal-item" initial={{ opacity: 0, scale: 0.9 }} whileInView={{ opacity: 1, scale: 1 }} viewport={{ once: true }} transition={{ duration: 0.8, delay: i * 0.08, ease: EASE }}>
+              <Image src={`/nexaphone/v2/${g}.jpg`} alt="" fill sizes="80vw" />
+            </motion.figure>
+          ))}
+        </div>
+        <div className="np-wrap">
+          <p className="np-footnote">Photos of our own units are on the way; images shown are representative.</p>
+        </div>
+      </section>
+
+      {/* ── Talk + other models ── */}
+      <section className="np-dsec" id="talk" style={{ paddingTop: 0 }}>
+        <div className="np-wrap">
+          <TalkToUs device={p.slug} />
+          <Title text="Other models." className="np-display np-h2" style={{ marginTop: 56 }} />
           <div className="np-mini-rail">
             {others.map((o) => (
               <Link key={o.slug} href={`/nexaphone/phones/${o.slug}`} className="np-mini">
@@ -511,31 +506,25 @@ export default function DevicePage({ slug }: { slug: string }) {
                   <PhoneRender d={o} />
                 </div>
                 <strong className="np-display">{o.name}</strong>
-                <span>From {money(fromPrice(o))}</span>
+                <span>From {money(Math.min(...o.configs.map((c) => c.price)))}</span>
               </Link>
             ))}
           </div>
         </div>
       </section>
 
-      {/* ── Sticky buy bar ── */}
+      {/* ── Sticky buy bar once the buy box scrolls away ── */}
       <AnimatePresence>
-        {pastHero && !buyInView && (
-          <motion.div
-            className="np-buybar"
-            initial={{ y: 120 }}
-            animate={{ y: 0 }}
-            exit={{ y: 120 }}
-            transition={{ type: "spring", stiffness: 380, damping: 34 }}
-          >
+        {!buyInView && (
+          <motion.div className="np-buybar" initial={{ y: 120 }} animate={{ y: 0 }} exit={{ y: 120 }} transition={{ type: "spring", stiffness: 380, damping: 34 }}>
             <div>
               <small>
                 {cfg.ram}GB / {cfg.storage}, {color.name}
               </small>
               <b className="np-num">{money(total)}</b>
             </div>
-            <button className="np-btn np-btn-lock" onClick={addToCart}>
-              Add to cart
+            <button className="np-btn np-btn-lock" onClick={buyNow}>
+              Buy now
             </button>
           </motion.div>
         )}

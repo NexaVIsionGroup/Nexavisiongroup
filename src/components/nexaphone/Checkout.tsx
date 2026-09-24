@@ -118,7 +118,7 @@ export default function Checkout() {
   return (
     <section className="np-checkout">
       <div className="np-wrap">
-        <Link href="/nexaphone#lineup" className="np-back">
+        <Link href="/nexaphone#shop" className="np-back">
           <ArrowLeft size={18} /> Keep shopping
         </Link>
         <h1 className="np-display np-h2" style={{ margin: "18px 0 26px" }}>
@@ -128,7 +128,7 @@ export default function Checkout() {
         {lines.length === 0 ? (
           <div className="np-panel-dark">
             <p>Your cart is empty.</p>
-            <Link href="/nexaphone#lineup" className="np-btn np-btn-lock" style={{ marginTop: 16 }}>
+            <Link href="/nexaphone#shop" className="np-btn np-btn-lock" style={{ marginTop: 16 }}>
               See the lineup
             </Link>
           </div>

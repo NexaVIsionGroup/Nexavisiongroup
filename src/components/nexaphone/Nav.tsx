@@ -68,10 +68,10 @@ export default function Nav({ dock: showDock = true }: { dock?: boolean }) {
             <Link href="/nexaphone#signal">How it connects</Link>
             <Link href="/nexaphone#where">Where it works</Link>
             <Link href="/nexaphone#control">Control</Link>
-            <Link href="/nexaphone#lineup">Lineup</Link>
+            <Link href="/nexaphone#shop">Shop</Link>
           </nav>
           <div className="np-nav-actions">
-            <Link href="/nexaphone#lineup" className="np-btn np-btn-lock np-nav-shop">
+            <Link href="/nexaphone#shop" className="np-btn np-btn-lock np-nav-shop">
               Shop
             </Link>
             <CartButton />
@@ -91,7 +91,7 @@ export default function Nav({ dock: showDock = true }: { dock?: boolean }) {
             transition={{ type: "spring", stiffness: 380, damping: 32 }}
           >
             <Link href="/nexaphone#signal">How</Link>
-            <Link href="/nexaphone#lineup" className="np-dock-cta">
+            <Link href="/nexaphone#shop" className="np-dock-cta">
               Shop phones
             </Link>
           </motion.nav>

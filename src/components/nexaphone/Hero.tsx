@@ -3,7 +3,9 @@
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import { animate, motion, useMotionValue, useScroll, useTransform } from "framer-motion";
-import { LeadButton } from "./lead";
+import Link from "next/link";
+import { fromPrice, money, products } from "./catalog";
+import { shopProducts } from "./ShopRail";
 import SignalField, { SCENES, type FieldState } from "./SignalField";
 import Scramble from "./Scramble";
 
@@ -47,6 +49,7 @@ function Readout({ state }: { state: FieldState }) {
 
 export default function Hero() {
   const ref = useRef<HTMLElement>(null);
+  const hero = products.find((p) => p.bestSeller) ?? products[0];
   const [state, setState] = useState<FieldState>({ phase: "scan", best: 2, scene: 0 });
   const { scrollYProgress } = useScroll({ target: ref, offset: ["start start", "end start"] });
   const photoY = useTransform(scrollYProgress, [0, 1], ["0%", "30%"]);
@@ -98,12 +101,21 @@ export default function Hero() {
           transition={{ duration: 0.9, delay: 0.9, ease: EASE }}
         >
           <p className="np-lede">
-            No more full bars and no internet. No more airplane-mode roulette. Nexa Pro locks to the exact tower
-            and frequency that perform best where you work, and never hops away.
+            No more full bars and no internet. Nexa Pro locks to the exact tower and frequency that perform best
+            where you work, and never hops away.
           </p>
           <div className="np-hero-ctas">
-            <a href="#lineup" className="np-btn np-btn-lock np-shine">See the lineup</a>
-            <LeadButton kind="quote" className="np-btn np-btn-ghost">Quote a fleet</LeadButton>
+            <Link href={`/nexaphone/phones/${hero.slug}`} className="np-btn np-btn-lock np-shine">
+              Shop the {hero.name}, from {money(fromPrice(hero))}
+            </Link>
+            <a href="#shop" className="np-btn np-btn-ghost">See all 8 models</a>
+          </div>
+          <div className="np-hero-chips" aria-label="Models">
+            {shopProducts().map((p) => (
+              <Link key={p.id} href={`/nexaphone/phones/${p.slug}`} data-best={!!p.bestSeller}>
+                {p.name.replace("Nexa ", "")}
+              </Link>
+            ))}
           </div>
         </motion.div>
       </motion.div>

@@ -1,0 +1,128 @@
+/* ═══════════ Nexa Pro — shop-first layout (landing rail, bottom bar, PDP buy box) ═══════════ */
+
+/* Hero: tighter on phones so screen 2 is the lineup */
+.np-hero { padding-bottom: 28px; }
+@media (max-width: 979px) {
+  .np-h1 { font-size: clamp(3.4rem, 14vw, 6rem); }
+  .np-scene { height: min(42svh, 92vw); }
+}
+.np-hero-chips { display: flex; gap: 8px; overflow-x: auto; margin: 18px calc(var(--gutter) * -1) 0; padding: 4px var(--gutter) 6px; scrollbar-width: none; }
+.np-hero-chips::-webkit-scrollbar { display: none; }
+.np-hero-chips a { flex: none; min-height: 40px; padding: 0 14px; border-radius: 999px; display: inline-flex; align-items: center; font-size: 14px; font-weight: 600; color: var(--paper); text-decoration: none; background: rgba(255, 255, 255, 0.08); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12); }
+.np-hero-chips a[data-best="true"] { background: rgba(86, 224, 232, 0.16); box-shadow: inset 0 0 0 1px rgba(86, 224, 232, 0.6); color: var(--lock); }
+
+/* Shop rail (screen 2) */
+.np-shop { background: var(--paper); color: var(--ink); padding-top: clamp(48px, 8vw, 90px); }
+.np-shop .np-lede { color: var(--ink-soft); }
+.np-shop-lede { margin-top: 16px; }
+.np-picks { display: flex; gap: 8px; overflow-x: auto; margin: 20px calc(var(--gutter) * -1) 0; padding: 4px var(--gutter) 6px; scrollbar-width: none; }
+.np-picks::-webkit-scrollbar { display: none; }
+.np-picks button { flex: none; min-height: 44px; padding: 0 16px; border-radius: 999px; border: 0; font: 600 15px var(--f-body); background: var(--paper-2); color: var(--ink); cursor: pointer; }
+.np-picks button[aria-pressed="true"] { background: var(--ink); color: var(--paper); }
+.np-picks-view { width: 44px; padding: 0 !important; display: grid; place-items: center; margin-left: auto; }
+.np-shop-rail { display: grid; grid-auto-flow: column; grid-auto-columns: min(78vw, 340px); gap: 12px; overflow-x: auto; scroll-snap-type: x mandatory; padding: 14px var(--gutter) 18px; scrollbar-width: none; perspective: 1000px; }
+.np-shop-rail::-webkit-scrollbar { display: none; }
+.np-shop-rail[data-grid="true"] { grid-auto-flow: row; grid-template-columns: repeat(2, 1fr); grid-auto-columns: auto; overflow: visible; padding: 14px var(--gutter) 8px; }
+@media (min-width: 760px) { .np-shop-rail { grid-auto-columns: 320px; } .np-shop-rail[data-grid="true"] { grid-template-columns: repeat(4, 1fr); } }
+@media (min-width: 1240px) { .np-shop-rail { padding-left: max(var(--gutter), calc((100vw - 1240px) / 2 + 64px)); } }
+.np-shop-slot { display: flex; scroll-snap-align: center; }
+.np-shop-card { flex: 1; border-radius: 24px; background: #fff; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 1px 0 rgba(15, 26, 33, 0.06), 0 22px 60px -30px rgba(15, 26, 33, 0.35); will-change: transform; }
+.np-shop-card[data-best="true"] { box-shadow: 0 0 0 2px var(--lock-deep), 0 22px 60px -26px rgba(12, 143, 154, 0.5); }
+.np-shop-stage { position: relative; display: block; aspect-ratio: 4 / 3; background: radial-gradient(80% 70% at 50% 60%, #f7fafb, var(--paper-2)); }
+.np-shop-card[data-big="true"] .np-shop-stage { aspect-ratio: 5 / 4; }
+.np-shop-stage svg { position: absolute; top: 9%; left: 50%; transform: translateX(-50%); height: 82%; width: auto; filter: drop-shadow(0 22px 28px rgba(15, 26, 33, 0.28)); }
+.np-shop-rail[data-grid="true"] .np-shop-stage { aspect-ratio: 1; }
+.np-shop-badge { position: absolute; top: 12px; left: 12px; z-index: 1; padding: 6px 12px; border-radius: 999px; background: var(--lock-deep); color: #fff; font-size: 12px; font-weight: 700; letter-spacing: 0.02em; box-shadow: 0 6px 18px rgba(12, 143, 154, 0.4); }
+.np-shop-stock { position: absolute; top: 12px; right: 12px; z-index: 1; padding: 5px 10px; border-radius: 999px; background: rgba(255, 255, 255, 0.85); font-size: 12px; font-weight: 600; color: var(--ink-soft); }
+.np-shop-stock[data-stock="in"]::before { content: ""; display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: #17a862; margin-right: 6px; }
+.np-shop-body { padding: 16px 16px 18px; display: flex; flex-direction: column; gap: 8px; flex: 1; }
+.np-shop-body h3 { font-size: 30px; line-height: 0.95; }
+.np-shop-who { color: var(--ink-soft); font-size: 14.5px; line-height: 1.4; }
+.np-shop-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.np-shop-chips span { font-size: 12.5px; font-weight: 600; padding: 4px 9px; border-radius: 999px; background: var(--paper); color: var(--ink); }
+.np-shop-price { display: flex; align-items: baseline; gap: 6px; margin-top: auto; padding-top: 6px; }
+.np-shop-price span { color: var(--ink-soft); font-size: 13px; }
+.np-shop-price b { font-family: var(--f-display); font-size: 34px; line-height: 1; }
+.np-shop-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.np-shop-btns .np-btn { min-height: 46px; padding: 0 12px; font-size: 15px; }
+.np-shop-rail[data-grid="true"] .np-shop-btns { grid-template-columns: 1fr; }
+.np-shop-rail[data-grid="true"] .np-shop-btns .np-btn-ghost { display: none; }
+.np-shop-rail[data-grid="true"] .np-shop-who { display: none; }
+.np-shop-foot { color: var(--ink-soft); font-size: 13.5px; margin-top: 4px; }
+.np-shop-foot a { color: var(--lock-deep); font-weight: 600; }
+
+/* Mini CTA after story sections */
+.np-minicta { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; padding: 18px 20px; border-radius: 20px; margin: 0 0 clamp(40px, 8vw, 80px); background: rgba(86, 224, 232, 0.07); box-shadow: inset 0 0 0 1px rgba(86, 224, 232, 0.3); }
+.np-minicta span { color: #cfd9df; }
+.np-minicta b { color: var(--lock); }
+.np-minicta > div { display: flex; gap: 8px; flex-wrap: wrap; }
+.np-minicta .np-btn { min-height: 44px; padding: 0 16px; font-size: 15px; }
+
+/* Landing bottom bar */
+.np-lbar { position: fixed; left: 10px; right: 10px; bottom: max(10px, env(safe-area-inset-bottom)); z-index: 45; display: grid; grid-template-columns: 1fr auto auto; align-items: center; gap: 8px; padding: 8px 8px 8px 14px; border-radius: 20px; background: rgba(21, 32, 41, 0.92); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); box-shadow: 0 18px 50px rgba(0, 0, 0, 0.5), inset 0 0 0 1px rgba(86, 224, 232, 0.28); }
+.np-lbar-item { text-decoration: none; color: var(--paper); min-width: 0; }
+.np-lbar-item small { display: block; color: var(--lock); font-size: 11px; font-weight: 700; letter-spacing: 0.04em; }
+.np-lbar-item b { display: block; font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.np-lbar-item b span { color: var(--fog); font-weight: 500; }
+.np-lbar .np-btn { min-height: 44px; padding: 0 18px; font-size: 15px; }
+.np-lbar-all { min-height: 44px; padding: 0 12px; border-radius: 14px; border: 0; background: rgba(255, 255, 255, 0.08); color: var(--paper); font: 600 14px var(--f-body); display: inline-flex; align-items: center; gap: 4px; cursor: pointer; white-space: nowrap; }
+@media (min-width: 860px) { .np-lbar { left: auto; right: 24px; width: 440px; } }
+
+/* All-models sheet */
+.np-models { max-height: 90svh; }
+.np-models-list { list-style: none; overflow-y: auto; margin: 10px -4px 0; padding: 0 4px; }
+.np-models-list li { display: grid; grid-template-columns: 64px 1fr auto; gap: 12px; align-items: center; padding: 10px 0; border-bottom: 1px solid rgba(255, 255, 255, 0.07); }
+.np-models-stage { height: 76px; border-radius: 12px; background: radial-gradient(70% 60% at 50% 55%, #1c2a33, #0f171d); display: grid; place-items: center; }
+.np-models-stage svg { height: 88%; }
+.np-models-info { display: grid; gap: 2px; text-decoration: none; color: var(--paper); min-width: 0; }
+.np-models-info strong { display: flex; align-items: center; gap: 8px; font-family: var(--f-display); font-size: 22px; line-height: 1; }
+.np-models-info em { font: 700 10px var(--f-body); letter-spacing: 0.04em; text-transform: uppercase; color: var(--night); background: var(--lock); padding: 3px 7px; border-radius: 999px; }
+.np-models-info span { color: var(--fog); font-size: 12.5px; }
+.np-models-info b { font-size: 14px; }
+.np-models-buy { min-height: 42px; padding: 0 16px; font-size: 14px; }
+
+/* PDP buy box (screen 1) */
+.np-buybox { padding: 78px 0 18px; position: relative; }
+.np-buybox-top { display: flex; justify-content: space-between; align-items: center; }
+.np-buybox-flags { display: flex; gap: 8px; flex-wrap: wrap; margin: 16px 0 6px; }
+.np-flag { font-size: 12px; font-weight: 700; padding: 5px 10px; border-radius: 999px; background: rgba(255, 255, 255, 0.08); color: var(--fog); }
+.np-flag[data-kind="best"] { background: var(--lock); color: var(--night); }
+.np-flag[data-kind="stock"] { color: #6fe3a5; }
+.np-buybox h1 { font-size: clamp(3.2rem, 14vw, 6.4rem); line-height: 0.9; margin: 4px 0 10px; }
+.np-buybox-price { display: flex; align-items: baseline; gap: 10px; }
+.np-buybox-price b { font-family: var(--f-display); font-size: 44px; line-height: 1; }
+.np-buybox-price span { color: var(--fog); font-size: 14px; }
+.np-keyspecs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 16px 0 6px; }
+.np-keyspecs div { padding: 10px 10px; border-radius: 12px; background: rgba(255, 255, 255, 0.05); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08); }
+.np-keyspecs small { display: block; color: var(--fog); font-size: 11px; }
+.np-keyspecs strong { font-size: 13.5px; line-height: 1.2; display: block; }
+.np-buybox h3 { font-size: 13px; color: var(--lock); font-weight: 600; margin: 16px 0 8px; }
+.np-cfg { display: flex; flex-wrap: wrap; gap: 8px; }
+.np-cfg button { position: relative; min-height: 46px; padding: 0 14px; border-radius: 12px; border: 0; background: rgba(255, 255, 255, 0.06); color: var(--paper); font: 600 15px var(--f-body); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12); cursor: pointer; display: inline-flex; align-items: center; gap: 8px; }
+.np-cfg button[aria-pressed="true"] { box-shadow: inset 0 0 0 2px var(--lock); background: rgba(86, 224, 232, 0.1); }
+.np-cfg button small { color: var(--fog); font-weight: 500; }
+.np-buybox-actions { display: grid; gap: 8px; margin-top: 18px; }
+.np-buybox-actions .np-btn { min-height: 56px; font-size: 17px; }
+.np-buybox-trust { display: flex; flex-wrap: wrap; gap: 6px 14px; margin-top: 12px; color: var(--fog); font-size: 13px; }
+.np-buybox-trust span::before { content: "✓ "; color: var(--lock); }
+.np-more { margin-top: 12px; border-radius: 14px; background: rgba(255, 255, 255, 0.04); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08); }
+.np-more summary { list-style: none; cursor: pointer; min-height: 48px; display: flex; align-items: center; justify-content: space-between; padding: 0 14px; font-weight: 600; font-size: 15px; }
+.np-more summary::-webkit-details-marker { display: none; }
+.np-more summary::after { content: "+"; color: var(--lock); font-size: 22px; }
+.np-more[open] summary::after { content: "–"; }
+.np-more-body { padding: 4px 14px 14px; display: grid; gap: 10px; }
+.np-more-body .np-opt { min-height: 52px; padding: 10px 14px; font-size: 15px; }
+.np-more-qty { display: flex; align-items: center; justify-content: space-between; }
+
+/* Sticky jump chips */
+.np-jump { position: sticky; top: 64px; z-index: 30; margin: 0 calc(var(--gutter) * -1); padding: 8px var(--gutter); background: rgba(13, 20, 25, 0.82); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); border-bottom: 1px solid rgba(255, 255, 255, 0.06); display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; }
+.np-jump::-webkit-scrollbar { display: none; }
+.np-jump a { flex: none; min-height: 38px; padding: 0 14px; border-radius: 999px; display: inline-flex; align-items: center; font-size: 14px; font-weight: 600; color: var(--fog); text-decoration: none; background: rgba(255, 255, 255, 0.06); }
+.np-jump a[data-on="true"] { background: var(--lock); color: var(--night); }
+.np-dsec[id] { scroll-margin-top: 120px; }
+.np-dhero-stage { scroll-margin-top: 120px; }
+.np-overview { padding-top: 10px; }
+.np-overview .np-dhero-stage { height: min(60svh, 600px); }
+/* grid children must be allowed to shrink or the chip row widens the hero */
+.np-hero-copy, .np-hero-foot, .np-scene { min-width: 0; }
+.np-hero-chips { width: calc(100% + var(--gutter) * 2); }

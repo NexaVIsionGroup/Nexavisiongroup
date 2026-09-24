@@ -18,6 +18,12 @@ export type Device = {
   memory: string;
   toughness: string;
   carriers: string;
+  /** One line on who this phone is for (lineup cards). */
+  who: string;
+  /** Three short spec chips for cards. */
+  chips: [string, string, string];
+  stock: "in" | "low" | "out";
+  bestSeller?: boolean;
   /** Shape + finish for the placeholder render until real photos exist. */
   render: { island: "round" | "offset" | "wide" | "fan" | "wrap"; body: string; accent: string };
 };
@@ -37,6 +43,9 @@ export const devices: Device[] = [
     memory: "12/256GB, 16/512GB",
     toughness: "IP68 and IP69K",
     carriers: "T-Mobile, AT&T, Verizon. eSIM.",
+    who: "Top of the line for sites that want the newest everything.",
+    chips: ["165Hz screen", "7,300 mAh", "IP69K"],
+    stock: "in",
     render: { island: "wide", body: "#2A2F33", accent: "#8C9499" },
   },
   {
@@ -53,6 +62,9 @@ export const devices: Device[] = [
     memory: "12/256GB, 16/512GB",
     toughness: "IP68 and IP69",
     carriers: "T-Mobile, AT&T, Verizon. eSIM.",
+    who: "Flagship speed with washdown-proof toughness.",
+    chips: ["QHD+ 120Hz", "6,000 mAh", "IP69"],
+    stock: "in",
     render: { island: "round", body: "#1E2A36", accent: "#6F8499" },
   },
   {
@@ -69,6 +81,9 @@ export const devices: Device[] = [
     memory: "12/256GB, 16/512GB",
     toughness: "IP65",
     carriers: "T-Mobile, AT&T, Verizon. eSIM.",
+    who: "Proven flagship power, priced to equip a whole crew.",
+    chips: ["QHD+ 120Hz", "5,400 mAh", "50W wireless"],
+    stock: "in",
     render: { island: "offset", body: "#253028", accent: "#7F9484" },
   },
   {
@@ -85,6 +100,9 @@ export const devices: Device[] = [
     memory: "8/128GB, 16/256GB",
     toughness: "IP64",
     carriers: "T-Mobile, AT&T, Verizon. eSIM.",
+    who: "Flagship-class speed at a mid-range price.",
+    chips: ["QHD+ 120Hz", "5,000 mAh", "80W charge"],
+    stock: "in",
     render: { island: "round", body: "#1F2326", accent: "#6B7277" },
   },
   {
@@ -101,6 +119,10 @@ export const devices: Device[] = [
     memory: "8/128GB, 12/256GB",
     toughness: "Splash resistant",
     carriers: "T-Mobile, AT&T, Verizon. Physical SIM.",
+    who: "Our best seller. The easiest way to put tower lock in every pocket.",
+    chips: ["QHD+ 120Hz", "5,000 mAh", "50W wireless"],
+    stock: "in",
+    bestSeller: true,
     render: { island: "wrap", body: "#1c1d20", accent: "#6d7277" },
   },
   {
@@ -117,6 +139,9 @@ export const devices: Device[] = [
     memory: "16/512GB",
     toughness: "IPX4",
     carriers: "T-Mobile, AT&T, Verizon. eSIM.",
+    who: "A phone that opens into a 7.8in tablet for maps, plans and dashboards.",
+    chips: ["7.82in inside", "4,805 mAh", "Foldable"],
+    stock: "in",
     render: { island: "round", body: "#2B2A27", accent: "#958F84" },
   },
   {
@@ -133,6 +158,9 @@ export const devices: Device[] = [
     memory: "12/256GB to 24GB/1TB",
     toughness: "IPX8",
     carriers: "Best on T-Mobile and AT&T. Physical SIM.",
+    who: "Liquid-cooled. Holds full speed for hours of heavy work.",
+    chips: ["144Hz screen", "7,500 mAh", "Liquid cooled"],
+    stock: "in",
     render: { island: "fan", body: "#16181B", accent: "#E0483A" },
   },
   {
@@ -149,6 +177,9 @@ export const devices: Device[] = [
     memory: "12/256GB to 24GB/1TB",
     toughness: "IP54",
     carriers: "Best on T-Mobile and AT&T. Physical SIM.",
+    who: "Fan-cooled for always-on workloads that cook ordinary phones.",
+    chips: ["144Hz screen", "7,050 mAh", "Fan cooled"],
+    stock: "in",
     render: { island: "fan", body: "#1C1D22", accent: "#C9CDD4" },
   },
 ];

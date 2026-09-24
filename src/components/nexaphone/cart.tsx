@@ -22,7 +22,7 @@ type Cart = {
   subtotal: number;
   open: boolean;
   setOpen: (v: boolean) => void;
-  add: (l: Omit<CartLine, "key">) => void;
+  add: (l: Omit<CartLine, "key">, opts?: { open?: boolean }) => void;
   setQty: (key: string, qty: number) => void;
   remove: (key: string) => void;
   clear: () => void;
@@ -77,7 +77,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     }
   }, [lines, loaded]);
 
-  const add = useCallback((l: Omit<CartLine, "key">) => {
+  const add = useCallback((l: Omit<CartLine, "key">, opts?: { open?: boolean }) => {
     const key = [l.slug, l.ram, l.storage, l.color, [...l.addons].sort().join("+")].join("|");
     setLines((cur) => {
       const hit = cur.find((x) => x.key === key);
@@ -85,7 +85,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       return [...cur, { ...l, key }];
     });
     buzz([10, 30, 20]);
-    setOpen(true);
+    if (opts?.open !== false) setOpen(true);
   }, []);
 
   const setQty = useCallback((key: string, qty: number) => {
@@ -173,7 +173,7 @@ function CartDrawer() {
             {lines.length === 0 ? (
               <div className="np-sheet-empty">
                 <p>Your cart is empty. Pick a phone to get started.</p>
-                <Link href="/nexaphone#lineup" className="np-btn np-btn-lock" onClick={() => setOpen(false)}>
+                <Link href="/nexaphone#shop" className="np-btn np-btn-lock" onClick={() => setOpen(false)}>
                   See the lineup
                 </Link>
               </div>
