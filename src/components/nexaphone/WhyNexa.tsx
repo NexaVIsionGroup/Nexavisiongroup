@@ -1,6 +1,8 @@
 "use client";
 
+import { useState } from "react";
 import { motion } from "framer-motion";
+import { ChevronDown } from "lucide-react";
 import Title from "./Title";
 
 const EASE = [0.22, 1, 0.36, 1] as [number, number, number, number];
@@ -39,7 +41,11 @@ const CAPS = [
   },
 ];
 
+const SHOW = 5;
+
 export default function WhyNexa() {
+  const [all, setAll] = useState(false);
+  const rows = all ? ROWS : ROWS.slice(0, SHOW);
   return (
     <section className="np-section" id="why" style={{ paddingTop: 0 }}>
       <div className="np-wrap">
@@ -55,7 +61,7 @@ export default function WhyNexa() {
             <span>Nexa Pro</span>
             <span>Galaxy S Ultra</span>
           </div>
-          {ROWS.map(([label, us, them], i) => (
+          {rows.map(([label, us, them], i) => (
             <motion.div
               key={label}
               className="np-why-row"
@@ -75,6 +81,11 @@ export default function WhyNexa() {
             </motion.div>
           ))}
         </div>
+        {!all && (
+          <button className="np-why-more" onClick={() => setAll(true)} aria-expanded={all}>
+            Show all {ROWS.length} differences <ChevronDown size={18} />
+          </button>
+        )}
 
         <div className="np-shop-caps">
           {CAPS.map((c) => (

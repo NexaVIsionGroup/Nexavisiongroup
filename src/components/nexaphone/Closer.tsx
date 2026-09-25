@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 import { LeadButton } from "./lead";
 import TalkToUs from "./TalkToUs";
 import { Mark } from "./Nav";
@@ -19,11 +20,12 @@ export default function Closer() {
         <div className="np-wrap">
           <Title text="Put your crew on the right tower." style={{ maxWidth: "9em" }} />
           <p className="np-lede" style={{ marginTop: 22, color: "#cfd9df" }}>
-            Online ordering opens soon. Tell us how many phones you need and where they&apos;ll work, and
-            we&apos;ll quote your fleet today. Want the details? Ask for the technical guide.
+            Buy one today, or tell us how many phones you need and where they&apos;ll work and we&apos;ll quote
+            your fleet. Want the details? Ask for the technical guide.
           </p>
           <div className="np-hero-ctas" style={{ marginTop: 30 }}>
-            <LeadButton kind="quote" className="np-btn np-btn-lock np-shine">Get a quote</LeadButton>
+            <Link href="#shop" className="np-btn np-btn-lock np-shine">Shop all 8 models</Link>
+            <LeadButton kind="quote" className="np-btn np-btn-ghost">Get a fleet quote</LeadButton>
             <LeadButton kind="guide" className="np-btn np-btn-ghost">Request the technical guide</LeadButton>
           </div>
           <TalkToUs title="Rather talk it through?" />

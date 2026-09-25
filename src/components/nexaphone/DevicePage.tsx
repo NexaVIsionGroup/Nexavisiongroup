@@ -16,6 +16,7 @@ import Scramble from "./Scramble";
 import Title from "./Title";
 import PhoneRender from "./PhoneRender";
 import { versus } from "./versus";
+import CompareSheet from "./CompareSheet";
 import { shopProducts } from "./ShopRail";
 import type { AnchorName, AnchorPos } from "./three/Viewer3D";
 
@@ -455,25 +456,7 @@ export default function DevicePage({ slug }: { slug: string }) {
             Same flagship class as the {vs.galaxy}. The difference is control: Samsung locks its phones, so none of
             this is possible on a Galaxy.
           </p>
-          <div className="np-score" role="table" aria-label={`${p.name} versus ${vs.galaxy}`}>
-            <div className="np-score-head" role="row">
-              <span role="columnheader" />
-              <span role="columnheader" className="np-score-us">{p.name}</span>
-              <span role="columnheader">{vs.galaxy}</span>
-            </div>
-            {vs.rows.map((r, i) => (
-              <motion.div key={r.label} role="row" className="np-score-row" data-result={r.result} initial={{ opacity: 0, x: -16 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true, margin: "-30px" }} transition={{ duration: 0.5, delay: Math.min(i, 6) * 0.05, ease: EASE }}>
-                <span role="rowheader">{r.label}</span>
-                <span className="np-score-us">
-                  {r.result === "win" ? <Check size={16} /> : <span className="np-score-tie">=</span>} {r.nexa}
-                </span>
-                <span className="np-score-them">{r.galaxy}</span>
-              </motion.div>
-            ))}
-          </div>
-          <p className="np-duel-note">
-            Galaxy figures are US launch specs. Speed compared with Geekbench 6 multi-core scores from GSMArena reviews ({p.gb6.toLocaleString()} vs {p.galaxy.gb6.toLocaleString()}). {p.perf.cpu}, {p.perf.gpu}.
-          </p>
+          <CompareSheet p={p} />
         </div>
       </section>
 

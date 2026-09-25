@@ -90,7 +90,7 @@ export default function Hero() {
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 1.2, delay: 0.35, ease: EASE }}
         >
-          <SignalField className="np-scene-canvas" onState={setState} phoneY={0.68} />
+          <SignalField className="np-scene-canvas" onState={setState} phoneY={0.62} />
           <Readout state={state} />
         </motion.div>
 

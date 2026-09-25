@@ -4,7 +4,7 @@
 .np-hero { padding-bottom: 28px; }
 @media (max-width: 979px) {
   .np-h1 { font-size: clamp(3.4rem, 14vw, 6rem); }
-  .np-scene { height: min(42svh, 92vw); }
+  .np-scene { height: min(46svh, 100vw); }
 }
 .np-hero-chips { display: flex; gap: 8px; overflow-x: auto; margin: 18px calc(var(--gutter) * -1) 0; padding: 4px var(--gutter) 6px; scrollbar-width: none; }
 .np-hero-chips::-webkit-scrollbar { display: none; }
@@ -126,3 +126,17 @@
 /* grid children must be allowed to shrink or the chip row widens the hero */
 .np-hero-copy, .np-hero-foot, .np-scene { min-width: 0; }
 .np-hero-chips { width: calc(100% + var(--gutter) * 2); }
+
+/* Phase 4: compact compare (device page sheet + landing show-all) */
+.np-score-top { margin-top: 24px; }
+.np-score-more { margin-top: 12px; width: 100%; justify-content: space-between; min-height: 50px; }
+.np-score-wins { font-size: 13px; font-weight: 700; padding: 4px 10px; border-radius: 999px; background: rgba(86, 224, 232, 0.14); color: var(--lock); }
+.np-compare { max-height: 90svh; }
+.np-compare-lede { color: var(--fog); font-size: 15px; line-height: 1.45; margin: 6px 0 10px; }
+.np-compare-scroll { overflow-y: auto; margin: 0 -8px; padding: 0 8px 8px; min-height: 0; }
+.np-compare .np-score { margin-top: 0; }
+.np-compare .np-duel-note { margin-top: 12px; }
+.np-why-more { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; min-height: 50px; margin-top: 12px; border: 0; border-radius: 16px; background: rgba(255, 255, 255, 0.06); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12); color: var(--paper); font: 600 15px var(--f-body); cursor: pointer; }
+/* HUD labels stay inside the viewport when the 3D stage bleeds past the gutter */
+.np-hud-box[data-side="left"] { left: max(12px, calc(var(--gutter) + 4px)); }
+.np-hud-box[data-side="right"] { right: max(12px, calc(var(--gutter) + 4px)); }
