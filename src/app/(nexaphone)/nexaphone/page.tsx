@@ -10,6 +10,7 @@ import ShopRail from "@/components/nexaphone/ShopRail";
 import LandingBar from "@/components/nexaphone/LandingBar";
 import MiniCta from "@/components/nexaphone/MiniCta";
 import WhyNexa from "@/components/nexaphone/WhyNexa";
+import Faq from "@/components/nexaphone/Faq";
 import Gallery from "@/components/nexaphone/Gallery";
 import Closer from "@/components/nexaphone/Closer";
 
@@ -28,6 +29,7 @@ export default function NexaPhonePage() {
         <Places />
         <Control />
         <WhyNexa />
+        <Faq />
         <MiniCta />
         <Gallery />
         <Closer />

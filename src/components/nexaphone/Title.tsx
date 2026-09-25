@@ -25,7 +25,7 @@ export default function Title({
       aria-label={text}
       initial="hidden"
       whileInView="shown"
-      viewport={{ once: true, margin: "-12% 0px" }}
+      viewport={{ once: true, margin: "0px 0px -8% 0px" }}
       transition={{ staggerChildren: 0.07 }}
     >
       {words.map((w, i) => (
