@@ -8,6 +8,8 @@ import { money, productBySlug } from "./catalog";
 import { unitPrice, useCart } from "./cart";
 import Scramble from "./Scramble";
 
+// Mirrors NEXA_TAX_RATE on the JHPS side (flat percent of the subtotal).
+const TAX_RATE = 6;
 const EASE = [0.22, 1, 0.36, 1] as [number, number, number, number];
 
 function Field({
@@ -17,6 +19,7 @@ function Field({
   auto,
   required = true,
   half = false,
+  inputMode,
 }: {
   label: string;
   name: string;
@@ -24,10 +27,11 @@ function Field({
   auto?: string;
   required?: boolean;
   half?: boolean;
+  inputMode?: "numeric" | "tel" | "email" | "text";
 }) {
   return (
     <label className="np-field" data-half={half}>
-      <input name={name} type={type} autoComplete={auto} required={required} placeholder=" " />
+      <input name={name} type={type} autoComplete={auto} required={required} placeholder=" " inputMode={inputMode} />
       <span>
         {label}
         {!required && <em> (optional)</em>}
@@ -38,6 +42,8 @@ function Field({
 
 export default function Checkout() {
   const { lines, subtotal, clear } = useCart();
+  const tax = Math.round(subtotal * TAX_RATE) / 100;
+  const total = subtotal + tax;
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
   const [done, setDone] = useState<string | null>(null);
@@ -164,8 +170,12 @@ export default function Checkout() {
                 <b>Free, insured</b>
               </div>
               <div className="np-sum-row">
-                <span>Tax</span>
-                <b>On your payment link</b>
+                <span>Sales tax ({TAX_RATE}%)</span>
+                <b className="np-num">{money(tax)}</b>
+              </div>
+              <div className="np-sum-row np-sum-total">
+                <span>Total</span>
+                <b className="np-num">{money(total)}</b>
               </div>
             </aside>
 
@@ -183,7 +193,7 @@ export default function Checkout() {
                 <Field label="Apt, suite, unit" name="line2" auto="address-line2" required={false} />
                 <Field label="City" name="city" auto="address-level2" />
                 <Field label="State" name="state" auto="address-level1" half />
-                <Field label="ZIP" name="zip" auto="postal-code" half />
+                <Field label="ZIP" name="zip" auto="postal-code" half inputMode="numeric" />
               </fieldset>
               <fieldset>
                 <legend>Anything we should know?</legend>
@@ -205,11 +215,11 @@ export default function Checkout() {
               </AnimatePresence>
 
               <button className="np-btn np-btn-lock np-shine np-submit" disabled={busy}>
-                {busy ? "Placing order…" : `Place order, ${money(subtotal)}`}
+                {busy ? "Placing order…" : `Continue to payment, ${money(total)}`}
               </button>
               <motion.p className="np-footnote" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3, ease: EASE }}>
-                You won&apos;t be charged yet. We confirm stock, then email a secure payment link with tax for your
-                address.
+                Next step is secure payment for {money(total)}, tax included. Shipping is free and insured, and we
+                confirm stock before anything ships.
               </motion.p>
             </form>
           </div>

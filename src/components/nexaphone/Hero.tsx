@@ -99,7 +99,7 @@ export default function Hero() {
           className="np-hero-foot"
           initial={{ opacity: 0, y: 18 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.9, delay: 0.9, ease: EASE }}
+          transition={{ duration: 0.7, delay: 0.45, ease: EASE }}
         >
           <p className="np-lede">
             {t(
