@@ -1,21 +1,28 @@
 "use client";
 
 import { useRef, useState } from "react";
+import { t } from "./theme";
 import { motion, useMotionValueEvent, useScroll, useSpring, useTransform } from "framer-motion";
 import SignalField from "./SignalField";
 
 const STEPS = [
   {
-    title: "We survey your site",
-    body: "Your Nexa Pro sweeps every tower and channel in range and measures what each one really delivers where you work, not just which is closest.",
+    title: t("We bust it out", "We survey your site"),
+    body: t(
+      "First the phone gets out: our build, full access, a radio that answers to you instead of its maker. Then it sweeps every tower and channel in range and measures what each one really delivers where you work.",
+      "Your Nexa Pro sweeps every tower and channel in range and measures what each one really delivers where you work, not just which is closest."
+    ),
   },
   {
-    title: "We lock the best one",
+    title: t("We lock it on", "We lock the best one"),
     body: "The fastest clear tower and channel rise to the top. We lock the phone to exactly that pair, or your IT team sets it once for the whole site.",
   },
   {
-    title: "It holds on",
-    body: "Through walls, crowds and rush hour it stays on your tower. It won't hop to a weaker tower, a dead one, or a fake one. No airplane mode, ever.",
+    title: t("It never goes back", "It holds on"),
+    body: t(
+      "Through walls, crowds and rush hour it stays on your tower. It won't hop to a weaker tower, a dead one, or a fake one. No airplane mode, ever. Locked on, never locked up.",
+      "Through walls, crowds and rush hour it stays on your tower. It won't hop to a weaker tower, a dead one, or a fake one. No airplane mode, ever."
+    ),
   },
 ];
 

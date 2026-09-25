@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { t } from "./theme";
 import { animate, motion, useMotionValue, useTransform } from "framer-motion";
 import Title from "./Title";
 
@@ -12,7 +13,7 @@ const EVERYDAY = [
   { title: "Low band", note: "Reaches far, moves slowly", on: true },
   { title: "Mid band", note: "Fast, but switched off to stop the bouncing", on: false },
   { title: "5G high speed", note: "Fastest, switched off with the rest", on: false },
-  { title: "Tower choice", note: "Not available. The phone decides.", on: false },
+  { title: "Tower choice", note: t("Not available. Not yours to make.", "Not available. The phone decides."), on: false },
 ];
 
 const NEXA = [

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { t } from "./theme";
 import { useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { LayoutGrid, Rows3 } from "lucide-react";
@@ -78,8 +79,10 @@ export default function ShopRail() {
       <div className="np-wrap">
         <Title text="Pick your phone." />
         <p className="np-lede np-shop-lede">
-          Eight models, one Signal Engine. Every phone locks to the exact tower and frequency you choose, arrives
-          set up by our shop, and ships free.
+          {t(
+            "Eight models, one Signal Engine, all out. Each one locks on to the exact tower and frequency you choose, arrives set up by our shop, and ships free.",
+            "Eight models, one Signal Engine. Every phone locks to the exact tower and frequency you choose, arrives set up by our shop, and ships free."
+          )}
         </p>
         <div className="np-picks" role="group" aria-label="Pick by need">
           {PICKS.map((x) => (

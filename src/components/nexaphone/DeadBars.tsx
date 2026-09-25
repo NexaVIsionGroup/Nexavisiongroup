@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { t } from "./theme";
 import { AnimatePresence, motion, useInView } from "framer-motion";
 import { Plane, Loader2, Check } from "lucide-react";
 import Title from "./Title";
@@ -56,7 +57,7 @@ function Everyday({ active }: { active: boolean }) {
               <>
                 <Loader2 size={30} className="np-db-spin" />
                 <b>Full bars. Nothing loads.</b>
-                <span>Stuck on a tower that has stopped delivering.</span>
+                <span>{t("Doing time on a tower that stopped delivering.", "Stuck on a tower that has stopped delivering.")}</span>
               </>
             )}
           </motion.div>
@@ -66,7 +67,7 @@ function Everyday({ active }: { active: boolean }) {
           <span className="np-db-knob" />
         </div>
       </div>
-      <p className="np-db-cap">Every other phone</p>
+      <p className="np-db-cap">{t("Every other phone. Locked up.", "Every other phone")}</p>
     </div>
   );
 }
@@ -99,7 +100,7 @@ function Nexa({ active }: { active: boolean }) {
           ))}
         </div>
       </div>
-      <p className="np-db-cap np-db-cap-good">Nexa Pro</p>
+      <p className="np-db-cap np-db-cap-good">{t("Nexa Pro. Locked on.", "Nexa Pro")}</p>
     </div>
   );
 }
@@ -121,7 +122,7 @@ export default function DeadBars() {
         >
           Your phone says 4G and full bars, and nothing loads. So you flip airplane mode on and off and hope it
           lands on 5G. It happens because ordinary phones pick their own tower, hop whenever they like, and park
-          on one that has stopped delivering. A Nexa Pro doesn&apos;t pick. You do.
+          on one that has stopped delivering.{t(" They call it a cell for a reason.", "")} A Nexa Pro doesn&apos;t pick. You do.
         </motion.p>
 
         <div className="np-db-grid" ref={ref}>

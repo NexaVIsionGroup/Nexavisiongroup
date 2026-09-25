@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import { t } from "./theme";
 import { useEffect, useRef, useState } from "react";
 import { animate, motion, useMotionValue, useScroll, useTransform } from "framer-motion";
 import Link from "next/link";
@@ -72,7 +73,7 @@ export default function Hero() {
             transition={{ duration: 0.7 }}
           >
             <span className="np-live-dot" />
-            Flagship phones, rebuilt for work
+            {t("Flagship phones, busted out for work", "Flagship phones, rebuilt for work")}
           </motion.p>
           <h1 className="np-display np-h1">
             <span className="np-line">
@@ -101,8 +102,10 @@ export default function Hero() {
           transition={{ duration: 0.9, delay: 0.9, ease: EASE }}
         >
           <p className="np-lede">
-            No more full bars and no internet. Nexa Pro locks to the exact tower and frequency that perform best
-            where you work, and never hops away.
+            {t(
+              "Every phone ships doing time: sentenced by its maker, its carrier and whatever tower it gets handed. A Nexa Pro is out. It locks on to the exact tower and frequency that perform best where you work, and never hops away.",
+              "No more full bars and no internet. Nexa Pro locks to the exact tower and frequency that perform best where you work, and never hops away."
+            )}
           </p>
           <div className="np-hero-ctas">
             <Link href={`/nexaphone/phones/${hero.slug}`} className="np-btn np-btn-lock np-shine">

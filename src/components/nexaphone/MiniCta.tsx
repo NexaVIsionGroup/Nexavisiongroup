@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { t } from "./theme";
 import { fromPrice, money, products } from "./catalog";
 
 /** A quiet buy prompt at the end of a story section. */
@@ -8,7 +9,7 @@ export default function MiniCta({ light = false }: { light?: boolean }) {
     <div className="np-wrap">
       <div className="np-minicta" data-light={light}>
         <span>
-          Ready? The {hero.name} starts at <b className="np-num">{money(fromPrice(hero))}</b>.
+          {t("Ready to bust one out?", "Ready?")} The {hero.name} starts at <b className="np-num">{money(fromPrice(hero))}</b>.
         </span>
         <div>
           <Link href={`/nexaphone/phones/${hero.slug}`} className="np-btn np-btn-lock">

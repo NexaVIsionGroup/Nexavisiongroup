@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { t } from "./theme";
 import { Ban, Wrench, SlidersHorizontal, CalendarCheck, Lock, PackageCheck } from "lucide-react";
 import { controls } from "./data";
 import Scramble from "./Scramble";
@@ -20,9 +21,9 @@ export default function Control() {
   return (
     <section className="np-section" id="control" style={{ paddingTop: 0 }}>
       <div className="np-wrap">
-        <Title text="A phone that answers to you." style={{ maxWidth: "10em" }} />
+        <Title text={t("A phone that answers to you. Not its warden.", "A phone that answers to you.")} style={{ maxWidth: "10em" }} />
         <p className="np-lede" style={{ marginTop: 22, color: "#cfd9df" }}>
-          Every Nexa Pro runs our in-house build with full control opened up. The same access that lets it choose a tower
+          {t("Every Nexa Pro walks out of our shop on our in-house build with full control opened up.", "Every Nexa Pro runs our in-house build with full control opened up.")} The same access that lets it choose a tower
           also lets you strip it down, lock it down and make it yours.
         </p>
         <div className="np-control">

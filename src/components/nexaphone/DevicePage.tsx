@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import { t } from "./theme";
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
@@ -326,7 +327,7 @@ export default function DevicePage({ slug }: { slug: string }) {
           <div className="np-buybox-trust">
             <span>Free insured shipping</span>
             <span>Like new, tested in our shop</span>
-            <span>Set up before it ships</span>
+            <span>{t("Busted out and set up before it ships", "Set up before it ships")}</span>
           </div>
 
           <details className="np-more">

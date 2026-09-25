@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { JAIL_THEME } from "../../components/nexaphone/theme";
 import { Big_Shoulders_Display, IBM_Plex_Sans } from "next/font/google";
 import "@/styles/nexaphone.css";
 import "@/styles/nexaphone-store.css";
@@ -31,7 +32,7 @@ export const metadata: Metadata = {
 
 export default function NexaPhoneLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className={`${display.variable} ${body.variable} np`}>
+    <div className={`${display.variable} ${body.variable} np`} data-jail={JAIL_THEME}>
       <LeadProvider>
         <CartProvider>{children}</CartProvider>
       </LeadProvider>

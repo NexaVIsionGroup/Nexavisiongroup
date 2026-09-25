@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { t } from "./theme";
 import { motion } from "framer-motion";
 import { ChevronDown } from "lucide-react";
 import Title from "./Title";
@@ -13,9 +14,9 @@ const EASE = [0.22, 1, 0.36, 1] as [number, number, number, number];
 const ROWS: [string, string, string][] = [
   ["Full bars, no internet", "Locked to the tower and channel that deliver at your site", "Toggle airplane mode and hope"],
   ["Fake cell sites", "Ignores towers you haven't approved, including IMSI catchers", "Connects to whatever looks strongest"],
-  ["Exact tower", "Lock to the one tower you choose", "Whatever tower the network hands you"],
+  ["Exact tower", t("Locked on to the one tower you choose", "Lock to the one tower you choose"), "Whatever tower the network hands you"],
   ["Exact frequency", "Lock to the band and channel you choose", "Band settings at best, if any"],
-  ["Access", "Full system access, built in", "Locked by Samsung, can't be opened"],
+  ["Access", "Full system access, built in", t("Locked up by Samsung. No key.", "Locked by Samsung, can't be opened")],
   ["Network control", "Rules per app, per connection, system-wide", "Basic data on and off"],
   ["Out of the box", "Nothing you didn't ask for", "Samsung and carrier apps preloaded"],
   ["Updates", "Only when you approve them", "Pushed by Samsung and your carrier"],
@@ -51,7 +52,7 @@ export default function WhyNexa() {
       <div className="np-wrap">
         <Title text="Why not just buy a Galaxy?" style={{ maxWidth: "10em" }} />
         <p className="np-lede" style={{ marginTop: 22, color: "#cfd9df" }}>
-          A Galaxy Ultra is a great phone, built for everyone, and Samsung keeps it locked. You can&apos;t choose its
+          A Galaxy Ultra is a great phone, built for everyone, and Samsung keeps it {t("locked up", "locked")}. You can&apos;t choose its
           tower, you can&apos;t lock its frequency, and you can&apos;t change how its radio behaves. That control is the
           whole point of a Nexa Pro, and it&apos;s why our customers buy them.
         </p>

@@ -4,6 +4,7 @@
 // (Samsung / GSMArena / Android Central, checked 2026-09-22).
 
 import type { Product } from "./catalog";
+import { t } from "./theme";
 
 type G = { price: number; battery: number; wired: number; wireless: number; water: string; refresh: number };
 
@@ -59,9 +60,9 @@ export function versus(p: Product): { galaxy: string; rows: Row[]; wins: number 
   // What Samsung locks away and we build in.
   rows.push({ label: "Full bars, no internet", nexa: "Locked to a tower that delivers", galaxy: "Toggle airplane mode and hope", result: "win" });
   rows.push({ label: "Fake cell sites", nexa: "Ignores towers you haven't approved", galaxy: "Connects to whatever looks strongest", result: "win" });
-  rows.push({ label: "Lock to one exact tower", nexa: "Yes, and it holds", galaxy: "Not possible", result: "win" });
+  rows.push({ label: "Lock to one exact tower", nexa: t("Locked on, and it holds", "Yes, and it holds"), galaxy: "Not possible", result: "win" });
   rows.push({ label: "Lock to one exact frequency", nexa: "Yes, any band it supports", galaxy: "Not possible", result: "win" });
-  rows.push({ label: "Full system access", nexa: "Built in", galaxy: "Bootloader locked by Samsung", result: "win" });
+  rows.push({ label: "Full system access", nexa: "Built in", galaxy: t("Locked up by Samsung. No key.", "Bootloader locked by Samsung"), result: "win" });
   rows.push({ label: "Network rules per app", nexa: "System-wide, every connection", galaxy: "Basic data toggles", result: "win" });
   rows.push({ label: "Preinstalled apps", nexa: "None you didn't ask for", galaxy: "Samsung and carrier apps", result: "win" });
   rows.push({ label: "Updates", nexa: "Only when you approve", galaxy: "Pushed by Samsung and carrier", result: "win" });

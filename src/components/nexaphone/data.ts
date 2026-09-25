@@ -1,3 +1,5 @@
+import { t } from "./theme";
+
 // Nexa Pro content. Device numbers come from the Stage 0 research
 // (C:\websites\nexavisiongroup\nexaphone-research\devices.json, GSMArena
 // Geekbench 6 figures). Copy is first-pass and gets tuned section by section.
@@ -231,7 +233,7 @@ export const controls = [
   },
   {
     title: "Runs the tools other phones block",
-    body: "Professional network, diagnostic and automation apps get the deeper access they need. Things a Galaxy simply won't allow.",
+    body: "Professional network, diagnostic and automation apps get the deeper access they need. " + t("Things a Galaxy keeps behind bars.", "Things a Galaxy simply won't allow."),
   },
   {
     title: "Your rules for every app",
