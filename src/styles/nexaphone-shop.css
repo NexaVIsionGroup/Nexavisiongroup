@@ -167,3 +167,23 @@
 @media (min-width: 760px) { .np-faq-item summary { font-size: 18px; padding: 16px 24px; } .np-faq-item p { padding: 0 24px 20px; font-size: 16.5px; } }
 /* Anchor jumps land below the fixed nav */
 .np section[id] { scroll-margin-top: 72px; }
+
+/* Checkout: state select + live shipping options */
+.np-field-select select { width: 100%; min-height: 58px; padding: 24px 40px 8px 16px; border-radius: 14px; border: 0; background: rgba(255, 255, 255, 0.05) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' fill='none'%3E%3Cpath d='M1 1.5l5 5 5-5' stroke='%2356e0e8' stroke-width='2'/%3E%3C/svg%3E") no-repeat right 16px center; box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12); color: var(--paper); font: 500 16px var(--f-body); appearance: none; -webkit-appearance: none; }
+.np-field-select select:focus { outline: none; box-shadow: inset 0 0 0 2px var(--lock), 0 0 20px rgba(86, 224, 232, 0.2); }
+.np-field-select select option { color: #0d1419; }
+.np-field-select span { transform: translateY(-11px); font-size: 12px; color: var(--lock); }
+.np-ship { display: grid; gap: 10px; }
+.np-ship-note { display: flex; align-items: center; gap: 10px; min-height: 58px; padding: 12px 16px; border-radius: 14px; background: rgba(255, 255, 255, 0.04); color: var(--fog); font-size: 15px; }
+.np-ship-note svg { flex: none; color: var(--lock); }
+.np-ship-note[data-error="true"] { color: #ffb4a3; }
+.np-ship-note button { border: 0; background: none; color: var(--lock); font: 600 15px var(--f-body); text-decoration: underline; cursor: pointer; padding: 0; }
+.np-ship-opt { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 12px; min-height: 64px; padding: 12px 16px; border-radius: 14px; background: rgba(255, 255, 255, 0.05); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12); cursor: pointer; transition: box-shadow 0.2s, background 0.2s; }
+.np-ship-opt[data-on="true"] { background: rgba(86, 224, 232, 0.08); box-shadow: inset 0 0 0 2px var(--lock); }
+.np-ship-opt input { width: 20px; height: 20px; accent-color: var(--lock); margin: 0; }
+.np-ship-name { display: grid; gap: 2px; min-width: 0; }
+.np-ship-name b { font-size: 16px; }
+.np-ship-name small { color: var(--fog); font-size: 13px; }
+.np-ship-opt > b { font-family: var(--f-display); font-size: 24px; }
+.np-submit:disabled { opacity: 0.55; cursor: not-allowed; }
+.np-ship > :not(legend) { grid-column: 1 / -1; }

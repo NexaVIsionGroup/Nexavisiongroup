@@ -12,10 +12,6 @@ const QA: [string, string][] = [
     "Yes. Every Nexa Pro runs on T-Mobile, AT&T and Verizon with a physical SIM. Bring the SIM from your current phone or ask us to source a plan. A few models have carrier notes on their page.",
   ],
   [
-    "What happens if the tower I'm locked to goes down?",
-    "It tells you, instead of silently hopping to a worse one. Moving to the next best tower is a one-minute profile change you can make yourself, or call us and we'll pick it with you from the survey.",
-  ],
-  [
     "Can I move it to another site?",
     t(
       "Yes. Tower profiles are per site, not per phone. Set a new profile yourself in about a minute, or send us the address and we'll build it. Once a phone is out, it stays out.",
@@ -32,11 +28,11 @@ const QA: [string, string][] = [
   ],
   [
     "What about warranty and repairs?",
-    "Our techs repair, reprogram and swap Nexa Pro phones in-house, so you're never routed to a carrier store. Add Nexa Care for two years of priority coverage and swaps.",
+    "Every Nexa Pro is covered by our shop warranty. Our techs repair, reprogram and swap phones in-house, so you're never routed to a carrier store. Add Nexa Care for two years of extended coverage and priority swaps.",
   ],
   [
     "How do I pay?",
-    "Place the order here and you go straight to a secure payment page. Sales tax is 6%, shipping is free and insured, and we confirm stock before anything ships. Fleet orders of five or more can be quoted and invoiced.",
+    "Place the order here and you go straight to a secure payment page. Shipping is priced live for your address at checkout, sales tax is 6%, and we confirm stock before anything ships. Fleet orders of five or more can be quoted and invoiced.",
   ],
 ];
 

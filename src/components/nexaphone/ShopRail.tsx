@@ -80,8 +80,8 @@ export default function ShopRail() {
         <Title text="Pick your phone." />
         <p className="np-lede np-shop-lede">
           {t(
-            "Eight models, one Signal Engine, all out. Each one locks on to the exact tower and frequency you choose, arrives set up by our shop, and ships free.",
-            "Eight models, one Signal Engine. Every phone locks to the exact tower and frequency you choose, arrives set up by our shop, and ships free."
+            "Eight models, one Signal Engine, all out. Each one locks on to the exact tower and frequency you choose, arrives set up by our shop, and carries our shop warranty.",
+            "Eight models, one Signal Engine. Every phone locks to the exact tower and frequency you choose, arrives set up by our shop, and carries our shop warranty."
           )}
         </p>
         <div className="np-picks" role="group" aria-label="Pick by need">
@@ -121,7 +121,7 @@ export default function ShopRail() {
       </motion.div>
       <div className="np-wrap">
         <p className="np-shop-foot">
-          Free insured shipping. Like-new, tested in our shop. Not sure which one? <Link href="#talk">Talk to a person</Link>.
+          Like new, tested in our shop, backed by our warranty. Not sure which one? <Link href="#talk">Talk to a person</Link>.
         </p>
       </div>
     </section>

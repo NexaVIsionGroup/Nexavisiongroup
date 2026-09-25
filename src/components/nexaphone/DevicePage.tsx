@@ -262,7 +262,7 @@ export default function DevicePage({ slug }: { slug: string }) {
             <span className="np-flag" data-kind="stock">
               {STOCK[p.stock]}
             </span>
-            <span className="np-flag">Free insured shipping</span>
+            <span className="np-flag">Shop warranty</span>
           </div>
           <h1 className="np-display">
             <Scramble text={p.name} speed={34} />
@@ -325,7 +325,7 @@ export default function DevicePage({ slug }: { slug: string }) {
             </button>
           </div>
           <div className="np-buybox-trust">
-            <span>Free insured shipping</span>
+            <span>Shop warranty included</span>
             <span>Like new, tested in our shop</span>
             <span>{t("Busted out and set up before it ships", "Set up before it ships")}</span>
           </div>

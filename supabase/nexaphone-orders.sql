@@ -20,3 +20,6 @@ create table if not exists public.nexaphone_orders (
 alter table public.nexaphone_orders enable row level security;
 -- no public policies: only the service role (server) reads/writes
 create index if not exists nexaphone_orders_created_idx on public.nexaphone_orders (created_at desc);
+
+-- 2026-09-25: carrier + service chosen at checkout
+alter table nexaphone_orders add column if not exists shipping_method text;

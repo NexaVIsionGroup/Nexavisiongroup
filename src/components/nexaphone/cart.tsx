@@ -225,7 +225,7 @@ function CartDrawer() {
                     <span>Subtotal</span>
                     <b className="np-num">{money(subtotal)}</b>
                   </div>
-                  <p className="np-sheet-note">Free insured shipping. Tax calculated at checkout.</p>
+                  <p className="np-sheet-note">Shipping and tax calculated at checkout. Shop warranty included.</p>
                   <Link href="/nexaphone/checkout" className="np-btn np-btn-lock np-shine" style={{ width: "100%" }} onClick={() => setOpen(false)}>
                     Check out
                   </Link>
