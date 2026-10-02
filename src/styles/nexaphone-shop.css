@@ -187,3 +187,7 @@
 .np-ship-opt > b { font-family: var(--f-display); font-size: 24px; }
 .np-submit:disabled { opacity: 0.55; cursor: not-allowed; }
 .np-ship > :not(legend) { grid-column: 1 / -1; }
+
+/* Fold open: get the spec callouts off the big screen */
+.np-hud { transition: opacity 0.4s ease; }
+.np-hud[data-hidden="true"] { opacity: 0; }

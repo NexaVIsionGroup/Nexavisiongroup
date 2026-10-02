@@ -51,7 +51,7 @@ const HUD_SIDE: Record<AnchorName, "left" | "right"> = { camera: "right", chip: 
 const HUD_Y: Record<AnchorName, number> = { camera: 0.16, signal: 0.3, chip: 0.52, battery: 0.7 };
 const HUD_LABEL: Record<AnchorName, string> = { camera: "Camera", chip: "Chip", battery: "Battery", signal: "Signal" };
 
-function Hud({ p, anchors }: { p: Product; anchors: React.MutableRefObject<AnchorPos | null> }) {
+function Hud({ p, anchors, hidden = false }: { p: Product; anchors: React.MutableRefObject<AnchorPos | null>; hidden?: boolean }) {
   const svg = useRef<SVGSVGElement>(null);
   const boxes = useRef<Record<string, HTMLDivElement | null>>({});
   useEffect(() => {
@@ -86,7 +86,7 @@ function Hud({ p, anchors }: { p: Product; anchors: React.MutableRefObject<Ancho
   }, [anchors]);
 
   return (
-    <div className="np-hud" aria-hidden>
+    <div className="np-hud" aria-hidden data-hidden={hidden}>
       <svg ref={svg} className="np-hud-lines">
         {(Object.keys(HUD_Y) as AnchorName[]).map((k) => (
           <g key={k}>
@@ -399,7 +399,7 @@ export default function DevicePage({ slug }: { slug: string }) {
           {showViewer && (
             <>
               <Viewer3D className="np-viewer" modelKey={p.id} island={p.render.island} fold={p.family === "fold"} folded={folded} swatch={color} label={p.name} onAnchors={(a) => (anchors.current = a)} />
-              <Hud p={p} anchors={anchors} />
+              <Hud p={p} anchors={anchors} hidden={!folded} />
             </>
           )}
           <div className="np-drag-hint" aria-hidden>

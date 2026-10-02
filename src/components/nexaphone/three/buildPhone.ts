@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { foldScreen } from "./foldScreen";
 import type { Color as Swatch } from "../catalog";
 
 /**
@@ -277,9 +278,9 @@ function applyFinish(m: THREE.MeshPhysicalMaterial, s: Swatch, bump: THREE.Textu
   m.transparent = s.finish === "clear";
   m.opacity = s.finish === "clear" ? 0.62 : 1;
   m.metalness = s.finish === "leather" ? 0 : 0.1;
-  m.roughness = s.finish === "matte" ? 0.42 : s.finish === "leather" ? 0.78 : 0.08;
-  m.clearcoat = s.finish === "leather" ? 0 : s.finish === "matte" ? 0.15 : 1;
-  m.clearcoatRoughness = s.finish === "matte" ? 0.4 : 0.03;
+  m.roughness = s.finish === "matte" ? 0.3 : s.finish === "leather" ? 0.78 : 0.06;
+  m.clearcoat = s.finish === "leather" ? 0 : s.finish === "matte" ? 0.35 : 1;
+  m.clearcoatRoughness = s.finish === "matte" ? 0.22 : 0.02;
   m.sheen = s.finish === "leather" ? 0.8 : 0;
   m.sheenRoughness = 0.6;
   m.sheenColor = new THREE.Color(s.hex).offsetHSL(0, 0, 0.18);
@@ -492,6 +493,11 @@ export function buildPhone(_island: Island, fold: boolean, swatch: Swatch, label
   const { w, h, d, r } = spec;
   const backZ = d / 2;
   const screenTex = lockScreen(512, 1110, label, spec.punch);
+  // Fold only: the big inner display gets its own animated console.
+  const inner = fold ? foldScreen(label) : null;
+  if (inner) track(inner.tex);
+  const innerClones: THREE.Texture[] = [];
+  let foldNow = 1;
 
   const lens = (target: THREE.Group) => (lr: number, x: number, y: number, z: number) => {
     const g = new THREE.Group();
@@ -533,9 +539,15 @@ export function buildPhone(_island: Island, fold: boolean, swatch: Swatch, label
         t.offset.set(opts.screenRepeat[1], 0);
       }
       t.needsUpdate = true;
-      const scr = new THREE.Mesh(planeUV(w - 0.035, h - 0.035, r - 0.02), track(new THREE.MeshBasicMaterial({ map: t, toneMapped: false })));
+      if (inner && opts.screen === inner.tex) innerClones.push(t);
+      // Sits clearly proud of the front glass (outer face at -backZ + 0.006) and wins
+      // ties via polygon offset, or the glass z-fights over it on some GPUs.
+      const scr = new THREE.Mesh(
+        planeUV(w - 0.035, h - 0.035, r - 0.02),
+        track(new THREE.MeshBasicMaterial({ map: t, toneMapped: false, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 }))
+      );
       scr.rotation.y = Math.PI;
-      scr.position.z = -backZ + 0.0055;
+      scr.position.z = -backZ + 0.0035;
       s.add(scr);
     }
     // antenna lines
@@ -642,7 +654,7 @@ export function buildPhone(_island: Island, fold: boolean, swatch: Swatch, label
     group.add(...Object.values(anchors));
   } else {
     const left = new THREE.Group();
-    const leftBody = slab({ camera: true, screen: screenTex, screenRepeat: [0.5, 0.5], buttons: false, bottom: true });
+    const leftBody = slab({ camera: true, screen: inner!.tex, screenRepeat: [0.5, 0.5], buttons: false, bottom: true });
     leftBody.position.x = -w / 2;
     left.add(leftBody);
     const camGroup = new THREE.Group();
@@ -654,7 +666,7 @@ export function buildPhone(_island: Island, fold: boolean, swatch: Swatch, label
     pivot.position.z = -d / 2;
     const right = new THREE.Group();
     right.position.z = d / 2;
-    const rightBody = slab({ camera: false, screen: screenTex, screenRepeat: [0.5, 0], buttons: true, bottom: false });
+    const rightBody = slab({ camera: false, screen: inner!.tex, screenRepeat: [0.5, 0], buttons: true, bottom: false });
     rightBody.position.x = w / 2;
     right.add(rightBody);
     const cover = new THREE.Mesh(
@@ -669,6 +681,7 @@ export function buildPhone(_island: Island, fold: boolean, swatch: Swatch, label
     group.add(left, pivot);
 
     setFold = (t: number) => {
+      foldNow = t;
       pivot.rotation.y = t * Math.PI;
       group.children.forEach((c) => (c.position.x = (w / 2) * t));
     };
@@ -703,6 +716,7 @@ export function buildPhone(_island: Island, fold: boolean, swatch: Swatch, label
       metal.color.lerp(frameTarget, Math.min(1, dt * 6));
       if (blades) (blades as THREE.Group).rotation.z -= dt * 24;
       if (rgb) (rgb as THREE.MeshBasicMaterial).color.setHSL((t * 0.08) % 1, 1, 0.55);
+      if (inner && foldNow < 0.6 && inner.update(dt, t)) innerClones.forEach((c) => (c.needsUpdate = true));
     },
     dispose: () => own.splice(0).forEach((x) => x.dispose()),
   };
