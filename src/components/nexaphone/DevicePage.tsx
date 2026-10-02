@@ -18,7 +18,7 @@ import Title from "./Title";
 import PhoneRender from "./PhoneRender";
 import { versus } from "./versus";
 import CompareSheet from "./CompareSheet";
-import { shopProducts } from "./ShopRail";
+import { shopProducts } from "./lineup";
 import type { AnchorName, AnchorPos } from "./three/Viewer3D";
 
 const Viewer3D = dynamic(() => import("./three/Viewer3D"), { ssr: false });

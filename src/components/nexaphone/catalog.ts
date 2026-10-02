@@ -317,8 +317,16 @@ export const catalog: Record<string, CatalogEntry> = {
 
 export type Product = Device & CatalogEntry;
 
-export const products: Product[] = devices.map((d) => ({ ...d, ...catalog[d.id] }));
+// Models pulled from sale. A hidden model disappears from the lineup, its page
+// redirects to the shop, carts drop it and the order API rejects it.
+// 2026-10-02: n10 (Pro 10) off while we test eSIM adapters for Visible / Straight Talk.
+// To bring a model back, remove its id here.
+export const HIDDEN = new Set<string>(["n10"]);
+
+const allProducts: Product[] = devices.map((d) => ({ ...d, ...catalog[d.id] }));
+export const products: Product[] = allProducts.filter((p) => !HIDDEN.has(p.id));
 export const productBySlug = (slug: string) => products.find((p) => p.slug === slug);
+export const isHiddenSlug = (slug: string) => allProducts.some((p) => p.slug === slug && HIDDEN.has(p.id));
 export const fromPrice = (p: Product) => Math.min(...p.configs.map((x) => x.price));
 export const money = (n: number) =>
   n.toLocaleString("en-US", { style: "currency", currency: "USD", maximumFractionDigits: n % 1 ? 2 : 0 });

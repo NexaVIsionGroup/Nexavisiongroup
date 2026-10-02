@@ -6,7 +6,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { ChevronUp, X } from "lucide-react";
 import { fromPrice, money, products } from "./catalog";
 import { useCart } from "./cart";
-import { shopProducts } from "./ShopRail";
+import { featured, MODEL_COUNT, shopProducts } from "./lineup";
 import PhoneRender from "./PhoneRender";
 
 /**
@@ -17,7 +17,7 @@ export default function LandingBar() {
   const { add, open: cartOpen } = useCart();
   const [show, setShow] = useState(false);
   const [sheet, setSheet] = useState(false);
-  const hero = products.find((p) => p.bestSeller) ?? products[0];
+  const hero = featured();
 
   useEffect(() => {
     const on = () => setShow(window.scrollY > window.innerHeight * 0.9);
@@ -54,7 +54,7 @@ export default function LandingBar() {
             transition={{ type: "spring", stiffness: 380, damping: 34 }}
           >
             <Link href={`/nexaphone/phones/${hero.slug}`} className="np-lbar-item">
-              <small>Best seller</small>
+              <small>{hero.bestSeller ? "Best seller" : "Featured"}</small>
               <b>
                 {hero.name} <span className="np-num">{money(fromPrice(hero))}</span>
               </b>
@@ -89,7 +89,7 @@ export default function LandingBar() {
             >
               <div className="np-sheet-grip" />
               <header className="np-sheet-head">
-                <h2 className="np-display">All 8 models</h2>
+                <h2 className="np-display">All {MODEL_COUNT} models</h2>
                 <button className="np-icon-btn" aria-label="Close" onClick={() => setSheet(false)}>
                   <X size={20} />
                 </button>

@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { MODEL_COUNT } from "./lineup";
 import { t } from "./theme";
 import Link from "next/link";
 import { LeadButton } from "./lead";
@@ -27,7 +28,7 @@ export default function Closer() {
             )}
           </p>
           <div className="np-hero-ctas" style={{ marginTop: 30 }}>
-            <Link href="#shop" className="np-btn np-btn-lock np-shine">Shop all 8 models</Link>
+            <Link href="#shop" className="np-btn np-btn-lock np-shine">Shop all {MODEL_COUNT} models</Link>
             <LeadButton kind="quote" className="np-btn np-btn-ghost">Get a fleet quote</LeadButton>
             <LeadButton kind="guide" className="np-btn np-btn-ghost">Request the technical guide</LeadButton>
           </div>

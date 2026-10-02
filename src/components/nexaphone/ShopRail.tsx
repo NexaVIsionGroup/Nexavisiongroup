@@ -14,12 +14,12 @@ import { useCoverflow } from "./useCoverflow";
 const EASE = [0.22, 1, 0.36, 1] as [number, number, number, number];
 
 /** Shop order: best seller first, then flagships by price, then fold and turbo. */
-export const SHOP_ORDER = ["n10", "n13", "n12", "n11", "n15", "nfold", "nrm10", "nrm11"];
-export const shopProducts = () => SHOP_ORDER.map((id) => products.find((p) => p.id === id)!).filter(Boolean);
+export { SHOP_ORDER, shopProducts, featured, MODEL_COUNT, MODEL_WORD } from "./lineup";
+import { shopProducts, MODEL_COUNT, MODEL_WORD } from "./lineup";
 
 const num = (s: string) => Number(s.replace(/[^\d.]/g, "")) || 0;
 const PICKS: { id: string; label: string; pick: (all: Product[]) => Product[] }[] = [
-  { id: "all", label: "All 8", pick: (a) => a },
+  { id: "all", label: `All ${MODEL_COUNT}`, pick: (a) => a },
   { id: "value", label: "Best value", pick: (a) => [...a].sort((x, y) => fromPrice(x) - fromPrice(y)).slice(0, 3) },
   { id: "battery", label: "Longest battery", pick: (a) => [...a].sort((x, y) => num(y.battery) - num(x.battery)).slice(0, 3) },
   { id: "fast", label: "Fastest", pick: (a) => [...a].sort((x, y) => y.gb6 - x.gb6).slice(0, 3) },
@@ -80,8 +80,8 @@ export default function ShopRail() {
         <Title text="Pick your phone." />
         <p className="np-lede np-shop-lede">
           {t(
-            "Eight models, one Signal Engine, all out. Each one locks on to the exact tower and frequency you choose, arrives set up by our shop, and carries our shop warranty.",
-            "Eight models, one Signal Engine. Every phone locks to the exact tower and frequency you choose, arrives set up by our shop, and carries our shop warranty."
+            `${MODEL_WORD} models, one Signal Engine, all out. Each one locks on to the exact tower and frequency you choose, arrives set up by our shop, and carries our shop warranty.`,
+            `${MODEL_WORD} models, one Signal Engine. Every phone locks to the exact tower and frequency you choose, arrives set up by our shop, and carries our shop warranty.`
           )}
         </p>
         <div className="np-picks" role="group" aria-label="Pick by need">

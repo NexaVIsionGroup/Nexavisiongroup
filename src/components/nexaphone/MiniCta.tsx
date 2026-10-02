@@ -1,10 +1,11 @@
 import Link from "next/link";
 import { t } from "./theme";
-import { fromPrice, money, products } from "./catalog";
+import { fromPrice, money } from "./catalog";
+import { featured } from "./lineup";
 
 /** A quiet buy prompt at the end of a story section. */
 export default function MiniCta({ light = false }: { light?: boolean }) {
-  const hero = products.find((p) => p.bestSeller) ?? products[0];
+  const hero = featured();
   return (
     <div className="np-wrap">
       <div className="np-minicta" data-light={light}>
