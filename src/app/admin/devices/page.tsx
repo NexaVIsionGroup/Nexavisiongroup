@@ -920,7 +920,7 @@ export default function DevicesPage() {
                           <div className="space-y-0.5 max-h-[42vh] overflow-auto font-mono text-[11.5px]">
                             {(beacon?.history || []).map((h, i) => (
                               <div key={i} className="flex items-center gap-2 py-1 border-b border-nv-teal/5">
-                                <span className="text-nv-text-muted shrink-0 w-24">{(h._rx || h.ts || "").replace("T", " ").slice(5, 16)}</span>
+                                <span className="text-nv-text-muted shrink-0 w-28">{fmtStamp(h._rx || h.ts)}</span>
                                 <span className="shrink-0"><Chip>{h.boot || "?"}</Chip></span>
                                 <span className="text-nv-text-secondary w-10 shrink-0">{h.batt != null ? `${h.batt}%` : "—"}</span>
                                 {h.lat && h.lon ? <MapPin size={12} className="text-nv-teal shrink-0" /> : null}
@@ -995,6 +995,15 @@ function fmtClock(ms: number): string {
   try {
     return new Date(ms).toLocaleString([], { weekday: "short", hour: "numeric", minute: "2-digit" });
   } catch { return "—"; }
+}
+// "2026-10-07 13:37:33" -> "10/07, 1:37 PM" (12-hour, AM/PM)
+function fmtStamp(s?: string): string {
+  if (!s) return "—";
+  const t = Date.parse(s.includes("T") ? s : s.replace(" ", "T"));
+  if (isNaN(t)) return s;
+  try {
+    return new Date(t).toLocaleString([], { month: "2-digit", day: "2-digit", hour: "numeric", minute: "2-digit" });
+  } catch { return s; }
 }
 // future epoch (seconds) -> "in 11h 59m"
 function fmtEta(epoch?: number): string {
