@@ -26,9 +26,10 @@ type Device = {
 };
 type BeaconReport = {
   _rx?: string; ts?: string; batt?: number; plug?: string;
-  lat?: string; lon?: string; acc?: string;
+  lat?: string; lon?: string; acc?: string; lprov?: string;
+  mcc?: string; mnc?: string;
   ci?: string; tac?: string; earfcn?: string; pci?: string; rsrp?: string;
-  op?: string; roam?: number; boot?: string; next?: number;
+  op?: string; roam?: number; ka?: number; armed?: number; boot?: string; next?: number;
 };
 type BeaconData = {
   ok?: number; supported?: boolean; err?: string; dev?: string;
@@ -107,6 +108,7 @@ export default function DevicesPage() {
   const [beacon, setBeacon] = useState<BeaconData | null>(null);
   const [beaconLoading, setBeaconLoading] = useState(false);
   const [beaconHours, setBeaconHours] = useState("12");
+  const [beaconMinutes, setBeaconMinutes] = useState("0");
   const [beaconBusy, setBeaconBusy] = useState("");
   // The activity bar is position:fixed (sticky does not survive the app shell), so it tracks the
   // content column's box: correct whether the sidebar is open, collapsed, or gone on a phone.
@@ -391,6 +393,7 @@ export default function DevicesPage() {
       setBeaconBusy("");
     }
   };
+  const beaconIntervalSecs = Math.min(86400, (parseInt(beaconHours) || 0) * 3600 + (parseInt(beaconMinutes) || 0) * 60);
 
   return (
     <AppShell title="Phone Command Center">
@@ -816,21 +819,55 @@ export default function DevicesPage() {
                             <button onClick={() => beaconAction("clear_command", {}, "clear queued command")} disabled={!!beaconBusy || !beacon?.pending_command}
                               className="rounded-nv-md px-3 py-2 text-[12.5px] nv-glass border border-nv-teal/15 text-nv-text-secondary hover:border-nv-teal/45 transition-all disabled:opacity-40">Clear</button>
                           </div>
-                          <div className="mt-3 pt-3 border-t border-nv-teal/10 flex items-center gap-2 flex-wrap">
-                            <span className="text-[12.5px] text-nv-text-muted">Start transit cycle — self-boot in</span>
-                            <input value={beaconHours} onChange={(e) => setBeaconHours(e.target.value)} inputMode="decimal"
-                              className="w-14 rounded-nv-sm bg-nv-void/60 border border-nv-teal/15 px-2 py-1.5 text-[12px] text-nv-text-primary outline-none focus:border-nv-teal/50" />
-                            <span className="text-[12.5px] text-nv-text-muted">h, then power off now</span>
-                            <button onClick={() => beaconAction("cycle", { hours: Number(beaconHours) || 12 }, `arm ${beaconHours}h + power off`, true)}
-                              disabled={!!beaconBusy || !online}
-                              className="flex items-center gap-1.5 rounded-nv-md px-3 py-2 text-[12.5px] nv-glass border border-nv-error/20 text-nv-text-secondary hover:border-nv-error/50 hover:text-nv-error transition-all disabled:opacity-40">
-                              {beaconBusy.startsWith("cycle") ? <Loader2 size={13} className="animate-spin" /> : <Power size={13} />} Arm &amp; power off
-                            </button>
+                          {/* armed state + interval + estimated check-in */}
+                          <div className="mt-3 pt-3 border-t border-nv-teal/10 space-y-2.5">
+                            <div className="flex items-center gap-2 text-[12.5px]">
+                              <span className="text-nv-text-muted">Status:</span>
+                              {beacon?.latest?.armed || beacon?.latest?.ka ? (
+                                <span className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 bg-nv-teal/15 text-nv-teal text-[11.5px] font-medium">
+                                  <CircleCheck size={12} /> Armed &amp; running
+                                </span>
+                              ) : (
+                                <span className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 bg-nv-void/60 text-nv-text-muted text-[11.5px]">
+                                  <CircleX size={12} /> Not armed
+                                </span>
+                              )}
+                            </div>
+                            <div className="flex items-center gap-2 flex-wrap text-[12.5px] text-nv-text-muted">
+                              <span>Check-in every</span>
+                              <input value={beaconHours} onChange={(e) => setBeaconHours(e.target.value.replace(/[^0-9]/g, ""))} inputMode="numeric"
+                                className="w-12 rounded-nv-sm bg-nv-void/60 border border-nv-teal/15 px-2 py-1.5 text-[12px] text-center text-nv-text-primary outline-none focus:border-nv-teal/50" />
+                              <span>h</span>
+                              <input value={beaconMinutes} onChange={(e) => setBeaconMinutes(e.target.value.replace(/[^0-9]/g, ""))} inputMode="numeric"
+                                className="w-12 rounded-nv-sm bg-nv-void/60 border border-nv-teal/15 px-2 py-1.5 text-[12px] text-center text-nv-text-primary outline-none focus:border-nv-teal/50" />
+                              <span>m</span>
+                              {beaconIntervalSecs >= 600 && (
+                                <span className="text-nv-text-secondary">→ est. next check-in <span className="text-nv-teal">{fmtClock(Date.now() + beaconIntervalSecs * 1000)}</span></span>
+                              )}
+                            </div>
+                            <div className="flex flex-wrap gap-2">
+                              <button onClick={() => beaconAction("arm", { hours: Number(beaconHours) || 0, minutes: Number(beaconMinutes) || 0 }, "arm — keep running")}
+                                disabled={!!beaconBusy || !online}
+                                className="flex items-center gap-1.5 rounded-nv-md px-3 py-2 text-[12.5px] nv-glass border border-nv-teal/25 text-nv-text-secondary hover:border-nv-teal/55 hover:text-nv-text-primary transition-all disabled:opacity-40">
+                                {beaconBusy === "arm" ? <Loader2 size={13} className="animate-spin" /> : <Satellite size={13} />} Arm (keep running)
+                              </button>
+                              <button onClick={() => beaconAction("cycle", { hours: Number(beaconHours) || 0, minutes: Number(beaconMinutes) || 0 }, "arm + power off", true)}
+                                disabled={!!beaconBusy || !online}
+                                className="flex items-center gap-1.5 rounded-nv-md px-3 py-2 text-[12.5px] nv-glass border border-nv-error/20 text-nv-text-secondary hover:border-nv-error/50 hover:text-nv-error transition-all disabled:opacity-40">
+                                {beaconBusy === "cycle" ? <Loader2 size={13} className="animate-spin" /> : <Power size={13} />} Arm &amp; power off
+                              </button>
+                              <button onClick={() => beaconAction("disarm", {}, "disarm", true)}
+                                disabled={!!beaconBusy || !online}
+                                className="rounded-nv-md px-3 py-2 text-[12.5px] nv-glass border border-nv-teal/15 text-nv-text-muted hover:border-nv-teal/45 hover:text-nv-text-primary transition-all disabled:opacity-40">
+                                {beaconBusy === "disarm" ? <Loader2 size={13} className="animate-spin" /> : "Disarm"}
+                              </button>
+                            </div>
                           </div>
                           <div className="mt-2 text-[11px] text-nv-text-muted leading-snug">
-                            Arming sets a guarded RTC self-boot, then powers the phone off. It can&apos;t strand the device —
-                            it only powers off if the alarm actually armed. The phone wakes at the scheduled time over cellular,
-                            checks in here, applies any queued command, then re-arms and powers off again.
+                            <span className="text-nv-text-secondary">Arm (keep running)</span> stays armed and heartbeats on
+                            this interval <em>without</em> powering off — so whenever you power it down it self-boots on schedule.{" "}
+                            <span className="text-nv-text-secondary">Arm &amp; power off</span> begins a transit cycle now (guarded —
+                            only powers off if the alarm actually armed, so it can&apos;t strand the device).
                           </div>
                         </Panel>
 
@@ -838,13 +875,23 @@ export default function DevicesPage() {
                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 items-start">
                           <Fold id="bk-loc" title="Location" icon={MapPin} defaultOpen>
                             {beacon?.latest?.lat && beacon?.latest?.lon ? (
-                              <a href={`https://maps.google.com/?q=${beacon.latest.lat},${beacon.latest.lon}`} target="_blank" rel="noopener noreferrer"
-                                className="flex items-center gap-2 text-[13px] text-nv-teal hover:underline mb-2">
-                                <Navigation size={14} /> {beacon.latest.lat}, {beacon.latest.lon}
-                                {beacon.latest.acc && <span className="text-nv-text-muted text-[11px]">±{Math.round(Number(beacon.latest.acc))}m</span>}
-                              </a>
+                              <div className="mb-2">
+                                <a href={`https://maps.google.com/?q=${beacon.latest.lat},${beacon.latest.lon}`} target="_blank" rel="noopener noreferrer"
+                                  className="flex items-center gap-2 text-[13px] text-nv-teal hover:underline">
+                                  <Navigation size={14} /> {beacon.latest.lat}, {beacon.latest.lon}
+                                  {beacon.latest.acc && <span className="text-nv-text-muted text-[11px]">±{Math.round(Number(beacon.latest.acc))}m</span>}
+                                </a>
+                                <div className="text-[11px] text-nv-text-muted mt-0.5">
+                                  source: {beacon.latest.lprov === "gps" ? "GPS" : beacon.latest.lprov === "network" ? "cell + WiFi triangulation" : beacon.latest.lprov === "fused-coarse" ? "cached (coarse)" : String(beacon.latest.lprov || "—")}
+                                </div>
+                              </div>
                             ) : (
-                              <div className="text-[12.5px] text-nv-text-muted mb-2">No GPS fix in the latest report — coordinates fill in once the phone gets a fix (needs sky view).</div>
+                              <div className="text-[12.5px] text-nv-text-muted mb-2">
+                                No coordinate in the latest report yet.
+                                {beacon?.latest?.mcc && beacon?.latest?.ci && (
+                                  <> Serving cell: MCC {beacon.latest.mcc} / MNC {beacon.latest.mnc} / CID {beacon.latest.ci}.</>
+                                )}
+                              </div>
                             )}
                             <div className="space-y-0.5 max-h-48 overflow-auto">
                               {(beacon?.location_series || []).slice().reverse().slice(0, 25).map((l, i) => (
@@ -942,6 +989,12 @@ function fmtAgo(s?: string): string {
   if (d < 3600) return `${Math.floor(d / 60)}m ago`;
   if (d < 86400) return `${Math.floor(d / 3600)}h ago`;
   return `${Math.floor(d / 86400)}d ago`;
+}
+// ms timestamp -> "Thu 1:29 AM"
+function fmtClock(ms: number): string {
+  try {
+    return new Date(ms).toLocaleString([], { weekday: "short", hour: "numeric", minute: "2-digit" });
+  } catch { return "—"; }
 }
 // future epoch (seconds) -> "in 11h 59m"
 function fmtEta(epoch?: number): string {
