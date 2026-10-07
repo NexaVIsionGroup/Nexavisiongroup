@@ -8,6 +8,7 @@ import {
   Wifi, Server, MonitorSmartphone, Radio, Cpu, Clock, Power, Lock, Eye,
   Zap, Terminal, ChevronRight, AlertTriangle, CircleCheck, CircleX, Camera, KeyRound,
   Maximize, ExternalLink, Users, ChevronUp, ChevronDown,
+  Satellite, MapPin, Navigation, History,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import VmUsersPanel from "./VmUsersPanel";
@@ -21,12 +22,27 @@ type Device = {
   terminal_url?: string; // rack only: browser PTY (ttyd) with cyden/listc preloaded
   local?: boolean;       // runs ON the rack — no SSH hop, no tailnet
   commands?: Catalog;    // per-device catalogue; phone commands must not appear on the rack
+  beacon?: boolean;      // has a transit beacon (self-boot → check-in → power off) in the rack mailbox
+};
+type BeaconReport = {
+  _rx?: string; ts?: string; batt?: number; plug?: string;
+  lat?: string; lon?: string; acc?: string;
+  ci?: string; tac?: string; earfcn?: string; pci?: string; rsrp?: string;
+  op?: string; roam?: number; boot?: string; next?: number;
+};
+type BeaconData = {
+  ok?: number; supported?: boolean; err?: string; dev?: string;
+  latest?: BeaconReport; pending_command?: string; next_boot?: number;
+  count?: number; last_rx?: string;
+  history?: BeaconReport[];
+  battery_series?: [string, number][];
+  location_series?: { ts: string; lat: string; lon: string; acc: string }[];
 };
 type CatalogCmd = { id: string; label: string; arg: boolean; argHint: string };
 type Catalog = Record<string, CatalogCmd[]>;
 type Stats = Record<string, string | number | boolean>;
 type Area = "devices" | "cloud";
-type WorkTab = "control" | "actions" | "status" | "shell";
+type WorkTab = "control" | "actions" | "beacon" | "status" | "shell";
 
 const api = (path: string) => `/api/admin/devices?path=${encodeURIComponent(path)}`;
 
@@ -88,6 +104,10 @@ export default function DevicesPage() {
   const [area, setAreaState] = useState<Area>("devices");
   const [tab, setTabState] = useState<WorkTab>("control");
   const [logOpen, setLogOpen] = useState(false);
+  const [beacon, setBeacon] = useState<BeaconData | null>(null);
+  const [beaconLoading, setBeaconLoading] = useState(false);
+  const [beaconHours, setBeaconHours] = useState("12");
+  const [beaconBusy, setBeaconBusy] = useState("");
   // The activity bar is position:fixed (sticky does not survive the app shell), so it tracks the
   // content column's box: correct whether the sidebar is open, collapsed, or gone on a phone.
   // callback ref: the column mounts late (after the auth guard), so an effect keyed on a plain ref would miss it
@@ -105,7 +125,7 @@ export default function DevicesPage() {
   useEffect(() => {
     try {
       const a = localStorage.getItem("pcc.area"); if (a === "devices" || a === "cloud") setAreaState(a);
-      const t = localStorage.getItem("pcc.tab"); if (t === "control" || t === "actions" || t === "status" || t === "shell") setTabState(t);
+      const t = localStorage.getItem("pcc.tab"); if (t === "control" || t === "actions" || t === "beacon" || t === "status" || t === "shell") setTabState(t);
     } catch {}
   }, []);
   const setArea = (a: Area) => { setAreaState(a); try { localStorage.setItem("pcc.area", a); } catch {} };
@@ -328,10 +348,49 @@ export default function DevicesPage() {
   const tabs: { id: WorkTab; label: string; icon: React.ElementType }[] = [
     { id: "control", label: isRack ? "Terminal" : "Control", icon: isRack ? Terminal : MonitorSmartphone },
     { id: "actions", label: "Actions", icon: Zap },
+    ...(selDev?.beacon ? [{ id: "beacon" as WorkTab, label: "Beacon", icon: Satellite }] : []),
     { id: "status", label: "Status", icon: Server },
     { id: "shell", label: "Shell", icon: Terminal },
   ];
   const lastLog = log[log.length - 1];
+
+  const loadBeacon = useCallback(async () => {
+    if (!sel) return;
+    setBeaconLoading(true);
+    try {
+      const r = await fetch(api(`/${sel}/beacon`), { cache: "no-store" });
+      setBeacon(await r.json());
+    } catch (e) {
+      setBeacon({ ok: 0, err: String(e) });
+    } finally {
+      setBeaconLoading(false);
+    }
+  }, [sel]);
+
+  // load beacon data when the tab is opened or the device changes
+  useEffect(() => {
+    if (area === "devices" && tab === "beacon" && sel) loadBeacon();
+  }, [tab, sel, area, loadBeacon]);
+
+  const beaconAction = async (action: string, extra: Record<string, unknown>, label: string, danger = false) => {
+    if (danger && !confirm(`${label.toUpperCase()} on ${sel.toUpperCase()}?`)) return;
+    setBeaconBusy(action + String(extra.command || ""));
+    pushLog(`▶ beacon: ${label}…`, true);
+    try {
+      const r = await fetch(api(`/${sel}/beacon`), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action, ...extra }),
+      });
+      const j = await r.json();
+      pushLog(`${j.ok ? "✓" : "✗"} beacon ${label}${j.out ? ": " + j.out : j.err ? ": " + j.err : ""}`, !!j.ok);
+      setTimeout(loadBeacon, 900);
+    } catch (e) {
+      pushLog(`✗ beacon ${label}: ${e}`, false);
+    } finally {
+      setBeaconBusy("");
+    }
+  };
 
   return (
     <AppShell title="Phone Command Center">
@@ -719,6 +778,116 @@ export default function DevicesPage() {
                     </div>
                   </Panel>
                 )}
+
+                {/* ============ BEACON ============ */}
+                {tab === "beacon" && (
+                  <div className="space-y-3">
+                    {beacon?.supported === false ? (
+                      <Panel title="Beacon" icon={Satellite}>
+                        <div className="text-[13px] text-nv-text-muted">No transit beacon is configured for this device.</div>
+                      </Panel>
+                    ) : (
+                      <>
+                        {/* summary vitals */}
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                          <Tile icon={Clock} label="Last check-in" value={fmtAgo(beacon?.last_rx || beacon?.latest?._rx)} tone="text-nv-text-primary" />
+                          <Tile icon={Battery} label="Battery" value={beacon?.latest?.batt != null ? `${beacon.latest.batt}%` : "—"}
+                            tone={Number(beacon?.latest?.batt) <= 20 ? "text-nv-error" : "text-nv-text-primary"} />
+                          <Tile icon={Power} label="Next boot" value={fmtEta(beacon?.next_boot)} tone="text-nv-text-primary" />
+                          <Tile icon={Radio} label="Check-ins" value={String(beacon?.count ?? 0)} tone="text-nv-text-primary" />
+                        </div>
+
+                        {/* controls */}
+                        <Panel title="Beacon controls" icon={Satellite}
+                          right={
+                            <button onClick={loadBeacon} className="flex items-center gap-1 text-[11.5px] text-nv-text-muted hover:text-nv-teal">
+                              <RefreshCw size={12} className={cn("text-nv-teal", beaconLoading && "animate-spin")} /> refresh
+                            </button>
+                          }>
+                          <div className="flex items-center gap-2 mb-3 text-[12.5px]">
+                            <span className="text-nv-text-muted">Queued for next check-in:</span>
+                            <Chip tone={beacon?.pending_command ? "warning" : undefined}>{beacon?.pending_command || "none"}</Chip>
+                          </div>
+                          <div className="flex flex-wrap gap-2">
+                            <button onClick={() => beaconAction("command", { command: "STAY_ON" }, "queue STAY_ON")} disabled={!!beaconBusy}
+                              className="rounded-nv-md px-3 py-2 text-[12.5px] nv-glass border border-nv-teal/15 text-nv-text-secondary hover:border-nv-teal/45 hover:text-nv-text-primary transition-all disabled:opacity-40">Queue STAY_ON</button>
+                            <button onClick={() => beaconAction("command", { command: "LOCKDOWN" }, "queue LOCKDOWN", true)} disabled={!!beaconBusy}
+                              className="rounded-nv-md px-3 py-2 text-[12.5px] nv-glass border border-nv-error/20 text-nv-text-secondary hover:border-nv-error/50 hover:text-nv-error transition-all disabled:opacity-40">Queue LOCKDOWN</button>
+                            <button onClick={() => beaconAction("clear_command", {}, "clear queued command")} disabled={!!beaconBusy || !beacon?.pending_command}
+                              className="rounded-nv-md px-3 py-2 text-[12.5px] nv-glass border border-nv-teal/15 text-nv-text-secondary hover:border-nv-teal/45 transition-all disabled:opacity-40">Clear</button>
+                          </div>
+                          <div className="mt-3 pt-3 border-t border-nv-teal/10 flex items-center gap-2 flex-wrap">
+                            <span className="text-[12.5px] text-nv-text-muted">Start transit cycle — self-boot in</span>
+                            <input value={beaconHours} onChange={(e) => setBeaconHours(e.target.value)} inputMode="decimal"
+                              className="w-14 rounded-nv-sm bg-nv-void/60 border border-nv-teal/15 px-2 py-1.5 text-[12px] text-nv-text-primary outline-none focus:border-nv-teal/50" />
+                            <span className="text-[12.5px] text-nv-text-muted">h, then power off now</span>
+                            <button onClick={() => beaconAction("cycle", { hours: Number(beaconHours) || 12 }, `arm ${beaconHours}h + power off`, true)}
+                              disabled={!!beaconBusy || !online}
+                              className="flex items-center gap-1.5 rounded-nv-md px-3 py-2 text-[12.5px] nv-glass border border-nv-error/20 text-nv-text-secondary hover:border-nv-error/50 hover:text-nv-error transition-all disabled:opacity-40">
+                              {beaconBusy.startsWith("cycle") ? <Loader2 size={13} className="animate-spin" /> : <Power size={13} />} Arm &amp; power off
+                            </button>
+                          </div>
+                          <div className="mt-2 text-[11px] text-nv-text-muted leading-snug">
+                            Arming sets a guarded RTC self-boot, then powers the phone off. It can&apos;t strand the device —
+                            it only powers off if the alarm actually armed. The phone wakes at the scheduled time over cellular,
+                            checks in here, applies any queued command, then re-arms and powers off again.
+                          </div>
+                        </Panel>
+
+                        {/* location + battery history */}
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 items-start">
+                          <Fold id="bk-loc" title="Location" icon={MapPin} defaultOpen>
+                            {beacon?.latest?.lat && beacon?.latest?.lon ? (
+                              <a href={`https://maps.google.com/?q=${beacon.latest.lat},${beacon.latest.lon}`} target="_blank" rel="noopener noreferrer"
+                                className="flex items-center gap-2 text-[13px] text-nv-teal hover:underline mb-2">
+                                <Navigation size={14} /> {beacon.latest.lat}, {beacon.latest.lon}
+                                {beacon.latest.acc && <span className="text-nv-text-muted text-[11px]">±{Math.round(Number(beacon.latest.acc))}m</span>}
+                              </a>
+                            ) : (
+                              <div className="text-[12.5px] text-nv-text-muted mb-2">No GPS fix in the latest report — coordinates fill in once the phone gets a fix (needs sky view).</div>
+                            )}
+                            <div className="space-y-0.5 max-h-48 overflow-auto">
+                              {(beacon?.location_series || []).slice().reverse().slice(0, 25).map((l, i) => (
+                                <a key={i} href={`https://maps.google.com/?q=${l.lat},${l.lon}`} target="_blank" rel="noopener noreferrer"
+                                  className="flex items-center justify-between gap-2 text-[11.5px] text-nv-text-secondary hover:text-nv-teal py-0.5">
+                                  <span className="font-mono">{l.lat}, {l.lon}</span>
+                                  <span className="text-nv-text-muted shrink-0">{fmtAgo(l.ts)}</span>
+                                </a>
+                              ))}
+                              {(!beacon?.location_series || beacon.location_series.length === 0) && (
+                                <div className="text-[11.5px] text-nv-text-muted">No location fixes recorded yet.</div>
+                              )}
+                            </div>
+                          </Fold>
+                          <Fold id="bk-batt" title="Battery history" icon={Battery} defaultOpen>
+                            <Spark pts={(beacon?.battery_series || []).map((b) => b[1])} />
+                            <div className="flex justify-between text-[11px] text-nv-text-muted mt-1">
+                              <span>oldest {beacon?.battery_series?.[0]?.[1] ?? "—"}%</span>
+                              <span>now {beacon?.latest?.batt ?? "—"}%</span>
+                            </div>
+                          </Fold>
+                        </div>
+
+                        {/* check-in history */}
+                        <Fold id="bk-hist" title={`Check-in history (${beacon?.count ?? 0})`} icon={History} defaultOpen>
+                          <div className="space-y-0.5 max-h-[42vh] overflow-auto font-mono text-[11.5px]">
+                            {(beacon?.history || []).map((h, i) => (
+                              <div key={i} className="flex items-center gap-2 py-1 border-b border-nv-teal/5">
+                                <span className="text-nv-text-muted shrink-0 w-24">{(h._rx || h.ts || "").replace("T", " ").slice(5, 16)}</span>
+                                <span className="shrink-0"><Chip>{h.boot || "?"}</Chip></span>
+                                <span className="text-nv-text-secondary w-10 shrink-0">{h.batt != null ? `${h.batt}%` : "—"}</span>
+                                {h.lat && h.lon ? <MapPin size={12} className="text-nv-teal shrink-0" /> : null}
+                                {h.rsrp ? <span className="text-nv-text-muted">{h.rsrp}dBm</span> : null}
+                                {h.ci ? <span className="text-nv-text-muted truncate">ci{h.ci}</span> : null}
+                              </div>
+                            ))}
+                            {(!beacon?.history || beacon.history.length === 0) && <div className="text-nv-text-muted">No check-ins recorded yet.</div>}
+                          </div>
+                        </Fold>
+                      </>
+                    )}
+                  </div>
+                )}
               </>
             )}
           </>
@@ -762,6 +931,37 @@ export default function DevicesPage() {
 }
 
 /* ---------- small presentational components ---------- */
+
+// "2026-10-07 08:28:25" or ISO -> "3m ago"
+function fmtAgo(s?: string): string {
+  if (!s) return "—";
+  const t = Date.parse(s.includes("T") ? s : s.replace(" ", "T"));
+  if (isNaN(t)) return s;
+  const d = Math.max(0, Date.now() - t) / 1000;
+  if (d < 60) return `${Math.floor(d)}s ago`;
+  if (d < 3600) return `${Math.floor(d / 60)}m ago`;
+  if (d < 86400) return `${Math.floor(d / 3600)}h ago`;
+  return `${Math.floor(d / 86400)}d ago`;
+}
+// future epoch (seconds) -> "in 11h 59m"
+function fmtEta(epoch?: number): string {
+  if (!epoch) return "—";
+  const d = epoch * 1000 - Date.now();
+  if (d <= 0) return "overdue";
+  const h = Math.floor(d / 3600000), m = Math.floor((d % 3600000) / 60000);
+  return h > 0 ? `in ${h}h ${m}m` : `in ${m}m`;
+}
+// battery sparkline (0-100)
+function Spark({ pts }: { pts: number[] }) {
+  if (pts.length < 2) return <div className="text-[11px] text-nv-text-muted py-3">Not enough check-ins yet for a trend.</div>;
+  const w = 240, h = 40, step = w / (pts.length - 1);
+  const d = pts.map((v, i) => `${i === 0 ? "M" : "L"}${(i * step).toFixed(1)},${(h - Math.max(0, Math.min(100, v)) / 100 * h).toFixed(1)}`).join(" ");
+  return (
+    <svg viewBox={`0 0 ${w} ${h}`} className="w-full h-10 text-nv-teal" preserveAspectRatio="none">
+      <path d={d} fill="none" stroke="currentColor" strokeWidth="1.5" vectorEffect="non-scaling-stroke" />
+    </svg>
+  );
+}
 
 // A panel that folds. Open/closed is remembered per section, so the page keeps the shape you gave it.
 function Fold({ id, title, icon: Icon, iconTone, count, defaultOpen = false, children }: {
