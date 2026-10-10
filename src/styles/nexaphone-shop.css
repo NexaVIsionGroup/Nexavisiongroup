@@ -191,3 +191,10 @@
 /* Fold open: get the spec callouts off the big screen */
 .np-hud { transition: opacity 0.4s ease; }
 .np-hud[data-hidden="true"] { opacity: 0; }
+
+/* Shop cards: live 3D phone over the flat illustration (which stays as the fallback) */
+.np-card3d { position: absolute; inset: 0; display: block; }
+.np-card3d canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; opacity: 0; transition: opacity 0.5s ease; }
+.np-card3d[data-ready="true"] canvas { opacity: 1; }
+.np-card3d svg { transition: opacity 0.4s ease; }
+.np-card3d[data-ready="true"] svg { opacity: 0; }

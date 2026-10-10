@@ -7,13 +7,13 @@ import { AnimatePresence, motion } from "framer-motion";
 import { LayoutGrid, Rows3 } from "lucide-react";
 import { fromPrice, money, products, type Product } from "./catalog";
 import { useCart } from "./cart";
-import PhoneRender from "./PhoneRender";
+import Card3D from "./Card3D";
 import Title from "./Title";
 import { useCoverflow } from "./useCoverflow";
 
 const EASE = [0.22, 1, 0.36, 1] as [number, number, number, number];
 
-/** Shop order: best seller first, then flagships by price, then fold and turbo. */
+/** Shop order: cheapest first (see lineup.ts). */
 export { SHOP_ORDER, shopProducts, featured, MODEL_COUNT, MODEL_WORD } from "./lineup";
 import { shopProducts, MODEL_COUNT, MODEL_WORD } from "./lineup";
 
@@ -39,7 +39,7 @@ export function ShopCard({ p, big = false }: { p: Product; big?: boolean }) {
         <span className="np-shop-stock" data-stock={p.stock}>
           {STOCK[p.stock]}
         </span>
-        <PhoneRender d={p} />
+        <Card3D p={p} />
       </Link>
       <div className="np-shop-body">
         <h3 className="np-display">{p.name}</h3>
