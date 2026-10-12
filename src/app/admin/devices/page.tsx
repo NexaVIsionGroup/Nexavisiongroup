@@ -401,6 +401,7 @@ export default function DevicesPage() {
     }
   };
   const beaconIntervalSecs = Math.min(86400, (parseInt(beaconHours) || 0) * 3600 + (parseInt(beaconMinutes) || 0) * 60);
+  const beaconDurLabel = `${Math.floor(beaconIntervalSecs / 3600)}h ${Math.floor((beaconIntervalSecs % 3600) / 60)}m`;
 
   return (
     <AppShell title="Phone Command Center">
@@ -858,17 +859,17 @@ export default function DevicesPage() {
                               <input value={beaconMinutes} onChange={(e) => setBeaconMinutes(e.target.value.replace(/[^0-9]/g, ""))} inputMode="numeric"
                                 className="w-12 rounded-nv-sm bg-nv-void/60 border border-nv-teal/15 px-2 py-1.5 text-[12px] text-center text-nv-text-primary outline-none focus:border-nv-teal/50" />
                               <span>m</span>
-                              {beaconIntervalSecs >= 600 && (
-                                <span className="text-nv-text-secondary">→ est. next check-in <span className="text-nv-teal">{fmtClock(Date.now() + beaconIntervalSecs * 1000)}</span></span>
+                              {beaconIntervalSecs > 0 && (
+                                <span className="text-nv-text-secondary">→ arms <span className="text-nv-teal">{beaconDurLabel}</span> · next {fmtClock(Date.now() + beaconIntervalSecs * 1000)}</span>
                               )}
                             </div>
                             <div className="flex flex-wrap gap-2">
-                              <button onClick={() => beaconAction("arm", { hours: Number(beaconHours) || 0, minutes: Number(beaconMinutes) || 0 }, "arm — keep running")}
+                              <button onClick={() => beaconAction("arm", { hours: Number(beaconHours) || 0, minutes: Number(beaconMinutes) || 0 }, `arm — keep running, check-in every ${beaconDurLabel}`)}
                                 disabled={!!beaconBusy || !online}
                                 className="flex items-center gap-1.5 rounded-nv-md px-3 py-2 text-[12.5px] nv-glass border border-nv-teal/25 text-nv-text-secondary hover:border-nv-teal/55 hover:text-nv-text-primary transition-all disabled:opacity-40">
                                 {beaconBusy === "arm" ? <Loader2 size={13} className="animate-spin" /> : <Satellite size={13} />} Arm (keep running)
                               </button>
-                              <button onClick={() => beaconAction("cycle", { hours: Number(beaconHours) || 0, minutes: Number(beaconMinutes) || 0 }, "arm + power off", true)}
+                              <button onClick={() => beaconAction("cycle", { hours: Number(beaconHours) || 0, minutes: Number(beaconMinutes) || 0 }, `arm + power off — self-boot in ${beaconDurLabel} (${fmtClock(Date.now() + beaconIntervalSecs * 1000)})`, true)}
                                 disabled={!!beaconBusy || !online}
                                 className="flex items-center gap-1.5 rounded-nv-md px-3 py-2 text-[12.5px] nv-glass border border-nv-error/20 text-nv-text-secondary hover:border-nv-error/50 hover:text-nv-error transition-all disabled:opacity-40">
                                 {beaconBusy === "cycle" ? <Loader2 size={13} className="animate-spin" /> : <Power size={13} />} Arm &amp; power off
