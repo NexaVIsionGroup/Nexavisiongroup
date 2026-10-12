@@ -157,11 +157,18 @@ export default function DevicesPage() {
     if (!silent) setRefreshing(true);
     try {
       const r = await fetch(api(`/${sel}/stats`), { cache: "no-store" });
-      const j = await r.json();
-      if (j.online) { setStats(j); setStatsErr(""); }
-      else { setStats(j); setStatsErr(j.err || "offline"); }
+      // A fully-OFF device makes the backend return an empty/non-JSON body (SSH times out), which
+      // used to throw on r.json() and leave the previous "online" snapshot in place -> the card
+      // kept showing the device as on with a stale battery. Parse defensively and treat anything
+      // that isn't an explicit online payload as offline.
+      const txt = await r.text();
+      let j: Stats | null = null;
+      try { j = txt ? JSON.parse(txt) : null; } catch { j = null; }
+      if (j?.online) { setStats(j); setStatsErr(""); }
+      else { setStats(j ?? { online: false }); setStatsErr((j?.err as string) || "offline"); }
     } catch {
-      setStatsErr("backend unreachable");
+      // network/fetch failure (incl. a dead device timing out) -> never keep a stale "online"
+      setStats({ online: false }); setStatsErr("unreachable");
     } finally {
       setRefreshing(false);
     }
@@ -823,13 +830,23 @@ export default function DevicesPage() {
                           <div className="mt-3 pt-3 border-t border-nv-teal/10 space-y-2.5">
                             <div className="flex items-center gap-2 text-[12.5px]">
                               <span className="text-nv-text-muted">Status:</span>
-                              {beacon?.latest?.armed || beacon?.latest?.ka ? (
+                              {/* Tie the badge to LIVE reachability (online), not the last check-in's
+                                  flags -- otherwise a powered-off device keeps reading "running". */}
+                              {online && (beacon?.latest?.armed || beacon?.latest?.ka) ? (
                                 <span className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 bg-nv-teal/15 text-nv-teal text-[11.5px] font-medium">
                                   <CircleCheck size={12} /> Armed &amp; running
                                 </span>
+                              ) : !online && beacon?.next_boot && beacon.next_boot * 1000 > Date.now() ? (
+                                <span className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 bg-nv-warning/15 text-nv-warning text-[11.5px] font-medium">
+                                  <Power size={12} /> Powered off · self-boot {fmtEta(beacon.next_boot)}
+                                </span>
+                              ) : online ? (
+                                <span className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 bg-nv-void/60 text-nv-text-muted text-[11.5px]">
+                                  <CircleX size={12} /> On · not armed
+                                </span>
                               ) : (
                                 <span className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 bg-nv-void/60 text-nv-text-muted text-[11.5px]">
-                                  <CircleX size={12} /> Not armed
+                                  <CircleX size={12} /> Offline{beacon?.last_rx ? ` · last seen ${fmtAgo(beacon.last_rx)}` : ""}
                                 </span>
                               )}
                             </div>
