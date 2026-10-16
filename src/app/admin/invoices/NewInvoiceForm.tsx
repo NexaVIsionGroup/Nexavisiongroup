@@ -25,7 +25,7 @@ export default function NewInvoiceForm({
   onClose: () => void;
   onCreated: () => void;
 }) {
-  const [mode, setMode] = useState<"existing" | "new">(customers.length ? "existing" : "new");
+  const [mode, setMode] = useState<"link" | "existing" | "new">("link");
   const [customerId, setCustomerId] = useState("");
   const [custSearch, setCustSearch] = useState("");
   const [newCust, setNewCust] = useState({ name: "", phone: "", email: "", company: "" });
@@ -55,7 +55,7 @@ export default function NewInvoiceForm({
   const tax = Math.round((subtotal + surchargeAmt) * ((parseFloat(taxRate) || 0) / 100));
   const total = subtotal + surchargeAmt + tax;
 
-  const custEmail = mode === "existing" ? picked?.email : newCust.email.trim();
+  const custEmail = mode === "existing" ? picked?.email : mode === "new" ? newCust.email.trim() : "";
   const canEmail = !noEmail && !!custEmail;
 
   const setRow = (key: number, patch: Partial<Row>) => setRows((rs) => rs.map((r) => (r.key === key ? { ...r, ...patch } : r)));
@@ -76,7 +76,8 @@ export default function NewInvoiceForm({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           action: "create",
-          customer: mode === "existing" ? { id: customerId } : newCust,
+          customer: mode === "existing" ? { id: customerId } : mode === "new" ? newCust : null,
+          link_only: mode === "link",
           items,
           tax_rate: parseFloat(taxRate) || 0,
           surcharge,
@@ -154,7 +155,7 @@ export default function NewInvoiceForm({
               <div className="flex items-center justify-between mb-2">
                 <span className={label}>Customer</span>
                 <div className="flex gap-1">
-                  {(["existing", "new"] as const).map((m) => (
+                  {(["link", "existing", "new"] as const).map((m) => (
                     <button
                       key={m}
                       onClick={() => setMode(m)}
@@ -163,12 +164,16 @@ export default function NewInvoiceForm({
                         mode === m ? "bg-nv-teal/15 border-nv-teal/40 text-nv-teal" : "border-white/10 text-nv-text-muted"
                       )}
                     >
-                      {m === "existing" ? "Existing" : "New customer"}
+                      {m === "link" ? "Link only" : m === "existing" ? "Existing" : "New customer"}
                     </button>
                   ))}
                 </div>
               </div>
-              {mode === "existing" ? (
+              {mode === "link" ? (
+                <p className="px-3 py-2.5 rounded-nv-md border border-white/10 text-sm text-nv-text-secondary">
+                  No customer needed. Text them the link. They enter their name, phone and email when they pay, and they&apos;re saved as a customer automatically.
+                </p>
+              ) : mode === "existing" ? (
                 picked ? (
                   <div className="flex items-center justify-between gap-3 px-3 py-2.5 rounded-nv-md border border-nv-teal/30 bg-nv-teal/5">
                     <div className="min-w-0">

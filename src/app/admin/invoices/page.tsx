@@ -209,7 +209,7 @@ export default function InvoicesPage() {
                     </div>
                     <div className="mt-1 flex flex-wrap items-center justify-between gap-2 text-sm">
                       <span className="text-nv-text-primary">
-                        {inv.customer.name || "—"}
+                        {inv.customer.name || inv.customer.phone || inv.customer.email || <span className="text-nv-text-muted">Link only (customer fills in when paying)</span>}
                         {inv.customer.company && <span className="text-nv-text-muted"> · {inv.customer.company}</span>}
                       </span>
                       <span className="text-xs text-nv-text-muted">
