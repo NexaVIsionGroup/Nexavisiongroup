@@ -928,10 +928,10 @@ export default function DevicesPage() {
                                     let a day-old pin read as current. */}
                                 {beacon.latest.loc_from_ts ? (
                                   <div className="text-[11px] text-nv-warning mt-0.5">
-                                    ⚠ pin is from {fmtStamp(beacon.latest.loc_from_ts)} — the latest check-in reported a censored coordinate, so this is the most recent full fix
+                                    ⚠ pin is from {fmtStamp(beacon.latest.loc_from_ts)} — the latest check-in couldn&apos;t get a precise fix (weak signal), so this is the most recent precise one
                                   </div>
                                 ) : beacon.latest.ts ? (
-                                  <div className="text-[11px] text-nv-text-muted mt-0.5">fix taken {fmtStamp(beacon.latest.ts)}</div>
+                                  <div className="text-[11px] text-nv-text-muted mt-0.5">precise fix taken {fmtStamp(beacon.latest.ts)}</div>
                                 ) : null}
                               </div>
                             ) : (
@@ -942,16 +942,23 @@ export default function DevicesPage() {
                                 )}
                               </div>
                             )}
+                            <div className="text-[11px] text-nv-text-muted mb-1">Precise fixes only (coarse ~1km fallbacks are hidden). Each shows its accuracy.</div>
                             <div className="space-y-0.5 max-h-48 overflow-auto">
-                              {(beacon?.location_series || []).slice().reverse().slice(0, 25).map((l, i) => (
-                                <a key={i} href={`https://maps.google.com/?q=${l.lat},${l.lon}`} target="_blank" rel="noopener noreferrer"
-                                  className="flex items-center justify-between gap-2 text-[11.5px] text-nv-text-secondary hover:text-nv-teal py-0.5">
-                                  <span className="font-mono">{l.lat}, {l.lon}</span>
-                                  <span className="text-nv-text-muted shrink-0">{fmtAgo(l.ts)}</span>
-                                </a>
-                              ))}
+                              {(beacon?.location_series || []).slice().reverse().slice(0, 25).map((l, i) => {
+                                const acc = Math.round(Number(l.acc) || 0);
+                                return (
+                                  <a key={i} href={`https://maps.google.com/?q=${l.lat},${l.lon}`} target="_blank" rel="noopener noreferrer"
+                                    className="flex items-center justify-between gap-2 text-[11.5px] text-nv-text-secondary hover:text-nv-teal py-0.5">
+                                    <span className="font-mono truncate">{l.lat}, {l.lon}</span>
+                                    <span className="flex items-center gap-2 shrink-0">
+                                      {acc > 0 && <span className={cn("tabular-nums", acc <= 50 ? "text-nv-teal" : acc <= 200 ? "text-nv-text-secondary" : "text-nv-warning")}>±{acc}m</span>}
+                                      <span className="text-nv-text-muted">{fmtAgo(l.ts)}</span>
+                                    </span>
+                                  </a>
+                                );
+                              })}
                               {(!beacon?.location_series || beacon.location_series.length === 0) && (
-                                <div className="text-[11.5px] text-nv-text-muted">No location fixes recorded yet.</div>
+                                <div className="text-[11.5px] text-nv-text-muted">No precise location fixes recorded yet.</div>
                               )}
                             </div>
                           </Fold>
@@ -967,16 +974,32 @@ export default function DevicesPage() {
                         {/* check-in history */}
                         <Fold id="bk-hist" title={`Check-in history (${beacon?.count ?? 0})`} icon={History} defaultOpen>
                           <div className="space-y-0.5 max-h-[42vh] overflow-auto font-mono text-[11.5px]">
-                            {(beacon?.history || []).map((h, i) => (
-                              <div key={i} className="flex items-center gap-2 py-1 border-b border-nv-teal/5">
-                                <span className="text-nv-text-muted shrink-0 w-28">{fmtStamp(h._rx || h.ts)}</span>
-                                <span className="shrink-0"><Chip>{h.boot || "?"}</Chip></span>
-                                <span className="text-nv-text-secondary w-10 shrink-0">{h.batt != null ? `${h.batt}%` : "—"}</span>
-                                {h.lat && h.lon ? <MapPin size={12} className="text-nv-teal shrink-0" /> : null}
-                                {h.rsrp ? <span className="text-nv-text-muted">{h.rsrp}dBm</span> : null}
-                                {h.ci ? <span className="text-nv-text-muted truncate">ci{h.ci}</span> : null}
-                              </div>
-                            ))}
+                            {(beacon?.history || []).map((h, i) => {
+                              const latStr = String(h.lat || "");
+                              const acc = Math.round(Number(h.acc) || 0);
+                              // Same rule the backend uses: censored / blank / ~1km fused = coarse (not a real fix)
+                              const coarse = !latStr || latStr.toLowerCase() === "null" || latStr.includes("*") || h.lprov === "fused-coarse" || acc >= 500;
+                              return (
+                                <div key={i} className="flex items-center gap-2 py-1 border-b border-nv-teal/5">
+                                  <span className="text-nv-text-muted shrink-0 w-28">{fmtStamp(h._rx || h.ts)}</span>
+                                  <span className="shrink-0"><Chip>{h.boot || "?"}</Chip></span>
+                                  <span className="text-nv-text-secondary w-10 shrink-0">{h.batt != null ? `${h.batt}%` : "—"}</span>
+                                  {h.lat && h.lon ? (
+                                    coarse ? (
+                                      <span className="flex items-center gap-1 shrink-0 text-nv-warning" title="No precise lock — coarse ~1km approximation">
+                                        <MapPin size={12} /> ~1km
+                                      </span>
+                                    ) : (
+                                      <span className="flex items-center gap-1 shrink-0 text-nv-teal" title="Precise fix">
+                                        <MapPin size={12} /> ±{acc}m
+                                      </span>
+                                    )
+                                  ) : <span className="shrink-0 text-nv-text-muted">no fix</span>}
+                                  {h.rsrp ? <span className="text-nv-text-muted">{h.rsrp}dBm</span> : null}
+                                  {h.ci ? <span className="text-nv-text-muted truncate">ci{h.ci}</span> : null}
+                                </div>
+                              );
+                            })}
                             {(!beacon?.history || beacon.history.length === 0) && <div className="text-nv-text-muted">No check-ins recorded yet.</div>}
                           </div>
                         </Fold>
