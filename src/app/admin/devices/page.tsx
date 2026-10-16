@@ -839,7 +839,17 @@ export default function DevicesPage() {
                           }>
                           <div className="flex items-center gap-2 mb-3 text-[12.5px]">
                             <span className="text-nv-text-muted">Queued for next check-in:</span>
-                            <Chip tone={beacon?.pending_command ? "warning" : undefined}>{beacon?.pending_command || "none"}</Chip>
+                            <Chip tone={beacon?.pending_command ? "warning" : undefined}>
+                              {(() => {
+                                const pc = beacon?.pending_command || "";
+                                const m = pc.match(/^SET_INTERVAL:(\d+)$/);
+                                if (m) {
+                                  const s = Number(m[1]);
+                                  return `set interval → ${Math.floor(s / 3600)}h ${Math.floor((s % 3600) / 60)}m`;
+                                }
+                                return pc || "none";
+                              })()}
+                            </Chip>
                           </div>
                           <div className="flex flex-wrap gap-2">
                             <button onClick={() => beaconAction("command", { command: "STAY_ON" }, "queue STAY_ON")} disabled={!!beaconBusy}
@@ -902,12 +912,24 @@ export default function DevicesPage() {
                                 {beaconBusy === "disarm" ? <Loader2 size={13} className="animate-spin" /> : "Disarm"}
                               </button>
                             </div>
+                            {/* Change the cadence while the phone is OFF: queue it in the mailbox; the phone
+                                applies it on its next check-in. Works offline (unlike arm/cycle above). */}
+                            <div className="mt-2.5">
+                              <button onClick={() => beaconAction("command", { command: `SET_INTERVAL:${beaconIntervalSecs}` }, `queue ${beaconDurLabel} interval for next check-in`)}
+                                disabled={!!beaconBusy || beaconIntervalSecs < 600}
+                                title="Works even while the phone is powered off — the new interval is applied on its next check-in"
+                                className="flex items-center gap-1.5 rounded-nv-md px-3 py-2 text-[12.5px] nv-glass border border-nv-warning/30 text-nv-text-secondary hover:border-nv-warning/60 hover:text-nv-text-primary transition-all disabled:opacity-40">
+                                <Clock size={13} /> Queue {beaconDurLabel} for next check-in {online ? "" : "(phone off)"}
+                              </button>
+                            </div>
                           </div>
                           <div className="mt-2 text-[11px] text-nv-text-muted leading-snug">
                             <span className="text-nv-text-secondary">Arm (keep running)</span> stays armed and heartbeats on
                             this interval <em>without</em> powering off — so whenever you power it down it self-boots on schedule.{" "}
                             <span className="text-nv-text-secondary">Arm &amp; power off</span> begins a transit cycle now (guarded —
-                            only powers off if the alarm actually armed, so it can&apos;t strand the device).
+                            only powers off if the alarm actually armed, so it can&apos;t strand the device).{" "}
+                            <span className="text-nv-text-secondary">Queue … for next check-in</span> works even while the phone is off —
+                            it stores the new interval and the phone adopts it the next time it wakes and checks in.
                           </div>
                         </Panel>
 
