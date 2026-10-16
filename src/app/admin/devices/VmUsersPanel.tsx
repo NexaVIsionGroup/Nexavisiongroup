@@ -202,7 +202,7 @@ export default function VmUsersPanel() {
                 {/* Everyday actions stay in view; the rest sits behind "More" so a user is one glanceable card. */}
                 <div className="flex flex-wrap gap-1.5">
                   {p && (
-                    <a className={BTN} href={p.url} target="_blank" rel="noopener noreferrer" title="Open this phone as admin">
+                    <a className={BTN} href={`/vm/gate?next=${encodeURIComponent(p.url)}`} target="_blank" rel="noopener noreferrer" title="Open this phone as admin (gated, same as /vm)">
                       <ExternalLink size={13} className="text-nv-teal" /> Open phone
                     </a>
                   )}
