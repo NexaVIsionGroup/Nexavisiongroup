@@ -26,7 +26,7 @@ type Device = {
 };
 type BeaconReport = {
   _rx?: string; ts?: string; batt?: number; plug?: string;
-  lat?: string; lon?: string; acc?: string; lprov?: string; loc_from_ts?: string;
+  lat?: string; lon?: string; acc?: string; lprov?: string; loc_from_ts?: string; lts?: string;
   mcc?: string; mnc?: string;
   ci?: string; tac?: string; earfcn?: string; pci?: string; rsrp?: string;
   op?: string; roam?: number; ka?: number; armed?: number; boot?: string; next?: number;
@@ -35,6 +35,7 @@ type BeaconData = {
   ok?: number; supported?: boolean; err?: string; dev?: string;
   latest?: BeaconReport; pending_command?: string; next_boot?: number;
   interval_secs?: number; synced?: "device" | "cache";
+  approx?: { lat: string; lon: string; acc: string; ts: string; prov: string } | null;
   count?: number; last_rx?: string;
   history?: BeaconReport[];
   battery_series?: [string, number][];
@@ -881,7 +882,7 @@ export default function DevicesPage() {
                                 className="w-12 rounded-nv-sm bg-nv-void/60 border border-nv-teal/15 px-2 py-1.5 text-[12px] text-center text-nv-text-primary outline-none focus:border-nv-teal/50" />
                               <span>m</span>
                               {beaconIntervalSecs > 0 && (
-                                <span className="text-nv-text-secondary">→ arms <span className="text-nv-teal">{beaconDurLabel}</span> · next {fmtClock(Date.now() + beaconIntervalSecs * 1000)}</span>
+                                <span className="text-nv-text-muted">if armed now → every <span className="text-nv-teal">{beaconDurLabel}</span>, first at ~{fmtClock(Date.now() + beaconIntervalSecs * 1000)}</span>
                               )}
                             </div>
                             <div className="flex flex-wrap gap-2">
@@ -930,9 +931,31 @@ export default function DevicesPage() {
                                   <div className="text-[11px] text-nv-warning mt-0.5">
                                     ⚠ pin is from {fmtStamp(beacon.latest.loc_from_ts)} — the latest check-in couldn&apos;t get a precise fix (weak signal), so this is the most recent precise one
                                   </div>
-                                ) : beacon.latest.ts ? (
-                                  <div className="text-[11px] text-nv-text-muted mt-0.5">precise fix taken {fmtStamp(beacon.latest.ts)}</div>
-                                ) : null}
+                                ) : (
+                                  <div className="text-[11px] text-nv-text-muted mt-0.5">
+                                    {(() => {
+                                      const lts = Number(beacon?.latest?.lts) || 0;
+                                      if (lts > 0) {
+                                        const ageMin = Math.max(0, Math.round((Date.now() / 1000 - lts) / 60));
+                                        if (ageMin <= 2) return "location measured just now (live)";
+                                        const ageTxt = ageMin < 60 ? `${ageMin}m` : `${Math.round(ageMin / 60)}h`;
+                                        return `location measured ${ageTxt} ago (cached last-known — same fix Google Maps shows)`;
+                                      }
+                                      return beacon?.latest?.ts ? `fix taken ${fmtStamp(beacon.latest.ts)}` : "";
+                                    })()}
+                                  </div>
+                                )}
+                                {/* When the precise pin is old, offer the most recent ROUGH area
+                                    (the ~1km coarse fallback) so you can still see roughly where it
+                                    is right now — clearly labeled as approximate, not precise. */}
+                                {beacon.latest.loc_from_ts && beacon.approx &&
+                                  (beacon.approx.ts || "") > (beacon.latest.loc_from_ts || "") && (
+                                    <a href={`https://maps.google.com/?q=${beacon.approx.lat},${beacon.approx.lon}`} target="_blank" rel="noopener noreferrer"
+                                      className="flex items-center gap-1.5 text-[11.5px] text-nv-text-secondary hover:text-nv-teal mt-1">
+                                      <MapPin size={12} className="shrink-0" />
+                                      most recent rough area (~{Math.max(1, Math.round((Number(beacon.approx.acc) || 1000) / 1000))}km, {fmtAgo(beacon.approx.ts)}) — approximate
+                                    </a>
+                                  )}
                               </div>
                             ) : (
                               <div className="text-[12.5px] text-nv-text-muted mb-2">
