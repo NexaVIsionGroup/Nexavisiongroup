@@ -33,8 +33,8 @@ type BeaconReport = {
 };
 type BeaconData = {
   ok?: number; supported?: boolean; err?: string; dev?: string;
-  latest?: BeaconReport; pending_command?: string; next_boot?: number;
-  interval_secs?: number; synced?: "device" | "cache";
+  latest?: BeaconReport; pending_command?: string; next_boot?: number; next_boot_estimated?: boolean;
+  interval_secs?: number; pending_interval_secs?: number; synced?: "device" | "cache";
   approx?: { lat: string; lon: string; acc: string; ts: string; prov: string } | null;
   count?: number; last_rx?: string;
   history?: BeaconReport[];
@@ -372,11 +372,12 @@ export default function DevicesPage() {
       const r = await fetch(api(`/${sel}/beacon`), { cache: "no-store" });
       const j: BeaconData = await r.json();
       setBeacon(j);
-      // Keep the interval input in sync with the device's ACTUAL setting (read live when
-      // the phone is reachable, else the last-known cache) instead of a hardcoded 12h.
-      if (typeof j.interval_secs === "number" && j.interval_secs > 0) {
-        setBeaconHours(String(Math.floor(j.interval_secs / 3600)));
-        setBeaconMinutes(String(Math.round((j.interval_secs % 3600) / 60)));
+      // Keep the interval input in sync: prefer a QUEUED change (so you see what it will become),
+      // else the device's ACTUAL current cadence (live when reachable, else last-known cache).
+      const seed = j.pending_interval_secs && j.pending_interval_secs > 0 ? j.pending_interval_secs : j.interval_secs;
+      if (typeof seed === "number" && seed > 0) {
+        setBeaconHours(String(Math.floor(seed / 3600)));
+        setBeaconMinutes(String(Math.round((seed % 3600) / 60)));
       }
     } catch (e) {
       setBeacon({ ok: 0, err: String(e) });
@@ -816,7 +817,8 @@ export default function DevicesPage() {
                           {/* When STAY_ON is queued the phone is being held online and will NOT
                               power-cycle, so a self-boot countdown would be misleading. */}
                           <Tile icon={Power} label={beacon?.pending_command === "STAY_ON" && online ? "Power" : "Next check-in"}
-                            value={beacon?.pending_command === "STAY_ON" && online ? "held on" : fmtEta(beacon?.next_boot)}
+                            value={beacon?.pending_command === "STAY_ON" && online ? "held on"
+                              : beacon?.next_boot ? `${fmtClock(beacon.next_boot * 1000)}${beacon?.next_boot_estimated ? "*" : ""}` : "—"}
                             tone="text-nv-text-primary" />
                           <Tile icon={Radio} label="Check-ins" value={String(beacon?.count ?? 0)} tone="text-nv-text-primary" />
                         </div>
@@ -871,7 +873,7 @@ export default function DevicesPage() {
                                 </span>
                               ) : !online && beacon?.next_boot && beacon.next_boot * 1000 > Date.now() ? (
                                 <span className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 bg-nv-warning/15 text-nv-warning text-[11.5px] font-medium">
-                                  <Power size={12} /> Powered off · self-boot {fmtEta(beacon.next_boot)}
+                                  <Power size={12} /> Powered off · self-boot {fmtClock(beacon.next_boot * 1000)} ({fmtEta(beacon.next_boot)}){beacon?.next_boot_estimated ? " · est." : ""}
                                 </span>
                               ) : online ? (
                                 <span className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 bg-nv-void/60 text-nv-text-muted text-[11.5px]">
@@ -883,6 +885,16 @@ export default function DevicesPage() {
                                 </span>
                               )}
                             </div>
+                            {/* Current cadence vs any queued change, so there's no confusion about
+                                what it is now vs what it will become. */}
+                            {typeof beacon?.interval_secs === "number" && beacon.interval_secs > 0 && (
+                              <div className="text-[11.5px] text-nv-text-secondary">
+                                Current cadence: <span className="text-nv-text-primary">{Math.floor(beacon.interval_secs / 3600)}h {Math.floor((beacon.interval_secs % 3600) / 60)}m</span>
+                                {beacon?.pending_interval_secs && beacon.pending_interval_secs > 0 && beacon.pending_interval_secs !== beacon.interval_secs && (
+                                  <span className="text-nv-warning"> · changing to {Math.floor(beacon.pending_interval_secs / 3600)}h {Math.floor((beacon.pending_interval_secs % 3600) / 60)}m on next check-in</span>
+                                )}
+                              </div>
+                            )}
                             <div className="flex items-center gap-2 flex-wrap text-[12.5px] text-nv-text-muted">
                               <span>Check-in every</span>
                               <input value={beaconHours} onChange={(e) => setBeaconHours(e.target.value.replace(/[^0-9]/g, ""))} inputMode="numeric"
