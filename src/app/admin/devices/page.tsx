@@ -26,7 +26,7 @@ type Device = {
 };
 type BeaconReport = {
   _rx?: string; ts?: string; batt?: number; plug?: string;
-  lat?: string; lon?: string; acc?: string; lprov?: string;
+  lat?: string; lon?: string; acc?: string; lprov?: string; loc_from_ts?: string;
   mcc?: string; mnc?: string;
   ci?: string; tac?: string; earfcn?: string; pci?: string; rsrp?: string;
   op?: string; roam?: number; ka?: number; armed?: number; boot?: string; next?: number;
@@ -34,6 +34,7 @@ type BeaconReport = {
 type BeaconData = {
   ok?: number; supported?: boolean; err?: string; dev?: string;
   latest?: BeaconReport; pending_command?: string; next_boot?: number;
+  interval_secs?: number; synced?: "device" | "cache";
   count?: number; last_rx?: string;
   history?: BeaconReport[];
   battery_series?: [string, number][];
@@ -368,7 +369,14 @@ export default function DevicesPage() {
     setBeaconLoading(true);
     try {
       const r = await fetch(api(`/${sel}/beacon`), { cache: "no-store" });
-      setBeacon(await r.json());
+      const j: BeaconData = await r.json();
+      setBeacon(j);
+      // Keep the interval input in sync with the device's ACTUAL setting (read live when
+      // the phone is reachable, else the last-known cache) instead of a hardcoded 12h.
+      if (typeof j.interval_secs === "number" && j.interval_secs > 0) {
+        setBeaconHours(String(Math.floor(j.interval_secs / 3600)));
+        setBeaconMinutes(String(Math.round((j.interval_secs % 3600) / 60)));
+      }
     } catch (e) {
       setBeacon({ ok: 0, err: String(e) });
     } finally {
@@ -804,16 +812,29 @@ export default function DevicesPage() {
                           <Tile icon={Clock} label="Last check-in" value={fmtAgo(beacon?.last_rx || beacon?.latest?._rx)} tone="text-nv-text-primary" />
                           <Tile icon={Battery} label="Battery" value={beacon?.latest?.batt != null ? `${beacon.latest.batt}%` : "—"}
                             tone={Number(beacon?.latest?.batt) <= 20 ? "text-nv-error" : "text-nv-text-primary"} />
-                          <Tile icon={Power} label="Next boot" value={fmtEta(beacon?.next_boot)} tone="text-nv-text-primary" />
+                          {/* When STAY_ON is queued the phone is being held online and will NOT
+                              power-cycle, so a self-boot countdown would be misleading. */}
+                          <Tile icon={Power} label={beacon?.pending_command === "STAY_ON" && online ? "Power" : "Next check-in"}
+                            value={beacon?.pending_command === "STAY_ON" && online ? "held on" : fmtEta(beacon?.next_boot)}
+                            tone="text-nv-text-primary" />
                           <Tile icon={Radio} label="Check-ins" value={String(beacon?.count ?? 0)} tone="text-nv-text-primary" />
                         </div>
 
                         {/* controls */}
                         <Panel title="Beacon controls" icon={Satellite}
                           right={
-                            <button onClick={loadBeacon} className="flex items-center gap-1 text-[11.5px] text-nv-text-muted hover:text-nv-teal">
-                              <RefreshCw size={12} className={cn("text-nv-teal", beaconLoading && "animate-spin")} /> refresh
-                            </button>
+                            <div className="flex items-center gap-2.5">
+                              {/* Tell the user whether what they see was read LIVE off the phone or
+                                  is the last-known cache (phone offline). */}
+                              {beacon?.synced && (
+                                <span className={cn("text-[11px]", beacon.synced === "device" ? "text-nv-teal" : "text-nv-text-muted")}>
+                                  {beacon.synced === "device" ? "● live from device" : "○ last known (offline)"}
+                                </span>
+                              )}
+                              <button onClick={loadBeacon} className="flex items-center gap-1 text-[11.5px] text-nv-text-muted hover:text-nv-teal">
+                                <RefreshCw size={12} className={cn("text-nv-teal", beaconLoading && "animate-spin")} /> refresh
+                              </button>
+                            </div>
                           }>
                           <div className="flex items-center gap-2 mb-3 text-[12.5px]">
                             <span className="text-nv-text-muted">Queued for next check-in:</span>
@@ -902,6 +923,16 @@ export default function DevicesPage() {
                                 <div className="text-[11px] text-nv-text-muted mt-0.5">
                                   source: {beacon.latest.lprov === "gps" ? "GPS" : beacon.latest.lprov === "network" ? "cell + WiFi triangulation" : beacon.latest.lprov === "fused-coarse" ? "cached (coarse)" : String(beacon.latest.lprov || "—")}
                                 </div>
+                                {/* Honesty: if this pin came from an older full fix (because the newest
+                                    check-in's coord was censored/blank), say so with its true time — don't
+                                    let a day-old pin read as current. */}
+                                {beacon.latest.loc_from_ts ? (
+                                  <div className="text-[11px] text-nv-warning mt-0.5">
+                                    ⚠ pin is from {fmtStamp(beacon.latest.loc_from_ts)} — the latest check-in reported a censored coordinate, so this is the most recent full fix
+                                  </div>
+                                ) : beacon.latest.ts ? (
+                                  <div className="text-[11px] text-nv-text-muted mt-0.5">fix taken {fmtStamp(beacon.latest.ts)}</div>
+                                ) : null}
                               </div>
                             ) : (
                               <div className="text-[12.5px] text-nv-text-muted mb-2">
