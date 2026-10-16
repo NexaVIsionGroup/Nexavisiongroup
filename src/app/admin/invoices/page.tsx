@@ -2,8 +2,9 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import AppShell from "@/components/admin/AppShell";
-import { Loader2, RefreshCw, Search, ChevronDown, Copy, Check, ExternalLink, Mail, Phone } from "lucide-react";
+import { Loader2, RefreshCw, Search, ChevronDown, Copy, Check, ExternalLink, Mail, Phone, Plus, Send, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import NewInvoiceForm, { type PickCustomer } from "./NewInvoiceForm";
 
 type LineItem = { description?: string; quantity?: number; unit_price?: number; amount?: number };
 type Payment = { amount: number; method: string | null; paid_at: string | null; processor: string | null; receipt_url: string | null };
@@ -49,6 +50,10 @@ export default function InvoicesPage() {
   const [q, setQ] = useState("");
   const [open, setOpen] = useState<string | null>(null);
   const [copied, setCopied] = useState<string | null>(null);
+  const [customers, setCustomers] = useState<PickCustomer[]>([]);
+  const [showNew, setShowNew] = useState(false);
+  const [acting, setActing] = useState<string | null>(null);
+  const [note, setNote] = useState("");
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -58,6 +63,7 @@ export default function InvoicesPage() {
       const j = await r.json();
       if (!r.ok) throw new Error(j.error || "Failed to load");
       setInvoices(j.invoices || []);
+      setCustomers(j.customers || []);
     } catch (e) {
       setErr(e instanceof Error ? e.message : "Failed to load");
     } finally {
@@ -85,11 +91,35 @@ export default function InvoicesPage() {
     );
   }, [filter, q, invoices, paid, unpaid]);
 
-  const copy = async (inv: Invoice) => {
-    if (!inv.pay_url) return;
-    await navigator.clipboard.writeText(inv.pay_url);
-    setCopied(inv.invoice_number);
-    setTimeout(() => setCopied(null), 2500);
+  const act = async (action: "send" | "link" | "delete", inv: Invoice) => {
+    if (action === "delete" && !confirm(`Delete ${inv.invoice_number} for ${usd(inv.total)}? The payment link will stop working.`)) return;
+    setActing(`${action}:${inv.invoice_number}`);
+    setErr("");
+    setNote("");
+    try {
+      const r = await fetch("/api/admin/invoices", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action, invoice_number: inv.invoice_number }),
+      });
+      const j = await r.json();
+      if (!r.ok) throw new Error(j.error || "Failed");
+      if (action === "link") {
+        await navigator.clipboard.writeText(j.short_url);
+        setCopied(inv.invoice_number);
+        setTimeout(() => setCopied(null), 2500);
+      } else if (action === "send") {
+        setNote(`${inv.invoice_number} emailed to ${inv.customer.email}.`);
+      } else {
+        setNote(`${inv.invoice_number} deleted.`);
+        setOpen(null);
+        load();
+      }
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : "Failed");
+    } finally {
+      setActing(null);
+    }
   };
 
   return (
@@ -98,13 +128,19 @@ export default function InvoicesPage() {
         <div className="flex items-center justify-between gap-3 mb-5">
           <div>
             <h1 className="text-xl font-display font-semibold text-nv-text-primary">Invoices</h1>
-            <p className="text-sm text-nv-text-muted">
-              Nexa invoices. Create and send them from the JHPS admin (brand: Nexa); payments land here.
-            </p>
+            <p className="text-sm text-nv-text-muted">Nexa invoices. Customers pay through the secure Nexa pay page.</p>
           </div>
-          <button onClick={load} className="p-2 rounded-nv-md border border-white/10 text-nv-text-muted hover:text-nv-teal" aria-label="Refresh">
-            <RefreshCw size={16} className={loading ? "animate-spin" : ""} />
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setShowNew(true)}
+              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-nv-teal text-nv-deep text-sm font-semibold"
+            >
+              <Plus size={16} /> New invoice
+            </button>
+            <button onClick={load} className="p-2 rounded-nv-md border border-white/10 text-nv-text-muted hover:text-nv-teal" aria-label="Refresh">
+              <RefreshCw size={16} className={loading ? "animate-spin" : ""} />
+            </button>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-5">
@@ -145,6 +181,7 @@ export default function InvoicesPage() {
         </div>
 
         {err && <p className="text-sm text-nv-error mb-3">{err}</p>}
+        {note && <p className="text-sm text-nv-teal mb-3">{note}</p>}
         {loading && !invoices.length ? (
           <div className="flex justify-center py-16">
             <Loader2 className="animate-spin text-nv-teal" />
@@ -242,13 +279,34 @@ export default function InvoicesPage() {
                       {inv.notes && <p className="text-nv-text-muted whitespace-pre-line">{inv.notes}</p>}
 
                       {inv.pay_url && (
-                        <button
-                          onClick={() => copy(inv)}
-                          className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-nv-teal/40 bg-nv-teal/10 text-nv-teal"
-                        >
-                          {copied === inv.invoice_number ? <Check size={15} /> : <Copy size={15} />}
-                          {copied === inv.invoice_number ? "Copied" : "Copy payment link"}
-                        </button>
+                        <div className="flex flex-wrap gap-2">
+                          <button
+                            onClick={() => act("link", inv)}
+                            disabled={!!acting}
+                            className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-nv-teal/40 bg-nv-teal/10 text-nv-teal"
+                          >
+                            {acting === `link:${inv.invoice_number}` ? <Loader2 size={15} className="animate-spin" /> : copied === inv.invoice_number ? <Check size={15} /> : <Copy size={15} />}
+                            {copied === inv.invoice_number ? "Copied" : "Copy payment link"}
+                          </button>
+                          {inv.customer.email && !inv.no_email && (
+                            <button
+                              onClick={() => act("send", inv)}
+                              disabled={!!acting}
+                              className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-white/10 text-nv-text-secondary hover:text-nv-teal"
+                            >
+                              {acting === `send:${inv.invoice_number}` ? <Loader2 size={15} className="animate-spin" /> : <Send size={15} />} Email invoice
+                            </button>
+                          )}
+                          {inv.amount_paid === 0 && inv.payments.length === 0 && (
+                            <button
+                              onClick={() => act("delete", inv)}
+                              disabled={!!acting}
+                              className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-white/10 text-nv-text-muted hover:text-nv-error"
+                            >
+                              {acting === `delete:${inv.invoice_number}` ? <Loader2 size={15} className="animate-spin" /> : <Trash2 size={15} />} Delete
+                            </button>
+                          )}
+                        </div>
                       )}
                     </div>
                   )}
@@ -258,6 +316,7 @@ export default function InvoicesPage() {
           </div>
         )}
       </div>
+      {showNew && <NewInvoiceForm customers={customers} onClose={() => setShowNew(false)} onCreated={load} />}
     </AppShell>
   );
 }
