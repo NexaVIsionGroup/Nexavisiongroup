@@ -47,6 +47,13 @@ export async function POST(req: Request) {
       }
       return NextResponse.json(await pcc(`/${dev}/hotspot`, "POST", { ssid, password }));
     }
+    // Hiding is not a flag we can set on the fly: only the phone's own system hotspot can do it,
+    // so the rack drives that settings screen and restarts the AP. It answers immediately with
+    // pending:true and the panel polls until the network is back.
+    case "hidden":
+      return NextResponse.json(await pcc(`/${dev}/hotspot`, "POST",
+        { action: "hidden", hidden: body.hidden === true }));
+
     // Restart comes back on its own. Power off does NOT: the self-boot beacon was removed when
     // this phone became a hotspot, so someone has to press the button. The panel says so.
     case "restart":

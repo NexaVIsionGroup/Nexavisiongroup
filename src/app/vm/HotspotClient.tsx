@@ -23,12 +23,14 @@ type Status = {
   clients?: number; client_ips?: string[];
   battery?: number; charging?: string;
   operator?: string; net_type?: string; net_tier?: string; bars?: number;
-  rsrp?: string; nr_ready?: boolean;
+  rsrp?: string; nr_ready?: boolean; hidden?: boolean;
   internet?: number; uptime_s?: number;
-  applied?: boolean; wallpaper?: boolean; error?: string;
+  applied?: boolean; pending?: boolean; wallpaper?: boolean; error?: string;
 };
 
 const REFRESH_MS = 15_000;
+const APPLY_MS = 5_000;        // poll faster while a change is landing
+const APPLY_GIVE_UP_MS = 180_000;
 const RESTART_MS = 100_000;
 
 const TIER_WORD: Record<string, string> = {
@@ -112,7 +114,7 @@ export default function HotspotClient({ user, device }: {
 }) {
   const [st, setSt] = useState<Status | null>(null);
   const [firstLoad, setFirstLoad] = useState(true);
-  const [busy, setBusy] = useState<"" | "save" | "restart" | "poweroff">("");
+  const [busy, setBusy] = useState<"" | "save" | "restart" | "poweroff" | "hidden">("");
   const [note, setNote] = useState<{ kind: "ok" | "err"; text: string } | null>(null);
   const [editing, setEditing] = useState(false);
   const [ssid, setSsid] = useState("");
@@ -120,6 +122,10 @@ export default function HotspotClient({ user, device }: {
   const [confirming, setConfirming] = useState<"" | "restart" | "poweroff">("");
   const [restartingUntil, setRestartingUntil] = useState(0);
   const [poweredOff, setPoweredOff] = useState(false);
+  // A change that drives the phone's settings screen takes about a minute; while it runs the
+  // AP goes down and comes back, so the panel polls faster and says what is happening.
+  const [applying, setApplying] = useState("");
+  const [applyUntil, setApplyUntil] = useState(0);
   const busyRef = useRef(busy);
   busyRef.current = busy;
 
@@ -136,9 +142,19 @@ export default function HotspotClient({ user, device }: {
   // return is itself a fresh status, so an overlapping poll would only fight with it.
   useEffect(() => {
     load();
-    const id = setInterval(() => { if (!busyRef.current) load(); }, REFRESH_MS);
+    const id = setInterval(() => { if (!busyRef.current) load(); }, applying ? APPLY_MS : REFRESH_MS);
     return () => clearInterval(id);
-  }, [load]);
+  }, [load, applying]);
+
+  // Stop saying "applying" once the network is actually back, rather than after a fixed wait.
+  useEffect(() => {
+    if (!applying) return;
+    if (st?.online && st.up) { setApplying(""); return; }
+    if (Date.now() > applyUntil) {
+      setApplying("");
+      setNote({ kind: "err", text: "The hotspot has not come back yet. It keeps retrying by itself — give it another minute." });
+    }
+  }, [applying, applyUntil, st]);
 
   const online = st?.online === true;
   const restarting = Date.now() < restartingUntil;
@@ -158,11 +174,13 @@ export default function HotspotClient({ user, device }: {
       } else {
         setSt(d);
         setEditing(false);
+        setApplying("Applying the new details. The hotspot restarts — about a minute.");
+        setApplyUntil(Date.now() + APPLY_GIVE_UP_MS);
         setNote({
           kind: "ok",
           text: d.wallpaper === false
-            ? "Hotspot updated. The label on the phone's screen could not be redrawn."
-            : "Hotspot updated. Reconnect your devices with the new details.",
+            ? "Saved. The label on the phone's screen could not be redrawn."
+            : "Saved. Reconnect your devices with the new details once it is back.",
         });
       }
     } catch {
@@ -170,6 +188,30 @@ export default function HotspotClient({ user, device }: {
     }
     setBusy("");
     load();
+  }
+
+  async function toggleHidden() {
+    const want = !st?.hidden;
+    setBusy("hidden");
+    setNote(null);
+    try {
+      const r = await fetch("/api/vm/hotspot", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "hidden", hidden: want }),
+      });
+      const d = (await r.json()) as Status;
+      if (!r.ok || d.ok === false) {
+        setNote({ kind: "err", text: d.error || "Could not change that. Nothing happened." });
+      } else {
+        setApplying(want
+          ? "Hiding the network. The hotspot restarts — about a minute."
+          : "Making the network visible again. The hotspot restarts — about a minute.");
+        setApplyUntil(Date.now() + APPLY_GIVE_UP_MS);
+      }
+    } catch {
+      setNote({ kind: "err", text: "Could not reach the hotspot. Nothing happened." });
+    }
+    setBusy("");
   }
 
   async function power(action: "restart" | "poweroff") {
@@ -246,8 +288,17 @@ export default function HotspotClient({ user, device }: {
           </button>
         </header>
 
+        {/* a change is landing: the AP drops and comes back, so say so instead of "offline" */}
+        {applying && (
+          <div role="status"
+            className="mb-4 flex items-start gap-2.5 rounded-2xl border border-nv-teal/35 bg-nv-teal/10 px-4 py-3 text-[14.5px] leading-relaxed text-nv-teal">
+            <Loader2 size={18} className="mt-0.5 shrink-0 animate-spin" />
+            <span className="min-w-0">{applying}</span>
+          </div>
+        )}
+
         {/* reachability */}
-        {!firstLoad && !online && (
+        {!firstLoad && !online && !applying && (
           <div className="mb-4 flex items-start gap-2.5 rounded-2xl border border-nv-warning/35 bg-nv-warning/10 px-4 py-3 text-[14.5px] leading-relaxed text-nv-warning">
             <AlertTriangle size={18} className="mt-0.5 shrink-0" />
             <span className="min-w-0">
@@ -294,6 +345,30 @@ export default function HotspotClient({ user, device }: {
             value={!online ? "--" : st?.up ? "On air" : "Off"}
             sub={online && st?.up ? "Broadcasting" : undefined} />
           <Tile icon={<Clock size={13} />} label="Powered on" value={online ? uptimeLabel(st?.uptime_s) : "--"} />
+        </section>
+
+        {/* visibility */}
+        <section className="mt-3 rounded-3xl border border-white/10 bg-white/[0.04] p-4">
+          <div className="flex items-center gap-3">
+            {st?.hidden
+              ? <EyeOff size={17} className="shrink-0 text-nv-teal" />
+              : <Eye size={17} className="shrink-0 text-white/55" />}
+            <div className="min-w-0 flex-1">
+              <div className="text-[15.5px] font-medium text-white">Hide network</div>
+              <div className="text-[13px] leading-snug text-white/45">
+                {st?.hidden
+                  ? "Hidden. Devices that already know it still connect; new ones must add it by name."
+                  : "Visible to anyone nearby looking for Wi-Fi."}
+              </div>
+            </div>
+            <button role="switch" aria-checked={!!st?.hidden} aria-label="Hide network"
+              onClick={toggleHidden} disabled={!online || busy !== "" || !!applying}
+              className={"relative h-[30px] w-[52px] shrink-0 rounded-full transition-colors disabled:opacity-40 "
+                + (st?.hidden ? "bg-nv-teal" : "bg-white/20")}>
+              <span className={"absolute top-[3px] h-6 w-6 rounded-full bg-white transition-all "
+                + (st?.hidden ? "left-[25px]" : "left-[3px]")} />
+            </button>
+          </div>
         </section>
 
         {/* change the credentials */}
