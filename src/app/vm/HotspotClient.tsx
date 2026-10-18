@@ -2,10 +2,11 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
-  AlertTriangle, Check, Clock, Copy, Eye, EyeOff, Loader2, LogOut,
-  Pencil, Power, RefreshCw, RotateCcw, Router, Signal, Wifi, WifiOff, Zap,
+  AlertTriangle, Check, ChevronRight, Clock, Copy, Eye, EyeOff, Loader2, LogOut,
+  MessageSquare, Pencil, Power, RefreshCw, RotateCcw, Router, Signal, Wifi, WifiOff, Zap,
 } from "lucide-react";
 import { CLOUD_INPUT, CLOUD_LABEL } from "./CloudShell";
+import MessagesPanel from "./MessagesPanel";
 
 // The door for an appliance account: a phone with a dead screen that now only serves a hotspot.
 // Everything its owner would otherwise need a working display for -- what it is advertising, how
@@ -194,8 +195,29 @@ export default function HotspotClient({ user, device }: {
   // AP goes down and comes back, so the panel polls faster and says what is happening.
   const [applying, setApplying] = useState("");
   const [applyUntil, setApplyUntil] = useState(0);
+  const [msgOpen, setMsgOpen] = useState(false);
+  const [unread, setUnread] = useState(0);
   const busyRef = useRef(busy);
   busyRef.current = busy;
+
+  // Unread badge on the closed deck. Each check runs termux-sms-list on the phone, so it is
+  // deliberately slow-paced; the Messages panel polls properly while it is open.
+  useEffect(() => {
+    if (msgOpen) return;
+    let stop = false;
+    const tick = async () => {
+      try {
+        const r = await fetch("/api/vm/sms", { cache: "no-store" });
+        const d = await r.json();
+        if (!stop && d.ok !== false) {
+          setUnread(((d.threads || []) as { unread?: number }[]).reduce((n, t) => n + (t.unread || 0), 0));
+        }
+      } catch { /* the deck's own status banner already covers an unreachable phone */ }
+    };
+    tick();
+    const id = setInterval(tick, 120_000);
+    return () => { stop = true; clearInterval(id); };
+  }, [msgOpen]);
 
   const load = useCallback(async () => {
     try {
@@ -347,6 +369,10 @@ export default function HotspotClient({ user, device }: {
     },
   };
 
+  if (msgOpen) {
+    return <MessagesPanel onClose={() => setMsgOpen(false)} onUnread={setUnread} />;
+  }
+
   return (
     <div className="hd-stage">
       {/* raw HTML on purpose: as a text child React escapes the quotes in the CSS on the server but not on
@@ -419,8 +445,23 @@ export default function HotspotClient({ user, device }: {
           <Tile i={5} icon={<Clock size={13} />} label="Powered on" value={online ? uptimeLabel(st?.uptime_s) : "--"} />
         </section>
 
+        {/* messages */}
+        <section className="hd-glass hd-rise" style={{ "--i": 6 } as React.CSSProperties}>
+          <button onClick={() => setMsgOpen(true)} className="hd-row hd-row-btn">
+            <span className={"hd-row-icon" + (unread ? " is-alert" : "")}><MessageSquare size={17} /></span>
+            <span className="min-w-0 flex-1">
+              <span className="hd-row-title block">Messages</span>
+              <span className="hd-row-sub block">
+                {unread ? `${unread} unread · read and reply from here` : "Read and reply on the phone’s number"}
+              </span>
+            </span>
+            {unread > 0 && <span className="hd-badge">{unread}</span>}
+            <ChevronRight size={18} className="shrink-0 text-white/35" />
+          </button>
+        </section>
+
         {/* visibility */}
-        <section className="hd-glass hd-rise hd-row" style={{ "--i": 6 } as React.CSSProperties}>
+        <section className="hd-glass hd-rise hd-row" style={{ "--i": 7 } as React.CSSProperties}>
           <span className={"hd-row-icon " + (st?.hidden ? "is-violet" : "")}>
             {st?.hidden ? <EyeOff size={17} /> : <Eye size={17} />}
           </span>
@@ -440,7 +481,7 @@ export default function HotspotClient({ user, device }: {
         </section>
 
         {/* change the credentials */}
-        <section className="hd-glass hd-rise" style={{ "--i": 7 } as React.CSSProperties}>
+        <section className="hd-glass hd-rise" style={{ "--i": 8 } as React.CSSProperties}>
           {!editing ? (
             <button onClick={openEditor} disabled={locked} className="hd-row hd-row-btn">
               <span className="hd-row-icon"><Pencil size={17} /></span>
@@ -476,7 +517,7 @@ export default function HotspotClient({ user, device }: {
         </section>
 
         {/* power deck */}
-        <section className="hd-rise" style={{ "--i": 8 } as React.CSSProperties}>
+        <section className="hd-rise" style={{ "--i": 9 } as React.CSSProperties}>
           <div className="hd-power">
             <button onClick={() => setConfirming("restart_hotspot")} disabled={locked}
               className={"hd-key is-teal" + (confirming === "restart_hotspot" ? " is-armed" : "")}>
@@ -626,6 +667,11 @@ const CSS = `
 .hd-row-btn:disabled{opacity:.4;cursor:not-allowed}
 .hd-row-icon{flex:none;display:inline-flex;align-items:center;justify-content:center;width:38px;height:38px;border-radius:12px;
   color:#00E5CC;background:rgba(0,229,204,.10);box-shadow:0 0 0 1px rgba(0,229,204,.25) inset;transition:all .3s}
+.hd-row-icon.is-alert{color:#03121A;background:linear-gradient(135deg,#7CFFEA,#00E5CC);
+  box-shadow:0 0 0 1px rgba(0,229,204,.5) inset,0 0 22px rgba(0,229,204,.5)}
+.hd-badge{flex:none;min-width:24px;height:24px;padding:0 7px;border-radius:999px;display:inline-flex;align-items:center;justify-content:center;
+  font-family:var(--font-display),system-ui,sans-serif;font-weight:700;font-size:12.5px;color:#03121A;
+  background:linear-gradient(135deg,#7CFFEA,#00E5CC);box-shadow:0 0 16px rgba(0,229,204,.6)}
 .hd-row-icon.is-violet{color:#D2B8FF;background:rgba(179,136,255,.12);box-shadow:0 0 0 1px rgba(179,136,255,.35) inset,0 0 18px rgba(179,136,255,.25)}
 .hd-row-title{font-size:15.5px;font-weight:500;color:#fff}
 .hd-row-sub{font-size:13px;color:rgba(255,255,255,.48);line-height:1.35}
