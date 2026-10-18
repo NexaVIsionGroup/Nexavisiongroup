@@ -113,7 +113,7 @@ export function analyze(answers: Answers, templateId = "household-budget"): Flag
   const policies: any[] = Array.isArray(a.policies) ? a.policies : [];
   const dubious = policies.filter((p) => ["car_warranty", "cancer_accident_hospital", "identity_theft", "home_warranty"].includes(p.kind));
   if (dubious.length) {
-    flags.push({ level: "review", area: "Insurance", title: `${dubious.length} policy${dubious.length > 1 ? "ies" : "y"} often not worth the cost`, detail: dubious.map((p) => `${String(p.kind).replace(/_/g, " ")} (${p.company || "?"}, ${p.premium?.a ? fmtMoney(Number(p.premium.a)) : "?"})`).join("; ") });
+    flags.push({ level: "review", area: "Insurance", title: `${dubious.length} ${dubious.length > 1 ? "policies" : "policy"} often not worth the cost`, detail: dubious.map((p) => `${String(p.kind).replace(/_/g, " ")} (${p.company || "?"}, ${p.premium?.a ? fmtMoney(Number(p.premium.a)) : "?"})`).join("; ") });
   }
   if (has(a, "unknown_charges", "yes", "not_sure")) {
     flags.push({ level: "review", area: "Subscriptions", title: "Unrecognized charges on statements", detail: "Go through the last 3 statements line by line. Common culprits are free trials that converted, old memberships and scam 'protection' plans." });

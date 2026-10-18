@@ -37,7 +37,8 @@ export async function GET(_req: NextRequest, { params }: Ctx) {
     .update({ open_count: (row.open_count || 0) + 1, last_opened_at: new Date().toISOString() })
     .eq("id", row.id);
 
-  const { open_count, id, ...pub } = row;
+  // client_name is an internal label, keep it out of the public response
+  const { open_count, id, client_name, ...pub } = row;
   return NextResponse.json(pub, { headers: { "Cache-Control": "no-store" } });
 }
 
