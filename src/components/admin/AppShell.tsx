@@ -21,6 +21,7 @@ import {
   ShoppingBag,
   Sparkles,
   ExternalLink,
+  ClipboardList,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import AuthGuard from "./AuthGuard";
@@ -41,6 +42,7 @@ const navItems: NavItem[] = [
   { label: "Documents", icon: FileCode2, path: "/admin/documents" },
   { label: "Verify", icon: ShieldCheck, path: "/admin/verification" },
   { label: "Proposals", icon: FileText, path: "/admin/proposals" },
+  { label: "Questionnaires", icon: ClipboardList, path: "/admin/questionnaires" },
   { label: "Invoices", icon: Receipt, path: "/admin/invoices" },
   { label: "Analytics", icon: BarChart3, path: "/admin/analytics" },
   { label: "Devices", icon: Smartphone, path: "/admin/devices" },
