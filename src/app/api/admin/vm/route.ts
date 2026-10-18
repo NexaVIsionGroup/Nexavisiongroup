@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { db, newToken, pcc, VM_PHONES, trialState, type VmUser } from "@/lib/vm";
+import { db, newToken, pcc, VM_PHONES, VM_HOTSPOTS, trialState, type VmUser } from "@/lib/vm";
 
 // Admin management for virtual cloud phones + their users.
 // Auth: middleware already requires a Supabase session for /api/admin/*.
@@ -18,6 +18,9 @@ function publicUser(u: VmUser) {
   const pending = !!u.token_hash && !!u.token_expires && new Date(u.token_expires) > new Date();
   return {
     id: u.id, label: u.label, username: u.username, phone_id: u.phone_id, enabled: u.enabled,
+    // An appliance account holds a real device, not one of the phoneN slots, so the phone list
+    // below never matches it. Name it here or the panel would call it "unassigned".
+    device_label: u.phone_id ? VM_HOTSPOTS[u.phone_id]?.label ?? null : null,
     signed_up: !!u.username && !!u.password_hash,
     pending_link: pending ? u.token_kind : null,
     link_expires: pending ? u.token_expires : null,

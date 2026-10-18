@@ -11,6 +11,13 @@ import { createAdminClient } from "@/lib/supabase/server";
 export const VM_PHONES: Record<string, { host: string; label: string }> = Object.fromEntries(
   Array.from({ length: 8 }, (_, i) => [`phone${i + 1}`, { host: `vm${i + 1}.nexavisiongroup.com`, label: `Cloud Phone ${i + 1}` }]),
 );
+// Appliances that sign in at the SAME /vm door but open a control panel instead of a screen.
+// OP13R is a real OnePlus 13R whose display is broken: it now lives as a hotspot, so its door
+// shows what it is advertising and lets its owner rename it or restart it. The rack device id
+// is the key here, exactly like the phoneN slots above, so one account = one device either way.
+export const VM_HOTSPOTS: Record<string, { label: string; model: string }> = {
+  op13r: { label: "Hotspot", model: "OnePlus 13R" },
+};
 export const VM_COOKIE = "vm_session";
 const SESSION_DAYS = 30;
 

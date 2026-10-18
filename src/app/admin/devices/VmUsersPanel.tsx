@@ -12,7 +12,7 @@ import { cn } from "@/lib/utils";
 // and from then on signs in at nexavisiongroup.com/vm — the account decides which phone opens.
 
 type VmUser = {
-  id: string; label: string; username: string | null; phone_id: string | null; enabled: boolean;
+  id: string; label: string; username: string | null; phone_id: string | null; device_label?: string | null; enabled: boolean;
   signed_up: boolean; pending_link: "invite" | "reset" | null; link_expires: string | null;
   locked: boolean; created_at: string; last_login_at: string | null;
   plan: "full" | "trial"; trial_days: number | null; trial_ends_at: string | null;
@@ -169,12 +169,15 @@ export default function VmUsersPanel() {
                     {u.username || <span className="text-nv-warning font-normal">waiting for sign-up</span>}
                   </span>
                   {u.label && <span className="text-[12.5px] text-nv-text-secondary">({u.label})</span>}
-                  <span className="text-[11.5px] px-2 py-0.5 rounded-full border border-nv-teal/25 text-nv-teal">{p?.label || "unassigned"}</span>
-                  <span className={cn("text-[11.5px] px-2 py-0.5 rounded-full border",
-                    phoneState === "running" ? "border-nv-success/30 text-nv-success" :
-                    phoneState === "off" ? "border-white/15 text-nv-text-muted" : "border-nv-warning/30 text-nv-warning")}>
-                    phone {phoneState}
-                  </span>
+                  <span className="text-[11.5px] px-2 py-0.5 rounded-full border border-nv-teal/25 text-nv-teal">{p?.label || u.device_label || "unassigned"}</span>
+                  {/* an appliance account owns a real device, so the cloud-phone power state means nothing for it */}
+                  {!u.device_label && (
+                    <span className={cn("text-[11.5px] px-2 py-0.5 rounded-full border",
+                      phoneState === "running" ? "border-nv-success/30 text-nv-success" :
+                      phoneState === "off" ? "border-white/15 text-nv-text-muted" : "border-nv-warning/30 text-nv-warning")}>
+                      phone {phoneState}
+                    </span>
+                  )}
                   {u.plan === "trial" && (
                     <span className={cn("inline-flex items-center gap-1 text-[11.5px] px-2 py-0.5 rounded-full border",
                       u.trial_expired ? "border-nv-error/40 text-nv-error" : "border-nv-warning/40 text-nv-warning")}>
