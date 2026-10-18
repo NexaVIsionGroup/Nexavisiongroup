@@ -30,7 +30,10 @@ type Status = {
 
 const REFRESH_MS = 15_000;
 const APPLY_MS = 5_000;        // poll faster while a change is landing
-const APPLY_GIVE_UP_MS = 180_000;
+// Measured: a hide/show flip usually lands in ~90s, but when the settings screen misses and the
+// keepalive loop is the one that brings the AP back it can take ~3 minutes. Wait longer than that
+// before telling someone it has not worked.
+const APPLY_GIVE_UP_MS = 300_000;
 const RESTART_MS = 100_000;
 
 const TIER_WORD: Record<string, string> = {
