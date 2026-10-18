@@ -16,7 +16,7 @@ export const VM_PHONES: Record<string, { host: string; label: string }> = Object
 // shows what it is advertising and lets its owner rename it or restart it. The rack device id
 // is the key here, exactly like the phoneN slots above, so one account = one device either way.
 export const VM_HOTSPOTS: Record<string, { label: string; model: string }> = {
-  op13r: { label: "Hotspot", model: "OnePlus 13R" },
+  op13r: { label: "Nexa Pro 13", model: "Hotspot" },
 };
 export const VM_COOKIE = "vm_session";
 const SESSION_DAYS = 30;

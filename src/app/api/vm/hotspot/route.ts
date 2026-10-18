@@ -47,10 +47,11 @@ export async function POST(req: Request) {
       }
       return NextResponse.json(await pcc(`/${dev}/hotspot`, "POST", { ssid, password }));
     }
-    case "restart": {
-      const r = await pcc(`/${dev}/cmd`, "POST", { cmd: "reboot" });
-      return NextResponse.json({ ok: r.ok !== false, ...r });
-    }
+    // Restart comes back on its own. Power off does NOT: the self-boot beacon was removed when
+    // this phone became a hotspot, so someone has to press the button. The panel says so.
+    case "restart":
+    case "poweroff":
+      return NextResponse.json(await pcc(`/${dev}/hotspot`, "POST", { action: String(body.action) }));
     default:
       return NextResponse.json({ ok: false, error: "Unknown action." }, { status: 400 });
   }
