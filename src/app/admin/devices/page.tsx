@@ -8,7 +8,7 @@ import {
   Wifi, Server, MonitorSmartphone, Radio, Cpu, Clock, Power, Lock, Eye,
   Zap, Terminal, ChevronRight, AlertTriangle, CircleCheck, CircleX, Camera, KeyRound,
   Maximize, ExternalLink, Users, ChevronUp, ChevronDown,
-  Satellite, MapPin, Navigation, History,
+  Satellite, MapPin, Navigation, History, Router, WifiOff, EyeOff, Globe,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import VmUsersPanel from "./VmUsersPanel";
@@ -20,6 +20,7 @@ type Device = {
   rustdesk_pw?: string;
   control_url?: string;  // ScrcpyOverWebRTC live control — PUBLIC url, WebRTC media is peer-to-peer
   terminal_url?: string; // rack only: browser PTY (ttyd) with cyden/listc preloaded
+  hotspot?: boolean;     // OP13R: hotspot appliance -> gets the Hotspot tab
   local?: boolean;       // runs ON the rack — no SSH hop, no tailnet
   commands?: Catalog;    // per-device catalogue; phone commands must not appear on the rack
   beacon?: boolean;      // has a transit beacon (self-boot → check-in → power off) in the rack mailbox
@@ -45,7 +46,19 @@ type CatalogCmd = { id: string; label: string; arg: boolean; argHint: string };
 type Catalog = Record<string, CatalogCmd[]>;
 type Stats = Record<string, string | number | boolean>;
 type Area = "devices" | "cloud";
-type WorkTab = "control" | "actions" | "beacon" | "status" | "shell";
+// What /pcc/<dev>/hotspot answers with. `traffic` is the gate: "off" means the AP is still
+// broadcasting and clients still get a lease, but forwarding and NAT are dropped.
+type HotspotData = {
+  ok?: number; error?: string;
+  ssid?: string; password?: string; ap?: string; ip?: string;
+  up?: boolean; clients?: number; client_ips?: string[];
+  battery?: number; charging?: string; operator?: string;
+  net_type?: string; net_tier?: string; bars?: number;
+  hidden?: boolean; traffic?: string; ip_forward?: string;
+  upstream?: string; internet?: number; uptime_s?: number;
+};
+
+type WorkTab = "control" | "actions" | "beacon" | "hotspot" | "status" | "shell";
 
 const api = (path: string) => `/api/admin/devices?path=${encodeURIComponent(path)}`;
 
@@ -112,6 +125,9 @@ export default function DevicesPage() {
   const [beaconHours, setBeaconHours] = useState("12");
   const [beaconMinutes, setBeaconMinutes] = useState("0");
   const [beaconBusy, setBeaconBusy] = useState("");
+  const [hs, setHs] = useState<HotspotData | null>(null);
+  const [hsLoading, setHsLoading] = useState(false);
+  const [hsBusy, setHsBusy] = useState("");
   // The activity bar is position:fixed (sticky does not survive the app shell), so it tracks the
   // content column's box: correct whether the sidebar is open, collapsed, or gone on a phone.
   // callback ref: the column mounts late (after the auth guard), so an effect keyed on a plain ref would miss it
@@ -360,10 +376,50 @@ export default function DevicesPage() {
     { id: "control", label: isRack ? "Terminal" : "Control", icon: isRack ? Terminal : MonitorSmartphone },
     { id: "actions", label: "Actions", icon: Zap },
     ...(selDev?.beacon ? [{ id: "beacon" as WorkTab, label: "Beacon", icon: Satellite }] : []),
+    ...(selDev?.hotspot ? [{ id: "hotspot" as WorkTab, label: "Hotspot", icon: Router }] : []),
     { id: "status", label: "Status", icon: Server },
     { id: "shell", label: "Shell", icon: Terminal },
   ];
   const lastLog = log[log.length - 1];
+
+  const loadHotspot = useCallback(async () => {
+    if (!sel) return;
+    setHsLoading(true);
+    try {
+      const r = await fetch(api(`/${sel}/hotspot`), { cache: "no-store" });
+      setHs(await r.json());
+    } catch (e) {
+      setHs({ ok: 0, error: String(e) });
+    } finally {
+      setHsLoading(false);
+    }
+  }, [sel]);
+
+  useEffect(() => {
+    if (area === "devices" && tab === "hotspot" && sel) loadHotspot();
+  }, [tab, sel, area, loadHotspot]);
+
+  // Traffic is the only one that lands instantly; hide/show and restart drive the phone's
+  // settings screen, so they answer pending and the panel re-reads a few seconds later.
+  const hotspotAction = async (body: Record<string, unknown>, label: string, danger = false) => {
+    if (danger && !confirm(`${label.toUpperCase()} on ${sel.toUpperCase()}?`)) return;
+    setHsBusy(label);
+    pushLog(`▶ hotspot: ${label}…`, true);
+    try {
+      const r = await fetch(api(`/${sel}/hotspot`), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      const j = await r.json();
+      pushLog(`${j.ok ? "✓" : "✗"} hotspot ${label}${j.error ? ": " + j.error : ""}`, !!j.ok);
+      setTimeout(loadHotspot, j.pending ? 8000 : 1200);
+    } catch (e) {
+      pushLog(`✗ hotspot ${label}: ${e}`, false);
+    } finally {
+      setHsBusy("");
+    }
+  };
 
   const loadBeacon = useCallback(async () => {
     if (!sel) return;
@@ -1064,6 +1120,108 @@ export default function DevicesPage() {
                     )}
                   </div>
                 )}
+
+                {tab === "hotspot" && (
+                  <div className="space-y-3">
+                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5">
+                      <Tile icon={Wifi} label="Access point" value={hs?.up ? (hs?.ssid || "on") : "off"}
+                        tone={hs?.up ? "text-nv-teal" : "text-nv-text-muted"} />
+                      <Tile icon={Globe} label="Client traffic" value={hs?.traffic === "off" ? "BLOCKED" : "flowing"}
+                        tone={hs?.traffic === "off" ? "text-nv-error" : "text-nv-teal"} />
+                      <Tile icon={Users} label="Connected" value={String(hs?.clients ?? 0)} tone="text-nv-text-primary" />
+                      <Tile icon={Signal} label="Cellular"
+                        value={(hs?.net_type || "—") + (hs?.bars ? " · " + hs.bars + "/4" : "")}
+                        tone={hs?.internet ? "text-nv-text-primary" : "text-nv-warning"} />
+                    </div>
+
+                    <Panel title="Traffic gate" icon={Globe}
+                      iconTone={hs?.traffic === "off" ? "text-nv-error" : undefined}
+                      right={
+                        <button onClick={loadHotspot} className="flex items-center gap-1 text-[11.5px] text-nv-text-muted hover:text-nv-teal">
+                          <RefreshCw size={12} className={cn("text-nv-teal", hsLoading && "animate-spin")} /> refresh
+                        </button>
+                      }>
+                      <div className="flex items-center gap-2 text-[12.5px] mb-3">
+                        <span className="text-nv-text-muted">Right now:</span>
+                        {hs?.traffic === "off" ? (
+                          <span className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 bg-nv-error/15 text-nv-error text-[11.5px] font-medium">
+                            <WifiOff size={12} /> Blocked — nothing routes
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 bg-nv-teal/15 text-nv-teal text-[11.5px] font-medium">
+                            <CircleCheck size={12} /> Flowing
+                          </span>
+                        )}
+                        {hs?.ip_forward && <span className="text-[11px] text-nv-text-muted">ip_forward={hs.ip_forward}</span>}
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        <button onClick={() => hotspotAction({ action: "traffic", on: false }, "block client traffic", true)}
+                          disabled={!!hsBusy || !online || hs?.traffic === "off"}
+                          className="flex items-center gap-1.5 rounded-nv-md px-3 py-2 text-[12.5px] nv-glass border border-nv-error/25 text-nv-text-secondary hover:border-nv-error/55 hover:text-nv-error transition-all disabled:opacity-40">
+                          {hsBusy === "block client traffic" ? <Loader2 size={13} className="animate-spin" /> : <WifiOff size={13} />} Block traffic
+                        </button>
+                        <button onClick={() => hotspotAction({ action: "traffic", on: true }, "allow client traffic")}
+                          disabled={!!hsBusy || !online || hs?.traffic !== "off"}
+                          className="flex items-center gap-1.5 rounded-nv-md px-3 py-2 text-[12.5px] nv-glass border border-nv-teal/25 text-nv-text-secondary hover:border-nv-teal/55 hover:text-nv-text-primary transition-all disabled:opacity-40">
+                          {hsBusy === "allow client traffic" ? <Loader2 size={13} className="animate-spin" /> : <Globe size={13} />} Allow traffic
+                        </button>
+                      </div>
+                      <div className="mt-2.5 text-[11px] text-nv-text-muted leading-snug">
+                        Blocking drops forwarding and NAT only. The access point keeps broadcasting, phones still
+                        join and still get an address — they just reach nothing. The modem, APN and airplane mode are
+                        never touched, because cellular is what carries Tailscale and is the only way back into this phone.
+                        The block is a flag the phone&apos;s own keepalive honours, so a dropped connection can&apos;t
+                        quietly restore routing.
+                      </div>
+                    </Panel>
+
+                    <Panel title="Access point" icon={Router}>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-1.5 text-[12.5px] mb-3">
+                        <HsRow k="Network" v={hs?.ssid || "—"} />
+                        <HsRow k="Password" v={hs?.password || "—"} />
+                        <HsRow k="Visibility" v={hs?.hidden ? "hidden" : "broadcasting"} />
+                        <HsRow k="Interface" v={(hs?.ap || "—") + (hs?.ip ? " · " + hs.ip : "")} />
+                        <HsRow k="Upstream" v={hs?.upstream || "—"} />
+                        <HsRow k="Internet" v={hs?.internet ? "reachable" : "no reply"} />
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        <button onClick={() => hotspotAction({ action: "hidden", on: !hs?.hidden }, hs?.hidden ? "broadcast the SSID" : "hide the SSID")}
+                          disabled={!!hsBusy || !online}
+                          className="flex items-center gap-1.5 rounded-nv-md px-3 py-2 text-[12.5px] nv-glass border border-nv-teal/15 text-nv-text-secondary hover:border-nv-teal/45 hover:text-nv-text-primary transition-all disabled:opacity-40">
+                          {hsBusy.includes("SSID") ? <Loader2 size={13} className="animate-spin" /> : <EyeOff size={13} />}
+                          {hs?.hidden ? "Broadcast SSID" : "Hide SSID"}
+                        </button>
+                        <button onClick={() => hotspotAction({ action: "restart_hotspot" }, "restart the access point", true)}
+                          disabled={!!hsBusy || !online}
+                          className="flex items-center gap-1.5 rounded-nv-md px-3 py-2 text-[12.5px] nv-glass border border-nv-warning/25 text-nv-text-secondary hover:border-nv-warning/55 hover:text-nv-text-primary transition-all disabled:opacity-40">
+                          {hsBusy === "restart the access point" ? <Loader2 size={13} className="animate-spin" /> : <RefreshCw size={13} />} Restart hotspot
+                        </button>
+                      </div>
+                      <div className="mt-2.5 text-[11px] text-nv-text-muted leading-snug">
+                        Hiding and restarting drive the phone&apos;s own hotspot screen, so they take a few seconds and
+                        the panel re-reads afterwards. Every client drops and has to rejoin — the shop runs on this
+                        link, so don&apos;t restart it while someone is working.
+                      </div>
+                    </Panel>
+
+                    {(hs?.client_ips?.length ?? 0) > 0 && (
+                      <Fold id="hs-clients" title={"Connected devices (" + (hs?.clients ?? 0) + ")"} icon={Users} defaultOpen>
+                        <div className="space-y-0.5 font-mono text-[11.5px]">
+                          {(hs?.client_ips || []).map((cip) => (
+                            <div key={cip} className="text-nv-text-secondary py-0.5">{cip}</div>
+                          ))}
+                        </div>
+                      </Fold>
+                    )}
+
+                    {hs && !hs.ok && (
+                      <div className="flex items-start gap-2 rounded-nv-md border border-nv-error/25 bg-nv-error/5 px-3 py-2.5 text-[12px] text-nv-error">
+                        <AlertTriangle size={14} className="shrink-0 mt-0.5" />
+                        <span>{hs.error || "The phone did not answer — it is most likely powered off."}</span>
+                      </div>
+                    )}
+                  </div>
+                )}
               </>
             )}
           </>
@@ -1294,6 +1452,15 @@ function Health({ label, ok, detail, icon: Icon, href }: {
     );
   }
   return <div className={base}>{body}</div>;
+}
+
+function HsRow({ k, v }: { k: string; v: string }) {
+  return (
+    <div className="flex items-baseline justify-between gap-3 border-b border-nv-teal/5 py-1">
+      <span className="text-nv-text-muted shrink-0">{k}</span>
+      <span className="text-nv-text-primary font-mono truncate text-right">{v}</span>
+    </div>
+  );
 }
 
 function Chip({ children, tone }: { children: React.ReactNode; tone?: "warning" | "error" }) {
