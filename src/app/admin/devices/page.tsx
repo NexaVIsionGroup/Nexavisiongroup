@@ -54,7 +54,10 @@ type HotspotData = {
   up?: boolean; clients?: number; client_ips?: string[];
   battery?: number; charging?: string; operator?: string;
   net_type?: string; net_tier?: string; bars?: number;
-  hidden?: boolean; traffic?: string; ip_forward?: string;
+  hidden?: boolean; hidden_wanted?: boolean;
+  // measured, three-state: "on" | "off" | "leaking". "leaking" means the block is set but the
+  // framework re-tethered the AP, so traffic IS flowing -- never paint that as a clean block.
+  traffic?: string; tethered?: boolean; ip_forward?: string;
   upstream?: string; internet?: number; uptime_s?: number;
 };
 
@@ -1126,8 +1129,9 @@ export default function DevicesPage() {
                     <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5">
                       <Tile icon={Wifi} label="Access point" value={hs?.up ? (hs?.ssid || "on") : "off"}
                         tone={hs?.up ? "text-nv-teal" : "text-nv-text-muted"} />
-                      <Tile icon={Globe} label="Client traffic" value={hs?.traffic === "off" ? "BLOCKED" : "flowing"}
-                        tone={hs?.traffic === "off" ? "text-nv-error" : "text-nv-teal"} />
+                      <Tile icon={Globe} label="Client traffic"
+                        value={hs?.traffic === "off" ? "BLOCKED" : hs?.traffic === "leaking" ? "LEAKING" : "flowing"}
+                        tone={hs?.traffic === "off" ? "text-nv-error" : hs?.traffic === "leaking" ? "text-nv-warning" : "text-nv-teal"} />
                       <Tile icon={Users} label="Connected" value={String(hs?.clients ?? 0)} tone="text-nv-text-primary" />
                       <Tile icon={Signal} label="Cellular"
                         value={(hs?.net_type || "—") + (hs?.bars ? " · " + hs.bars + "/4" : "")}
@@ -1147,6 +1151,10 @@ export default function DevicesPage() {
                           <span className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 bg-nv-error/15 text-nv-error text-[11.5px] font-medium">
                             <WifiOff size={12} /> Blocked — nothing routes
                           </span>
+                        ) : hs?.traffic === "leaking" ? (
+                          <span className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 bg-nv-warning/15 text-nv-warning text-[11.5px] font-medium">
+                            <AlertTriangle size={12} /> Leaking — block is set but traffic is flowing
+                          </span>
                         ) : (
                           <span className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 bg-nv-teal/15 text-nv-teal text-[11.5px] font-medium">
                             <CircleCheck size={12} /> Flowing
@@ -1161,17 +1169,19 @@ export default function DevicesPage() {
                           {hsBusy === "block client traffic" ? <Loader2 size={13} className="animate-spin" /> : <WifiOff size={13} />} Block traffic
                         </button>
                         <button onClick={() => hotspotAction({ action: "traffic", on: true }, "allow client traffic")}
-                          disabled={!!hsBusy || !online || hs?.traffic !== "off"}
+                          disabled={!!hsBusy || !online || hs?.traffic === "on"}
                           className="flex items-center gap-1.5 rounded-nv-md px-3 py-2 text-[12.5px] nv-glass border border-nv-teal/25 text-nv-text-secondary hover:border-nv-teal/55 hover:text-nv-text-primary transition-all disabled:opacity-40">
                           {hsBusy === "allow client traffic" ? <Loader2 size={13} className="animate-spin" /> : <Globe size={13} />} Allow traffic
                         </button>
                       </div>
                       <div className="mt-2.5 text-[11px] text-nv-text-muted leading-snug">
-                        Blocking drops forwarding and NAT only. The access point keeps broadcasting, phones still
+                        Blocking takes the access point out of netd&apos;s tether list, which drops the forwarding
+                        and NAT rules for it. The access point keeps broadcasting, phones still
                         join and still get an address — they just reach nothing. The modem, APN and airplane mode are
                         never touched, because cellular is what carries Tailscale and is the only way back into this phone.
-                        The block is a flag the phone&apos;s own keepalive honours, so a dropped connection can&apos;t
-                        quietly restore routing.
+                        The framework does re-add the interface on its own after some events, so a keepalive on the
+                        phone re-asserts the block every 15 seconds. If it ever wins a race, this panel says
+                        <span className="text-nv-warning"> Leaking</span> rather than showing a block that isn&apos;t there.
                       </div>
                     </Panel>
 
@@ -1179,7 +1189,7 @@ export default function DevicesPage() {
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-1.5 text-[12.5px] mb-3">
                         <HsRow k="Network" v={hs?.ssid || "—"} />
                         <HsRow k="Password" v={hs?.password || "—"} />
-                        <HsRow k="Visibility" v={hs?.hidden ? "hidden" : "broadcasting"} />
+                        <HsRow k="Visibility" v={(hs?.hidden ? "hidden" : "broadcasting") + (hs?.hidden_wanted !== undefined && hs?.hidden_wanted !== hs?.hidden ? "  (config wants " + (hs.hidden_wanted ? "hidden" : "broadcasting") + ")" : "")} />
                         <HsRow k="Interface" v={(hs?.ap || "—") + (hs?.ip ? " · " + hs.ip : "")} />
                         <HsRow k="Upstream" v={hs?.upstream || "—"} />
                         <HsRow k="Internet" v={hs?.internet ? "reachable" : "no reply"} />
@@ -1197,6 +1207,16 @@ export default function DevicesPage() {
                           {hsBusy === "restart the access point" ? <Loader2 size={13} className="animate-spin" /> : <RefreshCw size={13} />} Restart hotspot
                         </button>
                       </div>
+                      {hs?.hidden_wanted !== undefined && hs?.hidden_wanted !== hs?.hidden && (
+                        <div className="mt-2.5 flex items-start gap-2 rounded-nv-md border border-nv-warning/25 bg-nv-warning/5 px-3 py-2 text-[11.5px] text-nv-warning">
+                          <AlertTriangle size={13} className="shrink-0 mt-0.5" />
+                          <span>
+                            The radio and the saved config disagree. A restart of the access point brings back the
+                            system hotspot&apos;s own saved visibility, which overrides what was set here — press
+                            {hs.hidden_wanted ? " Hide SSID " : " Broadcast SSID "}to line them up again.
+                          </span>
+                        </div>
+                      )}
                       <div className="mt-2.5 text-[11px] text-nv-text-muted leading-snug">
                         Hiding and restarting drive the phone&apos;s own hotspot screen, so they take a few seconds and
                         the panel re-reads afterwards. Every client drops and has to rejoin — the shop runs on this
