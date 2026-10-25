@@ -45,7 +45,7 @@ function Meter({ mode }: { mode: Mode }) {
             data-mode={mode}
             animate={{
               width: mode === "nexa" ? "92%" : "9%",
-              backgroundColor: mode === "nexa" ? "#0c8f9a" : "#d99a3e",
+              backgroundColor: mode === "nexa" ? "#0a7fc2" : "#d99a3e",
             }}
             transition={{ duration: 1.1, ease: EASE }}
           />
@@ -79,7 +79,7 @@ export default function SignalStory() {
         </p>
         <Title text="Other phones turn the fast lanes off." style={{ maxWidth: "11em" }} />
         <p className="np-lede" style={{ marginTop: 22 }}>
-          When the signal at work is bad, most phones give you one fix: switch bands off in settings. That stops
+          When the signal where you play is bad, most phones give you one fix: switch bands off in settings. That stops
           the phone from bouncing between towers, but it usually leaves you on the slow, long-range band,
           because that&apos;s the only one left. Nexa Pro fixes the real problem. It chooses the tower.
         </p>

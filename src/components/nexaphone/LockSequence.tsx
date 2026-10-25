@@ -7,10 +7,10 @@ import SignalField from "./SignalField";
 
 const STEPS = [
   {
-    title: t("We bust it out", "We survey your site"),
+    title: t("We bust it out", "We survey your spot"),
     body: t(
-      "First the phone gets out: our build, full access, a radio that answers to you instead of its maker. Then it sweeps every tower and channel in range and measures what each one really delivers where you work.",
-      "Your Nexa Pro sweeps every tower and channel in range and measures what each one really delivers where you work, not just which is closest."
+      "First the phone gets out: our build, full access, a radio that answers to you instead of its maker. Then it sweeps every tower and channel in range and measures what each one really delivers where you play.",
+      "Your Nexa Pro sweeps every tower and channel in range and measures what each one really delivers where you play, not just which is closest."
     ),
   },
   {
@@ -20,8 +20,8 @@ const STEPS = [
   {
     title: t("It never goes back", "It holds on"),
     body: t(
-      "Through walls, crowds and rush hour it stays on your tower. It won't hop to a weaker tower, a dead one, or a fake one. No airplane mode, ever. Locked on, never locked up.",
-      "Through walls, crowds and rush hour it stays on your tower. It won't hop to a weaker tower, a dead one, or a fake one. No airplane mode, ever."
+      "Through walls, crowds and peak hours it stays on your tower. It won't hop to a weaker tower mid-match, a dead one, or a fake one. No airplane mode, ever. Locked on, never locked up.",
+      "Through walls, crowds and peak hours it stays on your tower. It won't hop to a weaker tower mid-match, a dead one, or a fake one. No airplane mode, ever."
     ),
   },
 ];

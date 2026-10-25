@@ -5,7 +5,7 @@ import * as THREE from "three";
 // site); right pane = live throughput and link stats. Redrawn ~15fps, and only
 // while the phone is open.
 
-const CYAN = "86,224,232";
+const CYAN = "79,216,255";
 const towers: { x: number; y: number; name: string; state: "lock" | "idle" | "fake" }[] = [
   { x: 0.2, y: 0.24, name: "A", state: "idle" },
   { x: 0.74, y: 0.16, name: "B", state: "idle" },
@@ -290,7 +290,7 @@ export function foldScreen(label: string) {
       text(v, x + 20, y + 104, 46, 800, col);
     });
     // dock
-    const icons = ["#56e0e8", "#f2b84b", "#7c8cff", "#4be08a", "#ff6b5e"];
+    const icons = ["#4fd8ff", "#f2b84b", "#7c8cff", "#4be08a", "#ff6b5e"];
     const iy = 965;
     const isz = 64;
     const gap = (rw - isz * icons.length) / (icons.length - 1);

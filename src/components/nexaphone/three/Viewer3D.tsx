@@ -76,12 +76,12 @@ export default function Viewer3D(props: Props) {
       const holo = (r0: number, r1: number, o: number) =>
         new THREE.Mesh(
           new THREE.RingGeometry(r0, r1, 96),
-          new THREE.MeshBasicMaterial({ color: 0x56e0e8, transparent: true, opacity: o, side: THREE.DoubleSide, blending: THREE.AdditiveBlending, depthWrite: false })
+          new THREE.MeshBasicMaterial({ color: 0x4fd8ff, transparent: true, opacity: o, side: THREE.DoubleSide, blending: THREE.AdditiveBlending, depthWrite: false })
         );
       const rings = [holo(0.9, 0.92, 0.7), holo(0.62, 0.63, 0.45), holo(1.2, 1.205, 0.25)];
       const dash = new THREE.Mesh(
         new THREE.RingGeometry(1.02, 1.06, 64, 1, 0, Math.PI * 1.3),
-        new THREE.MeshBasicMaterial({ color: 0x56e0e8, transparent: true, opacity: 0.55, side: THREE.DoubleSide, blending: THREE.AdditiveBlending, depthWrite: false })
+        new THREE.MeshBasicMaterial({ color: 0x4fd8ff, transparent: true, opacity: 0.55, side: THREE.DoubleSide, blending: THREE.AdditiveBlending, depthWrite: false })
       );
       const glow = new THREE.Mesh(
         new THREE.CircleGeometry(0.95, 64),
@@ -94,8 +94,8 @@ export default function Viewer3D(props: Props) {
             c.width = c.height = 256;
             const g = c.getContext("2d")!;
             const gr = g.createRadialGradient(128, 128, 0, 128, 128, 128);
-            gr.addColorStop(0, "rgba(86,224,232,.55)");
-            gr.addColorStop(1, "rgba(86,224,232,0)");
+            gr.addColorStop(0, "rgba(79,216,255,.55)");
+            gr.addColorStop(1, "rgba(79,216,255,0)");
             g.fillStyle = gr;
             g.fillRect(0, 0, 256, 256);
             return new THREE.CanvasTexture(c);
@@ -137,7 +137,7 @@ export default function Viewer3D(props: Props) {
       // Scan beam that sweeps up the phone now and then
       const scan = new THREE.Mesh(
         new THREE.PlaneGeometry(1.4, 0.012),
-        new THREE.MeshBasicMaterial({ color: 0x56e0e8, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false })
+        new THREE.MeshBasicMaterial({ color: 0x4fd8ff, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false })
       );
       scene.add(scan);
 

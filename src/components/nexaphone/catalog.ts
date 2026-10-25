@@ -60,7 +60,7 @@ export const catalog: Record<string, CatalogEntry> = {
     year: 2025,
     headline: "The fastest phone we have ever rebuilt.",
     pitch:
-      "Snapdragon 8 Elite Gen 5, a 165Hz screen and a 7,300 mAh battery, rated IP69K for high-pressure washdown. Nexa Pro 15 is the top of the line, tuned to find and hold the best tower in the building.",
+      "Snapdragon 8 Elite Gen 5, a 165Hz screen and a 7,300 mAh battery, rated IP69K. Nexa Pro 15 is the top of the line: the most frames we sell, tuned to find and hold the best tower where you play.",
     colors: [c("Infinite Black", "#1a1b1e", "matte"), c("Ultra Violet", "#4f4670", "matte"), c("Sand Storm", "#c8bca6", "matte")],
     configs: [
       { ram: 12, storage: "256GB", price: 1300 },
@@ -92,7 +92,7 @@ export const catalog: Record<string, CatalogEntry> = {
     year: 2025,
     headline: "Flagship everything. Washdown proof.",
     pitch:
-      "Snapdragon 8 Elite, a QHD+ screen, a 6,000 mAh battery and IP69 protection against hot, high-pressure water. The sweet spot of the lineup, for crews that need flagship speed every day.",
+      "Snapdragon 8 Elite, a QHD+ screen, a 6,000 mAh battery and IP69 protection. The sweet spot of the lineup: flagship speed for all-night sessions, and tough enough for the job site in the morning.",
     colors: [c("Black Eclipse", "#15171a"), c("Midnight Ocean", "#1c2a42", "leather"), c("Arctic Dawn", "#dde2e7")],
     configs: [
       { ram: 12, storage: "256GB", price: 800 },
@@ -124,7 +124,7 @@ export const catalog: Record<string, CatalogEntry> = {
     year: 2024,
     headline: "Proven power, priced for the fleet.",
     pitch:
-      "Snapdragon 8 Gen 3, a QHD+ screen and wireless charging. Cool-running, proven in the field, and the best value per unit when you are equipping a whole crew.",
+      "Snapdragon 8 Gen 3, a QHD+ screen and wireless charging. Cool-running, proven, and the best value per phone when you're outfitting a squad or a crew.",
     colors: [c("Silky Black", "#1b1c1f"), c("Flowy Emerald", "#2d5647")],
     configs: [
       { ram: 12, storage: "256GB", price: 600 },
@@ -156,7 +156,7 @@ export const catalog: Record<string, CatalogEntry> = {
     year: 2023,
     headline: "Your way into Nexa Pro.",
     pitch:
-      "Snapdragon 8 Gen 2 and a QHD+ screen, the same performance class as the Galaxy S23 Ultra. The lowest-cost way to put tower lock in every pocket.",
+      "Snapdragon 8 Gen 2 and a QHD+ screen, the same performance class as the Galaxy S23 Ultra. The lowest-cost way to put a locked, lag-free connection in every pocket.",
     colors: [c("Titan Black", "#1f2225", "matte"), c("Eternal Green", "#2a4a3e")],
     configs: [
       { ram: 8, storage: "128GB", price: 500 },
@@ -188,7 +188,7 @@ export const catalog: Record<string, CatalogEntry> = {
     year: 2022,
     headline: "Flagship screen. Entry price.",
     pitch:
-      "A QHD+ 120Hz screen, Snapdragon 8 Gen 1 and a 5,000 mAh battery with 50W wireless charging. The most affordable way to put tower lock and full control in a crew's pockets.",
+      "A QHD+ 120Hz screen, Snapdragon 8 Gen 1 and a 5,000 mAh battery with 50W wireless charging. The most affordable way to put tower lock and full control in a player's hands.",
     colors: [c("Volcanic Black", "#1c1d20", "matte"), c("Emerald Forest", "#23443a", "matte")],
     configs: [
       { ram: 8, storage: "128GB", price: 375 },
@@ -220,7 +220,7 @@ export const catalog: Record<string, CatalogEntry> = {
     year: 2023,
     headline: "A phone in your pocket. A tablet in your hands.",
     pitch:
-      "Opens into a 7.8in screen for schematics, maps, manifests and dashboards, then folds back into a normal phone. All the tower lock, twice the screen.",
+      "Opens into a 7.8in screen for the game on one side and the guide, map or stream on the other, then folds back into a normal phone. All the tower lock, twice the screen.",
     colors: [c("Voyager Black", "#1b1b1d", "leather"), c("Emerald Dusk", "#34443f")],
     configs: [
       { ram: 16, storage: "512GB", price: 1500 },
@@ -252,7 +252,7 @@ export const catalog: Record<string, CatalogEntry> = {
     year: 2025,
     headline: "Liquid cooled. It never slows down.",
     pitch:
-      "A real liquid-cooling loop, a 24,000 RPM fan and Snapdragon 8 Elite Gen 5. Where other phones throttle after a few minutes, Nexa Turbo 11 holds full speed for hours: video, mapping, AI workloads, always-on stations.",
+      "A real liquid-cooling loop, a 24,000 RPM fan, a 144Hz screen and Snapdragon 8 Elite Gen 5. Where other phones throttle after a few minutes, Nexa Turbo 11 holds full frame rate for hours.",
     colors: [c("Nightfreeze", "#15171c", "clear"), c("Subzero", "#c9ced6", "clear"), c("Shadow", "#101113", "matte")],
     configs: [
       { ram: 12, storage: "256GB", price: 1500 },
@@ -285,7 +285,7 @@ export const catalog: Record<string, CatalogEntry> = {
     year: 2024,
     headline: "Built-in fan. Full speed, all shift.",
     pitch:
-      "Snapdragon 8 Elite with a 23,000 RPM fan, liquid metal and a 7,050 mAh battery. Made for always-on workloads that would cook an ordinary phone.",
+      "Snapdragon 8 Elite with a 23,000 RPM fan, liquid metal and a 7,050 mAh battery. Made for marathon sessions that would cook an ordinary phone.",
     colors: [c("Shadow", "#16181b", "matte"), c("Dusk", "#1d1f27", "clear"), c("Moonlight", "#b8bdc5", "clear")],
     configs: [
       { ram: 12, storage: "256GB", price: 1200 },

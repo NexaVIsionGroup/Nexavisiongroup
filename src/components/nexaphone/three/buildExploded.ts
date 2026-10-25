@@ -110,18 +110,18 @@ export function buildExploded(spec: ExplodedSpec): ExplodedHandle {
       g.fillStyle = bg;
       g.fillRect(0, 0, Wc, Hc);
       const au = g.createRadialGradient(Wc * 0.5, Hc * 0.45, 10, Wc * 0.5, Hc * 0.45, Wc * 0.9);
-      au.addColorStop(0, "rgba(86,224,232,.4)");
-      au.addColorStop(1, "rgba(86,224,232,0)");
+      au.addColorStop(0, "rgba(79,216,255,.4)");
+      au.addColorStop(1, "rgba(79,216,255,0)");
       g.fillStyle = au;
       g.fillRect(0, 0, Wc, Hc);
       for (let r = 1; r <= 3; r++) {
-        g.strokeStyle = `rgba(86,224,232,${0.6 - r * 0.15})`;
+        g.strokeStyle = `rgba(79,216,255,${0.6 - r * 0.15})`;
         g.lineWidth = 4;
         g.beginPath();
         g.arc(Wc / 2, Hc * 0.45, Wc * 0.08 * r, 0, Math.PI * 2);
         g.stroke();
       }
-      g.fillStyle = "#56e0e8";
+      g.fillStyle = "#4fd8ff";
       g.beginPath();
       g.arc(Wc / 2, Hc * 0.45, Wc * 0.035, 0, Math.PI * 2);
       g.fill();
@@ -149,7 +149,7 @@ export function buildExploded(spec: ExplodedSpec): ExplodedHandle {
     label(512, 1080, (g, Wc, Hc) => {
       g.fillStyle = "#0c1a16";
       g.fillRect(0, 0, Wc, Hc);
-      g.strokeStyle = "rgba(86,224,232,.25)";
+      g.strokeStyle = "rgba(79,216,255,.25)";
       g.lineWidth = 3;
       for (let i = 0; i < 90; i++) {
         const x = Math.random() * Wc;
@@ -159,8 +159,8 @@ export function buildExploded(spec: ExplodedSpec): ExplodedHandle {
         g.lineTo(Math.random() > 0.5 ? x + 120 : x, Math.random() > 0.5 ? y : y + 120);
         g.stroke();
       }
-      g.fillStyle = "#56e0e8";
-      g.shadowColor = "#56e0e8";
+      g.fillStyle = "#4fd8ff";
+      g.shadowColor = "#4fd8ff";
       g.shadowBlur = 40;
       g.fillRect(Wc * 0.3, Hc * 0.3, Wc * 0.4, Wc * 0.4);
       g.shadowBlur = 0;
@@ -173,7 +173,7 @@ export function buildExploded(spec: ExplodedSpec): ExplodedHandle {
       g.fillStyle = "#cfe9ec";
       g.font = `700 ${Wc * 0.055}px system-ui`;
       g.fillText(spec.modem.toUpperCase(), Wc / 2, Hc * 0.62);
-      g.fillStyle = "#56e0e8";
+      g.fillStyle = "#4fd8ff";
       g.font = `600 ${Wc * 0.045}px system-ui`;
       g.fillText("TOWER + BAND LOCK", Wc / 2, Hc * 0.67);
     })
@@ -227,7 +227,7 @@ export function buildExploded(spec: ExplodedSpec): ExplodedHandle {
   // 7. fan (Turbo) or nothing
   if (spec.fan) {
     const fan = new THREE.Group();
-    const ring = new THREE.Mesh(tr(new THREE.TorusGeometry(0.17, 0.012, 12, 48)), tr(new THREE.MeshPhysicalMaterial({ color: 0x56e0e8, emissive: 0x1a6f75, metalness: 0.3, roughness: 0.3 })));
+    const ring = new THREE.Mesh(tr(new THREE.TorusGeometry(0.17, 0.012, 12, 48)), tr(new THREE.MeshPhysicalMaterial({ color: 0x4fd8ff, emissive: 0x1a6f75, metalness: 0.3, roughness: 0.3 })));
     fan.add(ring);
     const blades = new THREE.Group();
     const bladeMat = tr(new THREE.MeshStandardMaterial({ color: 0x2a2f36, metalness: 0.6, roughness: 0.35 }));

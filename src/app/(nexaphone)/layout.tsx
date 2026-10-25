@@ -31,7 +31,7 @@ const body = IBM_Plex_Sans({
 export const metadata: Metadata = {
   title: { absolute: "Nexa Pro | Phones that pick the tower" },
   description:
-    "Flagship phones rebuilt for work. Nexa Pro locks onto the strongest tower in range and keeps you on the fastest connection it offers.",
+    "Flagship gaming phones that lock onto the strongest tower in range and never hop mid-match. Flat ping where you play, and on the job.",
   robots: { index: false, follow: false },
 };
 

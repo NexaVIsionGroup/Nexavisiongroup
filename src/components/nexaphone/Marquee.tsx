@@ -13,7 +13,7 @@ import {
 } from "framer-motion";
 import { Mark } from "./Nav";
 
-const WORDS = ["Plant floors", "Warehouses", "Job sites", "Field service", "Venues", "Fleets", "Basements", "Rooftops"];
+const WORDS = ["Ranked", "FPS", "Gacha", "Co-op", "Streaming", "Dorms", "LAN parties", "Job sites"];
 
 /** A band of words that drifts on its own and surges with scroll speed. */
 function Row({ base, reverse = false }: { base: number; reverse?: boolean }) {

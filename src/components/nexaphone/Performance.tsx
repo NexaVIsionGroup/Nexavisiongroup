@@ -38,7 +38,7 @@ export default function Performance() {
         <p className="np-lede" style={{ marginTop: 22 }}>
           Every Nexa Pro is built on a flagship Snapdragon 8-series chip, the same silicon behind the fastest gaming
           phones. Some models are a generation or two back. None of them was ever a budget phone: each was designed
-          around games, cameras and sustained speed, and we keep that speed fed with a connection that holds.
+          around games first, and we keep that speed fed with a connection that holds. Work gets the same phone.
         </p>
 
         <div className="np-perf-grid">

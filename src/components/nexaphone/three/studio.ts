@@ -48,8 +48,8 @@ export function studioEnvironment(renderer: THREE.WebGLRenderer): THREE.Texture 
     card.lookAt(0, 0, 0);
     studio.add(card);
   }
-  softbox(0.6, 7, -3.5, 0.5, -3, 3, 0x56e0e8); // cyan kicker behind
-  softbox(0.6, 7, 3.5, 0.5, -3, 1.6, 0x56e0e8);
+  softbox(0.6, 7, -3.5, 0.5, -3, 3, 0x4fd8ff); // cyan kicker behind
+  softbox(0.6, 7, 3.5, 0.5, -3, 1.6, 0x4fd8ff);
   const envTex = pmrem.fromScene(studio, 0).texture;
   studio.traverse((o) => {
     const m = o as import("three").Mesh;
@@ -65,9 +65,9 @@ export const STUDIO_INTENSITY = 1.15;
 export function studioLights(scene: THREE.Scene) {
   const key = new THREE.DirectionalLight(0xffffff, 1.0);
   key.position.set(2, 3, 4);
-  const rim = new THREE.PointLight(0x56e0e8, 14, 8);
+  const rim = new THREE.PointLight(0x4fd8ff, 14, 8);
   rim.position.set(-1.8, 0.6, -1.6);
-  const rim2 = new THREE.PointLight(0x56e0e8, 6, 8);
+  const rim2 = new THREE.PointLight(0x4fd8ff, 6, 8);
   rim2.position.set(1.8, -0.8, 1.2);
   scene.add(key, rim, rim2, new THREE.AmbientLight(0xffffff, 0.06));
 }

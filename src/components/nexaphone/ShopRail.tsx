@@ -90,8 +90,8 @@ export default function ShopRail() {
         <Title text="Pick your phone." />
         <p className="np-lede np-shop-lede">
           {t(
-            `${MODEL_WORD} models, one Signal Engine, all out. Each one locks on to the exact tower and frequency you choose, arrives set up by our shop, and carries our shop warranty.`,
-            `${MODEL_WORD} models, one Signal Engine. Every phone locks to the exact tower and frequency you choose, arrives set up by our shop, and carries our shop warranty.`
+            `${MODEL_WORD} flagship gaming-class phones, one Signal Engine, all out. Each one locks on to the exact tower and band you choose, so your ping stays flat from the first match to the last. Set up by our shop, backed by our warranty.`,
+            `${MODEL_WORD} flagship gaming-class phones, one Signal Engine. Every phone locks to the exact tower and band you choose, so your ping stays flat from the first match to the last. Set up by our shop, backed by our warranty.`
           )}
         </p>
         <div className="np-picks" role="group" aria-label="Pick by need">

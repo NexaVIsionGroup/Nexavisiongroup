@@ -57,7 +57,7 @@ export default function WhyNexa() {
         <p className="np-lede" style={{ marginTop: 22, color: "#cfd9df" }}>
           A Galaxy Ultra is a great phone, built for everyone, and Samsung keeps it {t("locked up", "locked")}. You can&apos;t choose its
           tower, you can&apos;t lock its frequency, and you can&apos;t change how its radio behaves. That control is the
-          whole point of a Nexa Pro, and it&apos;s why our customers buy them.
+          whole point of a Nexa Pro, and it&apos;s why players and crews buy them.
         </p>
 
         <div className="np-why-table">

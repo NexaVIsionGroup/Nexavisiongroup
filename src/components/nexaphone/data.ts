@@ -45,7 +45,7 @@ export const devices: Device[] = [
     memory: "12/256GB, 16/512GB",
     toughness: "IP68 and IP69K",
     carriers: "T-Mobile, AT&T, Verizon. eSIM.",
-    who: "Top of the line for sites that want the newest everything.",
+    who: "Top of the line: the most frames, the biggest battery, the newest chip.",
     chips: ["165Hz screen", "7,300 mAh", "IP69K"],
     stock: "in",
     render: { island: "wide", body: "#2A2F33", accent: "#8C9499" },
@@ -64,7 +64,7 @@ export const devices: Device[] = [
     memory: "12/256GB, 16/512GB",
     toughness: "IP68 and IP69",
     carriers: "T-Mobile, AT&T, Verizon. eSIM.",
-    who: "Flagship speed with washdown-proof toughness.",
+    who: "Flagship speed with IP69 toughness, for sessions that run all night.",
     chips: ["QHD+ 120Hz", "6,000 mAh", "IP69"],
     stock: "in",
     render: { island: "round", body: "#1E2A36", accent: "#6F8499" },
@@ -83,7 +83,7 @@ export const devices: Device[] = [
     memory: "12/256GB, 16/512GB",
     toughness: "IP65",
     carriers: "T-Mobile, AT&T, Verizon. eSIM.",
-    who: "Proven flagship power, priced to equip a whole crew.",
+    who: "Proven flagship power at a price that outfits a whole squad.",
     chips: ["QHD+ 120Hz", "5,400 mAh", "50W wireless"],
     stock: "in",
     render: { island: "offset", body: "#253028", accent: "#7F9484" },
@@ -141,7 +141,7 @@ export const devices: Device[] = [
     memory: "16/512GB",
     toughness: "IPX4",
     carriers: "T-Mobile, AT&T, Verizon. eSIM.",
-    who: "A phone that opens into a 7.8in tablet for maps, plans and dashboards.",
+    who: "Opens into a 7.8in screen: maps, guides and streams beside the game.",
     chips: ["7.82in inside", "4,805 mAh", "Foldable"],
     stock: "in",
     render: { island: "round", body: "#2B2A27", accent: "#958F84" },
@@ -160,7 +160,7 @@ export const devices: Device[] = [
     memory: "12/256GB to 24GB/1TB",
     toughness: "IPX8",
     carriers: "Best on T-Mobile and AT&T. Physical SIM.",
-    who: "Liquid-cooled. Holds full speed for hours of heavy work.",
+    who: "Liquid-cooled, 144Hz, 7,500 mAh. The one built purely for games.",
     chips: ["144Hz screen", "7,500 mAh", "Liquid cooled"],
     stock: "in",
     render: { island: "fan", body: "#16181B", accent: "#E0483A" },
@@ -179,7 +179,7 @@ export const devices: Device[] = [
     memory: "12/256GB to 24GB/1TB",
     toughness: "IP54",
     carriers: "Best on T-Mobile and AT&T. Physical SIM.",
-    who: "Fan-cooled for always-on workloads that cook ordinary phones.",
+    who: "Fan-cooled. Holds full frame rate for hours, not minutes.",
     chips: ["144Hz screen", "7,050 mAh", "Fan cooled"],
     stock: "in",
     render: { island: "fan", body: "#1C1D22", accent: "#C9CDD4" },
@@ -195,72 +195,72 @@ export const families: { id: Family | "all"; label: string }[] = [
 
 export const places = [
   {
+    img: "/nexaphone/placeholder/hands.jpg",
+    title: "Ranked, from your spot",
+    line: "Your desk, your couch, your dorm. The spot is fixed, so the tower should be too. Lock it once and every match starts on the fast band.",
+  },
+  {
+    img: "/nexaphone/placeholder/fps.jpg",
+    title: "Competitive FPS",
+    line: "One band hop mid-firefight is a death. Locked on means the phone never hops, so your ping stays flat through the whole round.",
+  },
+  {
+    img: "/nexaphone/placeholder/rpg.jpg",
+    title: "Gacha, co-op and open world",
+    line: "Live events, big patches, four-player sessions. Hold the fast band for the whole night instead of whatever the network hands you.",
+  },
+  {
+    img: "/nexaphone/placeholder/shards.jpg",
+    title: "Streaming and co-streams",
+    line: "Upload that doesn't sag when the tower gets busy. Your stream holds its bitrate while other phones drop to 480p.",
+  },
+  {
+    img: "/nexaphone/placeholder/streaks.jpg",
+    title: "LAN parties and events",
+    line: "When 40,000 phones crowd the same towers, pick the one that isn't full and stay on it.",
+  },
+  {
     img: "/nexaphone/v2/factory.jpg",
-    title: "Plant floors",
-    line: "Steel, machinery and concrete swallow signal. Stay on the one tower that actually reaches the line.",
-  },
-  {
-    img: "/nexaphone/v3/work-warehouse.jpg",
-    title: "Warehouses",
-    line: "Racking turns a building into a maze. Scanners and handhelds stay connected aisle to aisle.",
-  },
-  {
-    img: "/nexaphone/v3/work-construction.jpg",
-    title: "Job sites",
-    line: "Site trailers and new builds sit at the edge of coverage. Lock onto the strong tower across town, not the weak one next door.",
-  },
-  {
-    img: "/nexaphone/v3/work-field.jpg",
-    title: "Remote sites",
-    line: "Pump stations, equipment rooms, rooftops and basements. A phone installed there stays connected, day and night.",
-  },
-  {
-    img: "/nexaphone/v3/work-venue.jpg",
-    title: "Venues and events",
-    line: "When 40,000 phones crowd the same towers, pick the one that isn't full.",
-  },
-  {
-    img: "/nexaphone/v2/fleet.jpg",
-    title: "Docks and yards",
-    line: "Shipping offices, loading docks and gate houses. Scanners and check-in stations that never drop.",
+    title: "Plant floors and job sites",
+    line: "The same lock that holds a match holds a scanner on a line. Steel, concrete and distance stop being the phone's problem.",
   },
 ];
 
 export const controls = [
   {
     title: "Nothing you didn't ask for",
-    body: "No bloat, no ads, no nag screens. The phone boots straight into your work.",
+    body: "No bloat, no ads, no nag screens. The phone boots straight into your games.",
   },
   {
     title: "Runs the tools other phones block",
-    body: "Professional network, diagnostic and automation apps get the deeper access they need. " + t("Things a Galaxy keeps behind bars.", "Things a Galaxy simply won't allow."),
+    body: "Emulators, overlays, macro and network tools get the deeper access they need. " + t("Things a Galaxy keeps behind bars.", "Things a Galaxy simply won't allow."),
   },
   {
-    title: "Your rules for every app",
-    body: "Decide which apps can use data, and on which connection. Everything else stays quiet.",
+    title: "Give your game the fast lane",
+    body: "Decide which apps can use data, and on which connection. Your match gets the band; everything else waits its turn.",
   },
   {
     title: "Updates when you say so",
-    body: "A phone in the field never changes overnight. Nothing installs until you approve it.",
+    body: "No forced update the night before a tournament. Nothing installs until you approve it.",
   },
   {
-    title: "One job, done well",
-    body: "Lock a phone to a single app for scanners, check-in stations and point of sale.",
+    title: "Game mode that means it",
+    body: "Lock the phone to one app for a session: no notifications, no pop-ups, no accidental home swipes. Works for scanners and kiosks too.",
   },
   {
-    title: "Arrives ready for your fleet",
-    body: "Configured, loaded and tested before it ships. Unbox, sign in, go to work.",
+    title: "Arrives ready to play",
+    body: "Configured, loaded and tested before it ships. Unbox, sign in, queue up. Team and crew setups available.",
   },
 ];
 
 export const gallery = [
-  { src: "/nexaphone/v2/g-tunnel.jpg", alt: "A phone glowing in a dark blue tunnel", tall: true },
-  { src: "/nexaphone/v2/g-circuit-lens.jpg", alt: "Circuit board seen through a lens ring" },
-  { src: "/nexaphone/v2/g-welder.jpg", alt: "A welder working in blue light" },
+  { src: "/nexaphone/placeholder/streaks.jpg", alt: "A phone on black with light streaks", tall: true },
+  { src: "/nexaphone/placeholder/fps.jpg", alt: "Squad moving through a dark warehouse" },
+  { src: "/nexaphone/placeholder/hands.jpg", alt: "Hands holding a phone mid-game" },
   { src: "/nexaphone/v2/g-tower.jpg", alt: "A cell tower against a storm-blue sky", tall: true },
-  { src: "/nexaphone/v2/g-rugged.jpg", alt: "A rugged dark phone case close up" },
-  { src: "/nexaphone/v2/g-bokeh.jpg", alt: "A phone held in low light", tall: true },
-  { src: "/nexaphone/v2/g-board.jpg", alt: "Macro of a circuit board" },
+  { src: "/nexaphone/placeholder/rpg.jpg", alt: "Game character art" },
+  { src: "/nexaphone/placeholder/shards.jpg", alt: "A phone screen shattering into glass shards", tall: true },
+  { src: "/nexaphone/placeholder/charge.jpg", alt: "A phone charging on black" },
 ];
 
 // How people reach a human: call, text, or the in-page chat form.

@@ -40,9 +40,9 @@ export default function Gallery() {
     <section className="np-section" id="gallery">
       <div className="np-wrap">
         <p className="np-chapter">
-          <span>In the field</span>
+          <span>In the wild</span>
         </p>
-        <Title text="In the field." />
+        <Title text="In the wild." />
         <div className="np-gallery" ref={grid}>
           {gallery.map((g, i) => (
             <motion.button

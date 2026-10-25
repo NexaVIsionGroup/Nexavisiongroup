@@ -23,7 +23,7 @@ async function font(family: string, weight: number) {
 
 function tower(h: number, on: boolean) {
   const w = h * 0.4;
-  const c = on ? "#56e0e8" : "#8fa3b0";
+  const c = on ? "#4fd8ff" : "#8fa3b0";
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${w + 10}" height="${h + 14}" viewBox="${-w / 2 - 5} -14 ${w + 10} ${h + 14}"><circle cx="0" cy="-7" r="5" fill="#ff4a3d"/><path d="M0 0 L${-w / 2} ${h} M0 0 L${w / 2} ${h} M${-w * 0.2} ${h * 0.4} H${w * 0.2} M${-w * 0.33} ${h * 0.66} H${w * 0.33} M${-w * 0.1} ${h * 0.2} L${w * 0.2} ${h * 0.4} M${-w * 0.2} ${h * 0.4} L${w * 0.33} ${h * 0.66}" stroke="${c}" stroke-width="${on ? 4 : 3}" stroke-linecap="round" fill="none"/></svg>`;
   return `data:image/svg+xml;base64,${btoa(svg)}`;
 }
@@ -46,15 +46,15 @@ export default async function OG() {
           display: "flex",
           flexDirection: "column",
           justifyContent: "space-between",
-          background: "radial-gradient(circle at 78% 30%, #173340 0%, #0d1419 55%)",
+          background: "radial-gradient(circle at 78% 30%, #173340 0%, #0b0f1a 55%)",
           padding: 64,
-          color: "#e9eef0",
+          color: "#eef2f8",
           fontFamily: "Plex",
           position: "relative",
         }}
       >
         <div style={{ display: "flex", alignItems: "center", gap: 14, fontSize: 40, fontFamily: "Display", letterSpacing: 2 }}>
-          <div style={{ width: 16, height: 16, borderRadius: 8, background: "#56e0e8", boxShadow: "0 0 24px #56e0e8" }} />
+          <div style={{ width: 16, height: 16, borderRadius: 8, background: "#4fd8ff", boxShadow: "0 0 24px #4fd8ff" }} />
           NEXA PRO
         </div>
         <div style={{ position: "absolute", right: 70, top: 70, display: "flex", alignItems: "flex-end", gap: 34 }}>
@@ -65,7 +65,7 @@ export default async function OG() {
         </div>
         <div style={{ display: "flex", flexDirection: "column", fontFamily: "Display" }}>
           <div style={{ fontSize: 132, lineHeight: 0.9 }}>PICK THE TOWER.</div>
-          <div style={{ fontSize: 132, lineHeight: 0.9, color: "#56e0e8" }}>KEEP THE SPEED.</div>
+          <div style={{ fontSize: 132, lineHeight: 0.9, color: "#4fd8ff" }}>KEEP THE SPEED.</div>
           <div style={{ fontSize: 30, color: "#a9b7c1", marginTop: 22, fontFamily: "Plex" }}>
             No more full bars and no internet. Flagship phones, rebuilt for work.
           </div>

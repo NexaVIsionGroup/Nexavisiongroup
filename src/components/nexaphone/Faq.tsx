@@ -12,15 +12,19 @@ const QA: [string, string][] = [
     "Yes. Every Nexa Pro runs on T-Mobile, AT&T and Verizon with a physical SIM. Bring the SIM from your current phone or ask us to source a plan. A few models have carrier notes on their page.",
   ],
   [
-    "Can I move it to another site?",
+    "Can I move it to another spot?",
     t(
-      "Yes. Tower profiles are per site, not per phone. Set a new profile yourself in about a minute, or send us the address and we'll build it. Once a phone is out, it stays out.",
-      "Yes. Tower profiles are per site, not per phone. Set a new profile yourself in about a minute, or send us the address and we'll build it."
+      "Yes. Tower profiles are per spot, not per phone. New apartment, new dorm, a friend's place for the weekend: set a new profile yourself in about a minute, or send us the address and we'll build it. Once a phone is out, it stays out.",
+      "Yes. Tower profiles are per spot, not per phone. New apartment, new dorm, a friend's place for the weekend: set a new profile yourself in about a minute, or send us the address and we'll build it."
     ),
   ],
   [
-    "Do I need an IT person to set it up?",
-    "No. Each phone arrives configured for the site you tell us about, with your apps and rules loaded. Unbox, sign in, go to work. Fleet setup is a $25 add-on per phone if you want us to load everything.",
+    "Will my ping actually be lower?",
+    "Your worst ping will be, and your average gets steadier. A locked band doesn't make a tower faster; it stops the hops and slow-band fallbacks that cause the spikes. If your spot has a good tower in range, you keep it for the whole session.",
+  ],
+  [
+    "Do I need to be technical?",
+    "No. Each phone arrives set up for the spot you tell us about, with your apps and rules loaded. Unbox, sign in, queue up. Team or crew setup is a $25 add-on per phone if you want us to load everything.",
   ],
   [
     "What condition are the phones in?",

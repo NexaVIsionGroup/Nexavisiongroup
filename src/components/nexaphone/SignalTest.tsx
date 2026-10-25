@@ -40,7 +40,7 @@ const RESULTS: { label: string; nexa: string; other: string; unit?: string }[] =
   { label: "Average speed", nexa: "842", other: "203", unit: "Mbps" },
   { label: "Lowest speed, 1% low", nexa: "796", other: "9", unit: "Mbps" },
   { label: "Band hops", nexa: "0", other: "11" },
-  { label: "Airplane-mode resets", nexa: "0", other: "6" },
+  { label: "Worst ping", nexa: "31", other: "480", unit: "ms" },
 ];
 
 function Graph() {
@@ -97,7 +97,7 @@ function Graph() {
         g.fillText(String(m), padL - 8 * dpr, y(m) + 4 * dpr);
       });
       g.textAlign = "center";
-      for (let h = 0; h <= HOURS; h += 2) g.fillText(h === 0 ? "Shift start" : `${h}h`, x(h), H - 8 * dpr);
+      for (let h = 0; h <= HOURS; h += 2) g.fillText(h === 0 ? "Session start" : `${h}h`, x(h), H - 8 * dpr);
 
       const upto = HOURS * ease;
       // ordinary phone
@@ -125,9 +125,9 @@ function Graph() {
         g.fillText(band, px, y(ordinaryAt(at)) - 8 * dpr);
       });
       // nexa
-      g.strokeStyle = "#56e0e8";
+      g.strokeStyle = "#4fd8ff";
       g.lineWidth = 2.5 * dpr;
-      g.shadowColor = "rgba(86,224,232,.7)";
+      g.shadowColor = "rgba(79,216,255,.7)";
       g.shadowBlur = 10 * dpr;
       g.beginPath();
       first = true;
@@ -141,7 +141,7 @@ function Graph() {
       g.shadowBlur = 0;
       // locked tag
       if (ease > 0.15) {
-        g.fillStyle = "#56e0e8";
+        g.fillStyle = "#4fd8ff";
         g.font = `700 ${10 * dpr}px system-ui`;
         g.textAlign = "left";
         g.fillText("LOCKED  n41", padL + 6 * dpr, y(NEXA) - 10 * dpr);
@@ -152,7 +152,7 @@ function Graph() {
     return () => cancelAnimationFrame(raf);
   }, [live]);
 
-  return <canvas ref={canvas} className="np-test-graph" aria-label="Download speed over an eight-hour shift: Nexa Pro holds about 840 Mbps; an ordinary phone hops between bands and drops as low as 9 Mbps" />;
+  return <canvas ref={canvas} className="np-test-graph" aria-label="Download speed over an eight-hour session: Nexa Pro holds about 840 Mbps; an ordinary phone hops between bands and drops as low as 9 Mbps" />;
 }
 
 export default function SignalTest({ compact = false }: { compact?: boolean }) {
@@ -168,8 +168,8 @@ export default function SignalTest({ compact = false }: { compact?: boolean }) {
             <p className="np-lede" style={{ marginTop: 22, color: "#cfd9df" }}>
               Every Nexa Pro runs a flagship Snapdragon chip. A chip is only as fast as the connection feeding it, and an
               ordinary phone keeps trading the fast band on your tower for a slower one that looks stronger. Ours
-              {t(" is out of that cycle. It", "")} holds the band you locked, so the speed you get at 7am is the speed you
-              get at 3pm.
+              {t(" is out of that cycle. It", "")} holds the band you locked, so the ping you get at 7pm is the ping you get at
+              2am.
             </p>
           </>
         )}
@@ -186,7 +186,7 @@ export default function SignalTest({ compact = false }: { compact?: boolean }) {
             <div className="np-test-tags">
               <span>Same tower</span>
               <span>Same carrier</span>
-              <span>8-hour shift</span>
+              <span>8-hour session</span>
               <span data-ex>Example</span>
             </div>
           </div>

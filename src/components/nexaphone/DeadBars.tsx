@@ -41,7 +41,7 @@ function Everyday({ active }: { active: boolean }) {
         <span>9:41</span>
         <span className="np-db-net">
           {plane ? <Plane size={14} /> : step === 3 ? "..." : "4G"}
-          <Bars on={plane ? 0 : step === 3 ? 1 : 4} color="#e9eef0" />
+          <Bars on={plane ? 0 : step === 3 ? 1 : 4} color="#eef2f8" />
         </span>
       </div>
       <div className="np-db-screen">
@@ -125,7 +125,7 @@ export default function DeadBars() {
         >
           Your phone says 4G and full bars, and nothing loads. So you flip airplane mode on and off and hope it
           lands on 5G. It happens because ordinary phones pick their own tower, hop whenever they like, and park
-          on one that has stopped delivering.{t(" They call it a cell for a reason.", "")} A Nexa Pro doesn&apos;t pick. You do.
+          on one that has stopped delivering. That hop is the lag spike that costs you the round.{t(" They call it a cell for a reason.", "")} A Nexa Pro doesn&apos;t pick. You do.
         </motion.p>
 
         <div className="np-db-grid" ref={ref}>
@@ -138,15 +138,15 @@ export default function DeadBars() {
           <p>
             Flagship radios plus our own software, working as one. Ordinary phones hop between towers on their own,
             and that hopping is how they end up stuck on a dead one. The Signal Engine turns it off. We lock each
-            phone to the exact tower and frequency that perform best at your location, and it stays there. No
-            hopping, no dead cells, no airplane mode.
+            phone to the exact tower and frequency that perform best where you play, and it stays there. No
+            hopping, no dead cells, no airplane mode, no spike in the last circle.
           </p>
           <p>
             It also means the phone ignores towers you haven&apos;t approved, including fake cell sites (IMSI
             catchers) built to pull phones in.
           </p>
           <p className="np-engine-small">
-            Built for fixed locations: plant floors, warehouses, offices, kiosks and remote sites. Galaxy phones
+            Built for fixed spots: your desk, your couch, your dorm, and yes, plant floors and job sites. Galaxy phones
             can&apos;t do any of this. Samsung locks their radios, and ours are built open, then set up in our shop.
           </p>
         </div>
