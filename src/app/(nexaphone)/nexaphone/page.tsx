@@ -24,7 +24,7 @@ export default function NexaPhonePage() {
       <Nav dock={false} />
       <main>
         <Hero />
-        <Junction src="/nexaphone/placeholder/hands.jpg" from="dark" to="light" focus="50% 45%" />
+        <Junction src="/nexaphone/placeholder/hands.jpg" video="/nexaphone/placeholder/hands-loop.mp4" from="dark" to="light" focus="50% 45%" />
         <ShopRail />
         <Junction src="/nexaphone/placeholder/shards.jpg" from="light" to="dark" focus="50% 50%" />
         <DeadBars />

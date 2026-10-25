@@ -677,3 +677,6 @@
 .np-sheet { border-radius: 0; box-shadow: 0 -30px 80px rgba(0, 0, 0, 0.6); border-top: 1px solid rgba(79, 134, 255, 0.45); }
 @media (min-width: 760px) { .np-sheet { border-radius: 0; border-left: 1px solid rgba(79, 134, 255, 0.35); border-top: 0; } }
 .np-place-tag { display: block; margin-bottom: 6px; font-size: 11px; font-weight: 800; letter-spacing: 0.2em; text-transform: uppercase; color: var(--lock); }
+
+.np-junction-video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; filter: saturate(1.08) contrast(1.03); }
+@media (prefers-reduced-motion: reduce) { .np-junction-video { display: none; } }
