@@ -346,3 +346,13 @@
 .np-shop .np-chapter { color: var(--lock-deep); }
 .np-shop .np-chapter::after { background: linear-gradient(90deg, rgba(12, 143, 154, 0.5), transparent); }
 .np-shop .np-chapter span { text-shadow: none; }
+
+/* Seams v2: light chapters are rounded panels on the dark page, with a long soft fade in and out (no straight line) */
+.np-light, .np-shop { --seam-r: clamp(30px, 9vw, 64px); --seam-h: calc(clamp(80px, 12vw, 150px) + 28px); border-radius: var(--seam-r); clip-path: inset(0 round var(--seam-r)); padding-top: var(--seam-h); padding-bottom: var(--seam-h); box-shadow: inset 0 1px 0 rgba(86, 224, 232, 0.28), inset 0 -1px 0 rgba(86, 224, 232, 0.18); }
+.np-light::before, .np-shop::before { height: var(--seam-h); background: linear-gradient(180deg, rgba(13, 20, 25, 0.72) 0%, rgba(13, 20, 25, 0.5) 22%, rgba(13, 20, 25, 0.24) 50%, rgba(13, 20, 25, 0.06) 78%, var(--paper) 100%); }
+.np-light::after, .np-shop::after { height: var(--seam-h); background: linear-gradient(0deg, rgba(13, 20, 25, 0.72) 0%, rgba(13, 20, 25, 0.5) 22%, rgba(13, 20, 25, 0.24) 50%, rgba(13, 20, 25, 0.06) 78%, var(--paper) 100%); }
+/* a little dark breathing room above/below each panel so the curve reads */
+.np-light, .np-shop { margin: 14px 0; }
+.np-faq.np-light { padding-top: var(--seam-h); }
+.np-shop::before { top: 0; }
+.np-shop { margin-top: 0; }
