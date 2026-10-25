@@ -71,10 +71,10 @@ export default function Hero() {
           </motion.p>
           <h1 className="np-display np-h1">
             <span className="np-line">
-              <Scramble text="Pick the tower." delay={0.15} />
+              <Scramble text="A phone that" delay={0.15} />
             </span>
             <span className="np-line">
-              <Scramble text="Kill the lag." delay={0.55} />
+              <Scramble text="answers to you." delay={0.55} />
             </span>
           </h1>
         </div>
@@ -97,8 +97,8 @@ export default function Hero() {
         >
           <p className="np-lede">
             {t(
-              "Every phone ships doing time: sentenced by its maker, its carrier and whatever tower it gets handed. A Nexa Pro is out. It locks on to the exact tower and band that deliver the lowest ping where you play, and never hops mid-match.",
-              "No more lag spikes from a phone hopping towers. Nexa Pro locks to the exact tower and band that perform best where you play, and never hops mid-match."
+              "Every phone ships doing time: sentenced by its maker, its carrier and whatever tower it gets handed. A Nexa Pro is out. You choose the tower, the band and what runs. Then it stays put: no hop mid-match, no update you didn't approve, no app you didn't ask for.",
+              "You choose the tower, the band and what runs. Then it stays put: no hop mid-match, no update you didn't approve, no app you didn't ask for. Control and stability, in one phone."
             )}
           </p>
           <div className="np-hero-ctas">

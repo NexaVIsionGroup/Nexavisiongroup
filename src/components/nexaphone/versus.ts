@@ -62,10 +62,10 @@ export function versus(p: Product): { galaxy: string; rows: Row[]; wins: number 
   rows.push({ label: "Fake cell sites", nexa: "Ignores towers you haven't approved", galaxy: "Connects to whatever looks strongest", result: "win" });
   rows.push({ label: "Lock to one exact tower", nexa: t("Locked on, and it holds", "Yes, and it holds"), galaxy: "Not possible", result: "win" });
   rows.push({ label: "Lock to one exact frequency", nexa: "Yes, any band it supports", galaxy: "Not possible", result: "win" });
-  rows.push({ label: "Full system access", nexa: "Built in", galaxy: t("Locked up by Samsung. No key.", "Bootloader locked by Samsung"), result: "win" });
+  rows.push({ label: "Full system access", nexa: "Built in", galaxy: t("Sealed by Samsung. A Moto never opens the radio either.", "Sealed by Samsung; a Moto never opens the radio either"), result: "win" });
   rows.push({ label: "Network rules per app", nexa: "System-wide, every connection", galaxy: "Basic data toggles", result: "win" });
-  rows.push({ label: "Preinstalled apps", nexa: "None you didn't ask for", galaxy: "Samsung and carrier apps", result: "win" });
-  rows.push({ label: "Updates", nexa: "Only when you approve", galaxy: "Pushed by Samsung and carrier", result: "win" });
+  rows.push({ label: "Preinstalled apps", nexa: "None you didn't ask for", galaxy: "Maker and carrier apps", result: "win" });
+  rows.push({ label: "Updates", nexa: "Only when you approve", galaxy: "Pushed by the maker and carrier", result: "win" });
   rows.push({ label: "Setup and support", nexa: "Programmed and tested in our shop", galaxy: "Carrier store", result: "win" });
 
   return { galaxy: p.galaxy.model, rows, wins: rows.filter((r) => r.result === "win").length };

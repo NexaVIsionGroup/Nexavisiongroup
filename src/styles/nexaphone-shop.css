@@ -559,3 +559,71 @@
 .np-hero-kicker { color: transparent; background: linear-gradient(90deg, #dbe7ff 0%, #8fb4ff 45%, #3b6cff 100%); -webkit-background-clip: text; background-clip: text; font-weight: 700; letter-spacing: 0.02em; }
 .np-hero-kicker .np-live-dot { background: #4f86ff; box-shadow: 0 0 0 0 rgba(79, 134, 255, 0.6); }
 .np-control { background: none !important; }
+
+
+/* ═══ Round 2: device pages de-carded; places become melting full-bleed scenes; gallery squared ═══ */
+/* Buy box */
+.np-flag { background: none !important; box-shadow: none !important; padding: 0 10px 0 0 !important; border-radius: 0 !important; border-right: 1px solid var(--hair); color: var(--fog); }
+.np-flag:last-child { border-right: 0; }
+.np-keyspecs { gap: 0 14px; border-top: 1px solid var(--hair); }
+.np-keyspecs div { background: none; box-shadow: none; border-radius: 0; padding: 12px 0 10px; }
+.np-cfg button { background: none; border-radius: 0; box-shadow: inset 0 0 0 1px var(--hair); }
+.np-cfg button[aria-pressed="true"] { background: none; box-shadow: inset 0 0 0 2px var(--lock); }
+.np-more { background: none; box-shadow: none; border-radius: 0; border-top: 1px solid var(--hair); border-bottom: 1px solid var(--hair); }
+.np-more summary { padding: 0; }
+.np-more-body { padding: 4px 0 14px; }
+.np-more-body .np-opt, .np-opt { background: none !important; box-shadow: none !important; border-radius: 0 !important; border-bottom: 1px solid var(--hair); }
+.np-swatch { border-radius: 50%; }
+/* Stats + sections */
+.np-stats { gap: 0 !important; background: none !important; border-top: 1px solid var(--hair); }
+.np-stat { background: none !important; border-bottom: 1px solid var(--hair); padding: 20px 14px 18px 0 !important; }
+.np-stat:nth-child(odd) { border-right: 1px solid var(--hair); }
+.np-stat:nth-child(even) { padding-left: 14px !important; }
+.np-acc-item { background: none !important; box-shadow: none !important; border-radius: 0 !important; border-bottom: 1px solid var(--hair); }
+.np-acc-head { padding-left: 0 !important; padding-right: 0 !important; }
+.np-acc-body { padding-left: 0 !important; padding-right: 0 !important; }
+.np-score, .np-score-top { border-radius: 0; box-shadow: none; border-top: 1px solid var(--hair); }
+.np-score-head { background: none; }
+.np-score-row[data-result="win"] { background: none; }
+.np-score-more { box-shadow: none !important; border-radius: 0 !important; border-bottom: 1px solid var(--hair); padding-left: 0 !important; padding-right: 0 !important; }
+.np-dgal-item { border-radius: 0 !important; }
+.np-dgal-real { box-shadow: none !important; }
+.np-mini-stage { border-radius: 0 !important; background: none !important; box-shadow: none !important; }
+.np-compare { border-radius: 0; }
+.np-panel-dark { background: none !important; box-shadow: none !important; border-radius: 0 !important; padding: 18px 0 !important; border-top: 1px solid var(--hair); border-bottom: 1px solid var(--hair); }
+.np-ship-opt, .np-ship-note { border-radius: 0 !important; background: none !important; box-shadow: inset 0 0 0 1px var(--hair) !important; }
+.np-ship-opt[data-on="true"] { box-shadow: inset 0 0 0 2px var(--lock) !important; }
+.np-models-stage { border-radius: 0; background: none; }
+/* Device page chapter heads (np-dsec) are dark: use the blue fade + centred copy already defined; the buy box h1 stays display type */
+.np-buybox h1 .np-word-in { background: none; color: var(--paper); filter: none; }
+
+/* Places: full-bleed scenes that melt into each other */
+.np-rail { grid-auto-columns: 86vw; gap: 0; }
+.np-place { aspect-ratio: 4 / 5; border-radius: 0 !important; isolation: isolate;
+  -webkit-mask-image: linear-gradient(90deg, transparent 0%, #000 9%, #000 91%, transparent 100%); mask-image: linear-gradient(90deg, transparent 0%, #000 9%, #000 91%, transparent 100%); }
+.np-place::after { background: linear-gradient(180deg, var(--night) 0%, rgba(7, 9, 15, 0) 22%, rgba(7, 9, 15, 0) 42%, rgba(7, 9, 15, 0.94) 86%); }
+.np-place-copy { padding: 22px 26px 26px; }
+.np-place-copy .np-h3 { font-family: var(--f-body); font-weight: 600; text-transform: none; letter-spacing: -0.01em; font-size: clamp(1.4rem, 5.6vw, 2rem); background: linear-gradient(180deg, var(--blue-hi) 0%, var(--blue-mid) 60%, var(--blue-lo) 100%); -webkit-background-clip: text; background-clip: text; color: transparent; }
+@media (min-width: 760px) { .np-rail { grid-auto-columns: 46vw; } }
+@media (min-width: 1240px) { .np-rail { grid-auto-columns: 420px; } }
+
+/* Gallery: square, no clip radius */
+.np-gallery > .np-shot[data-in="true"] { clip-path: inset(0 0 0 0 round 0); }
+.np-shot { border-radius: 0 !important; }
+.np-lightbox img { border-radius: 0; }
+
+/* Little things: pill clusters become typeset links with an underline for the active one */
+.np-hero-chips { gap: 18px; padding-top: 10px; }
+.np-hero-chips a { background: none; box-shadow: none; padding: 0; border-radius: 0; border-bottom: 1px solid transparent; color: var(--fog); font-size: 14.5px; letter-spacing: 0.01em; }
+.np-hero-chips a[data-best="true"] { background: none; box-shadow: none; color: var(--paper); border-bottom-color: var(--lock); }
+.np-picks { gap: 18px; }
+.np-picks button { background: none; padding: 0; border-radius: 0; border-bottom: 2px solid transparent; color: var(--ink-soft); font-weight: 600; }
+.np-picks button[aria-pressed="true"] { background: none; color: var(--ink); border-bottom-color: var(--lock-deep); box-shadow: none; }
+.np-picks-view { width: auto !important; margin-left: auto; }
+.np-jump { gap: 16px; }
+.np-jump a { background: none; padding: 0; border-radius: 0; border-bottom: 2px solid transparent; min-height: 36px; }
+.np-jump a[data-on="true"] { background: none; color: var(--paper); border-bottom-color: var(--lock); box-shadow: none; }
+.np-jump-model { background: none; box-shadow: none; padding: 0 10px 0 0; border-right: 1px solid var(--hair); border-radius: 0; }
+.np-test-legend i { border-radius: 0; }
+/* Junctions a little shorter on phones so the page keeps moving */
+.np-junction { height: clamp(300px, 88vw, 700px); }

@@ -146,8 +146,8 @@ export default function DeadBars() {
             catchers) built to pull phones in.
           </p>
           <p className="np-engine-small">
-            Built for fixed spots: your desk, your couch, your dorm, and yes, plant floors and job sites. Galaxy phones
-            can&apos;t do any of this. Samsung locks their radios, and ours are built open, then set up in our shop.
+            Built for fixed spots: your desk, your couch, your dorm, and yes, plant floors and job sites. Galaxy and Moto
+            phones can&apos;t do any of this: their radios are locked, and ours are built open, then set up in our shop.
           </p>
         </div>
       </div>

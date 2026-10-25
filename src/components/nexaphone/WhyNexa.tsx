@@ -16,10 +16,10 @@ const ROWS: [string, string, string][] = [
   ["Fake cell sites", "Ignores towers you haven't approved, including IMSI catchers", "Connects to whatever looks strongest"],
   ["Exact tower", t("Locked on to the one tower you choose", "Lock to the one tower you choose"), "Whatever tower the network hands you"],
   ["Exact frequency", "Lock to the band and channel you choose", "Band settings at best, if any"],
-  ["Access", "Full system access, built in", t("Locked up by Samsung. No key.", "Locked by Samsung, can't be opened")],
+  ["Access", "Full system access, built in", t("Samsung: sealed. Moto: sealed on carrier models, radio never yours.", "Samsung: sealed. Moto: sealed on carrier models, and the radio is never yours.")],
   ["Network control", "Rules per app, per connection, system-wide", "Basic data on and off"],
-  ["Out of the box", "Nothing you didn't ask for", "Samsung and carrier apps preloaded"],
-  ["Updates", "Only when you approve them", "Pushed by Samsung and your carrier"],
+  ["Out of the box", "Nothing you didn't ask for", "Maker and carrier apps preloaded"],
+  ["Updates", "Only when you approve them", "Pushed by the maker and your carrier"],
   ["Battery", "Up to 7,500 mAh", "5,000 mAh"],
   ["Fastest charging", "Up to 100W wired, 80W wireless", "Up to 60W wired, 25W wireless"],
   ["Toughest rating", "IP69K, survives hot high-pressure washdown", "IP68"],
@@ -53,9 +53,9 @@ export default function WhyNexa() {
         <p className="np-chapter">
           <span>Compare</span>
         </p>
-        <Title text="Why not just buy a Galaxy?" style={{ maxWidth: "10em" }} />
+        <Title text="Why not a Galaxy or a Moto?" style={{ maxWidth: "10em" }} />
         <p className="np-lede" style={{ marginTop: 22, color: "#cfd9df" }}>
-          A Galaxy Ultra is a great phone, built for everyone, and Samsung keeps it {t("locked up", "locked")}. You can&apos;t choose its
+          A Galaxy Ultra or a Moto Edge is a great phone, built for everyone, and its maker keeps it {t("locked up", "locked")}. You can&apos;t choose its
           tower, you can&apos;t lock its frequency, and you can&apos;t change how its radio behaves. That control is the
           whole point of a Nexa Pro, and it&apos;s why players and crews buy them.
         </p>
@@ -63,7 +63,7 @@ export default function WhyNexa() {
         <div className="np-why-table">
           <div className="np-why-cols">
             <span>Nexa Pro</span>
-            <span>Galaxy S Ultra</span>
+            <span>Galaxy / Moto</span>
           </div>
           {rows.map(([label, us, them], i) => (
             <motion.div
@@ -101,7 +101,7 @@ export default function WhyNexa() {
         </div>
         <p className="np-footnote">
           Nexa figures are the best across the lineup; each phone&apos;s page shows its own. Galaxy figures are US launch
-          specs for the S22 through S26 Ultra.
+          specs for the S22 through S26 Ultra; Moto Edge figures are in the same range.
         </p>
       </div>
     </section>

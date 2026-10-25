@@ -18,6 +18,7 @@ import Title from "./Title";
 import SignalTest from "./SignalTest";
 import Chip3D from "./Chip3D";
 import Exploded3D from "./Exploded3D";
+import Junction from "./Junction";
 import PhoneRender from "./PhoneRender";
 import { versus } from "./versus";
 import CompareSheet from "./CompareSheet";
@@ -456,6 +457,8 @@ export default function DevicePage({ slug }: { slug: string }) {
         </div>
       </section>
 
+      <Junction src="/nexaphone/placeholder/streaks.jpg" from="dark" to="dark" focus="50% 50%" />
+
       {/* ── Performance: the chip, its numbers, and the proof that stability feeds it ── */}
       <section className="np-dsec np-dperf" id="performance-proof">
         <div className="np-wrap">
@@ -522,10 +525,10 @@ export default function DevicePage({ slug }: { slug: string }) {
       {/* ── Compare ── */}
       <section className="np-dsec" id="compare">
         <div className="np-wrap">
-          <Title text={`What the ${vs.galaxy} can't do.`} className="np-display np-h2" style={{ maxWidth: "11em" }} />
+          <Title text={`What the ${vs.galaxy} (or any Moto) can't do.`} className="np-display np-h2" style={{ maxWidth: "12em" }} />
           <p className="np-lede np-dpitch">
-            Same flagship class as the {vs.galaxy}. The difference is control: Samsung locks its phones, so none of
-            this is possible on a Galaxy.
+            Same flagship class as the {vs.galaxy}. The difference is control: Samsung and Motorola lock their phones,
+            so none of this is possible on a Galaxy or a Moto.
           </p>
           <CompareSheet p={p} />
         </div>

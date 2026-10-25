@@ -81,7 +81,7 @@ export default function CompareSheet({ p }: { p: Product }) {
                 </button>
               </header>
               <p className="np-compare-lede">
-                Same flagship class. The difference is control: Samsung locks its phones, so none of the top rows are possible on a Galaxy.
+                Same flagship class. The difference is control: Samsung and Motorola lock their phones, so none of the top rows are possible on a Galaxy or a Moto.
               </p>
               <div className="np-compare-scroll">
                 <div className="np-score" role="table" aria-label={`${p.name} versus ${vs.galaxy}, full list`}>
