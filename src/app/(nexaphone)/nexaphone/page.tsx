@@ -25,7 +25,7 @@ export default function NexaPhonePage() {
       <Nav dock={false} />
       <main>
         <Hero />
-        <PhoneInHands photo="/nexaphone/placeholder/hands.jpg" thumbs="/nexaphone/placeholder/hands-thumbs.webp" thumbsBox={[330, 590, 930, 340]} video="/nexaphone/placeholder/hands-loop.mp4" size={[1452, 1452]} corners={[[104, 556], [1108, 392], [1224, 874], [210, 906]]} from="dark" to="light" focus={[0.5, 0.45]} />
+        <PhoneInHands photo="/nexaphone/placeholder/hands.jpg" thumbs="/nexaphone/placeholder/hands-thumbs.webp" thumbsBox={[330, 590, 930, 340]} video="/nexaphone/placeholder/hands-loop.mp4" size={[1452, 1452]} corners={[[104, 556], [1108, 392], [1300, 882], [237, 1000]]} from="dark" to="light" focus={[0.5, 0.45]} />
         <ShopRail />
         <Junction src="/nexaphone/placeholder/shards.jpg" from="light" to="dark" focus="50% 50%" />
         <DeadBars />
