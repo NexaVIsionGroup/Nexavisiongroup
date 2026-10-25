@@ -668,3 +668,12 @@
 .np-sum-total b { background: linear-gradient(180deg, var(--blue-hi), var(--blue-mid) 60%, var(--blue-lo)); -webkit-background-clip: text; background-clip: text; color: transparent; }
 .np-back { color: var(--fog); }
 @media (min-width: 900px) { .np-buybox { max-width: 720px; } .np-buybox-actions { grid-template-columns: 1fr 1fr; } }
+
+/* ═══ Round 4: bottom bars as hairline strips, square sheets, place tags ═══ */
+.np-lbar, .np-buybar { left: 0; right: 0; bottom: 0; width: auto; border-radius: 0; padding: 10px var(--gutter) max(10px, env(safe-area-inset-bottom)); background: rgba(7, 9, 15, 0.9); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); box-shadow: none; border-top: 1px solid var(--hair); }
+.np-lbar-all { background: none; padding: 0 4px; border-bottom: 1px solid var(--hair); border-radius: 0; }
+.np-lbar-item small, .np-buybar small { color: var(--lock); }
+@media (min-width: 860px) { .np-lbar { left: 0; right: 0; width: auto; } }
+.np-sheet { border-radius: 0; box-shadow: 0 -30px 80px rgba(0, 0, 0, 0.6); border-top: 1px solid rgba(79, 134, 255, 0.45); }
+@media (min-width: 760px) { .np-sheet { border-radius: 0; border-left: 1px solid rgba(79, 134, 255, 0.35); border-top: 0; } }
+.np-place-tag { display: block; margin-bottom: 6px; font-size: 11px; font-weight: 800; letter-spacing: 0.2em; text-transform: uppercase; color: var(--lock); }

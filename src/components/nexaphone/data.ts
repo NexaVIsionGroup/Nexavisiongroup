@@ -196,31 +196,37 @@ export const families: { id: Family | "all"; label: string }[] = [
 export const places = [
   {
     img: "/nexaphone/placeholder/hands.jpg",
+    tag: "Ranked",
     title: "Ranked, from your spot",
     line: "Your desk, your couch, your dorm. The spot is fixed, so the tower should be too. Lock it once and every match starts on the fast band.",
   },
   {
     img: "/nexaphone/placeholder/fps.jpg",
+    tag: "FPS",
     title: "Competitive FPS",
     line: "One band hop mid-firefight is a death. Locked on means the phone never hops, so your ping stays flat through the whole round.",
   },
   {
     img: "/nexaphone/placeholder/rpg.jpg",
+    tag: "Gacha",
     title: "Gacha, co-op and open world",
     line: "Live events, big patches, four-player sessions. Hold the fast band for the whole night instead of whatever the network hands you.",
   },
   {
     img: "/nexaphone/placeholder/shards.jpg",
+    tag: "Streaming",
     title: "Streaming and co-streams",
     line: "Upload that doesn't sag when the tower gets busy. Your stream holds its bitrate while other phones drop to 480p.",
   },
   {
     img: "/nexaphone/placeholder/streaks.jpg",
+    tag: "LAN",
     title: "LAN parties and events",
     line: "When 40,000 phones crowd the same towers, pick the one that isn't full and stay on it.",
   },
   {
     img: "/nexaphone/v2/factory.jpg",
+    tag: "Work",
     title: "Plant floors and job sites",
     line: "The same lock that holds a match holds a scanner on a line. Steel, concrete and distance stop being the phone's problem.",
   },

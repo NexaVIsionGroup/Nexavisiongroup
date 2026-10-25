@@ -104,7 +104,7 @@ export function foldScreen(label: string) {
 
     /* ── left pane: site map ── */
     text("SIGNAL ENGINE", pad, 112, 22, 800, `rgb(${CYAN})`, "left", 4);
-    text("Plant 2 · Dock B", pad, 150, 30, 600, "#eefcfd");
+    text("Desk · Apartment 4B", pad, 150, 30, 600, "#eefcfd");
     const mx = pad;
     const my = 180;
     const mw = P - pad * 2 - 6;

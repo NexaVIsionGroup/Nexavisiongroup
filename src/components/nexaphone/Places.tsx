@@ -36,6 +36,7 @@ export default function Places() {
                 <Image src={p.img} alt="" fill sizes="(max-width: 700px) 90vw, 420px" />
               </div>
               <div className="np-place-copy">
+                <small className="np-place-tag">{p.tag}</small>
                 <h3 className="np-display np-h3">{p.title}</h3>
                 <p>{p.line}</p>
               </div>
