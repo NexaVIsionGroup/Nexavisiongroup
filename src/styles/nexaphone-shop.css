@@ -462,3 +462,100 @@
 /* Hero: no sky photo — towers and stars on clean black, with a faint blue floor glow */
 .np-hero { background: radial-gradient(90% 60% at 50% 100%, rgba(47, 91, 255, 0.16), transparent 70%), var(--night); }
 .np-hero::after { background: linear-gradient(180deg, rgba(7, 9, 15, 0) 0%, rgba(7, 9, 15, 0) 70%, var(--night) 100%); }
+
+
+/* ═══ De-card pass (owner 2026-10-25: stray away from deck-of-cards containers). Open layouts,
+   hairline rules, numbers set straight on the page, photos full-bleed, phones floating. ═══ */
+.np { --hair: rgba(255, 255, 255, 0.12); --hair-ink: rgba(11, 18, 32, 0.14); }
+
+/* Hero readout: a HUD line, not a box */
+.np-readout { background: none; backdrop-filter: none; -webkit-backdrop-filter: none; box-shadow: none; border-top: 1px solid var(--hair); border-radius: 0; padding: 14px 4px 0; left: var(--gutter); right: var(--gutter); }
+
+/* Shop cards: floating phones on the page */
+.np-shop-card, .np-shop-rail[data-grid="true"] .np-shop-card { background: none; box-shadow: none; border-radius: 0; overflow: visible; }
+.np-shop-card[data-best="true"] { box-shadow: none; }
+.np-shop-stage { background: none; border-radius: 0; }
+.np-shop-stage::after { bottom: 4%; height: 14%; background: radial-gradient(50% 50% at 50% 50%, rgba(79, 134, 255, 0.35), transparent 70%); }
+.np-shop-body { padding: 10px 0 18px; border-top: 1px solid var(--hair-ink); }
+.np-shop-chips span { background: none; padding: 0 8px 0 0; border-right: 1px solid var(--hair-ink); border-radius: 0; }
+.np-shop-chips span:last-child { border-right: 0; }
+.np-shop-btns .np-btn-ghost { box-shadow: none; border-bottom: 1px solid var(--hair-ink); border-radius: 0; padding: 0; justify-content: flex-start; }
+.np-shop-stock { background: none; padding: 0; color: var(--ink-soft); }
+.np-shop-badge { background: none; color: var(--lock-deep); padding: 0; box-shadow: none; letter-spacing: 0.1em; text-transform: uppercase; }
+
+/* Dead bars: the Signal Engine as an open statement */
+.np-engine { background: none !important; box-shadow: none !important; border-radius: 0; padding: 26px 0 0; border-top: 1px solid var(--hair); text-align: center; }
+.np-engine h3 { font-family: var(--f-body); font-weight: 600; text-transform: none; letter-spacing: -0.01em; font-size: clamp(1.5rem, 6vw, 2.2rem); background: linear-gradient(180deg, var(--blue-hi), var(--blue-lo)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.np-engine p { max-width: 36em; margin-inline: auto; }
+
+/* Band story: panels become plain rows */
+.np-panel { background: none !important; box-shadow: none !important; border-radius: 0 !important; padding: 0 !important; }
+.np-band { border-bottom: 1px solid var(--hair-ink); border-radius: 0 !important; background: none !important; }
+.np-compare-toggle { background: none !important; box-shadow: inset 0 0 0 1px var(--hair-ink) !important; }
+
+/* Signal test: no card; graph full width, results as a numbers row */
+.np-test-card { background: none; box-shadow: none; padding: 0; border-radius: 0; margin-top: 34px; }
+.np-test-head { border-top: 1px solid var(--hair); padding-top: 16px; }
+.np-test-tags span { background: none; box-shadow: none; padding: 0 8px 0 0; border-right: 1px solid var(--hair); border-radius: 0; }
+.np-test-tags span:last-child { border-right: 0; }
+.np-test-graph { border-radius: 0; background: none; margin: 0 calc(var(--gutter) * -1); width: calc(100% + var(--gutter) * 2); }
+.np-test-results { gap: 0; margin-top: 10px; border-top: 1px solid var(--hair); }
+.np-test-results > div { background: none; border-radius: 0; padding: 16px 12px 14px 0; border-bottom: 1px solid var(--hair); }
+.np-test-results > div:nth-child(odd) { border-right: 1px solid var(--hair); }
+.np-test-results > div:nth-child(even) { padding-left: 14px; }
+.np-test-results b { font-size: clamp(30px, 9vw, 44px); }
+.np-test-note { max-width: 40em; margin-inline: auto; text-align: center; }
+
+/* Performance: chip floats on black; stats are a numbers row with hairlines */
+.np-perf-chipcard { background: none; box-shadow: none; border-radius: 0; padding: 0; overflow: visible; }
+.np-perf-chipcap { text-align: center; }
+.np-perf-stats { gap: 0; border-top: 1px solid var(--hair-ink); }
+.np-perf-stats > div, .np-perf-stats-dark > div { background: none; box-shadow: none; border-radius: 0; padding: 18px 12px 16px 0; border-bottom: 1px solid var(--hair-ink); }
+.np-perf-stats > div:nth-child(odd) { border-right: 1px solid var(--hair-ink); }
+.np-perf-stats > div:nth-child(even) { padding-left: 14px; }
+.np-perf-stats-dark { border-top-color: var(--hair); }
+.np-perf-stats-dark > div { border-bottom-color: var(--hair); }
+.np-perf-stats-dark > div:nth-child(odd) { border-right-color: var(--hair); }
+.np-light .np-perf-chipcard { background: radial-gradient(70% 60% at 50% 45%, #0e1220, var(--night) 75%); padding: 10px 0 0; }
+
+/* Control: tiles become an open list */
+.np-control { gap: 0 !important; border-top: 1px solid var(--hair); }
+.np-control > .np-control-tile, .np-control > div { background: none !important; padding: 26px 0 24px !important; border-bottom: 1px solid var(--hair); border-radius: 0 !important; }
+.np-control-tile::before { display: none !important; }
+@media (min-width: 720px) { .np-control > div { padding-right: 28px !important; } }
+
+/* Galaxy table + caps: open rows */
+.np-why-table { box-shadow: none; border-radius: 0; border-top: 1px solid var(--hair); }
+.np-why-row > div:first-child { background: none; }
+.np-why-cols { background: none; }
+.np-why-more { background: none; box-shadow: none; border-bottom: 1px solid var(--hair); border-radius: 0; }
+.np-shop-caps { gap: 0; border-top: 1px solid var(--hair); }
+.np-shop-cap { background: none; box-shadow: none; border-radius: 0; padding: 20px 0; border-bottom: 1px solid var(--hair); }
+
+/* FAQ: rows, no container */
+.np-light.np-faq .np-faq-list, .np-faq-list { background: none !important; box-shadow: none !important; border-radius: 0; border-top: 1px solid var(--hair-ink); }
+.np-faq-item summary { padding-left: 0; padding-right: 0; }
+.np-faq-item p { padding-left: 0; }
+
+/* Mini CTA + talk: statements with a rule, not boxes */
+.np-minicta { background: none; box-shadow: none; border-radius: 0; padding: 20px 0; border-top: 1px solid var(--hair); border-bottom: 1px solid var(--hair); }
+.np-talk { background: none !important; box-shadow: none !important; border-radius: 0; padding: 22px 0 0; border-top: 1px solid var(--hair); }
+.np-talk-btn { border-radius: 0; background: none; border-bottom: 1px solid var(--hair); }
+.np-talk-chat { background: none; color: var(--lock); }
+.np-talk-chat svg { color: var(--lock); }
+
+/* Places + stages: square, no frames */
+.np-place { border-radius: 0 !important; }
+.np-inside-stage, .np-overview .np-dhero-stage, .np-perf-chipcard, .np-test-card { box-shadow: none; }
+.np-inside-stage { border-radius: 0; background: radial-gradient(80% 70% at 50% 45%, #0e1220, var(--night) 85%); }
+.np-inside-list li { background: none; box-shadow: none; border-radius: 0; padding: 16px 0; border-bottom: 1px solid var(--hair); }
+.np-inside-list li[data-active="true"] { background: none; box-shadow: none; transform: none; border-bottom-color: var(--lock); }
+.np-inside-list li[data-hot="true"][data-active="true"] { box-shadow: none; }
+.np-chip-flat { border-radius: 0; }
+
+/* Electric steel blue: near-white steel at the top, hard electric blue below — metallic, not pastel */
+.np { --blue-hi: #dbe7ff; --blue-mid: #4f86ff; --blue-lo: #1b48d6; }
+.np-section:not(.np-light):not(.np-shop) .np-h2 .np-word-in, .np-dsec .np-h2 .np-word-in, .np-test .np-h2 .np-word-in, .np-h1 .np-line:last-child > span > span > span:last-child, .np-engine h3 { background: linear-gradient(180deg, var(--blue-hi) 0%, #9fbfff 26%, var(--blue-mid) 52%, #2f5bff 70%, var(--blue-lo) 100%); -webkit-background-clip: text; background-clip: text; color: transparent; filter: drop-shadow(0 2px 0 rgba(0, 0, 0, 0.35)) drop-shadow(0 0 14px rgba(79, 134, 255, 0.35)); }
+.np-hero-kicker { color: transparent; background: linear-gradient(90deg, #dbe7ff 0%, #8fb4ff 45%, #3b6cff 100%); -webkit-background-clip: text; background-clip: text; font-weight: 700; letter-spacing: 0.02em; }
+.np-hero-kicker .np-live-dot { background: #4f86ff; box-shadow: 0 0 0 0 rgba(79, 134, 255, 0.6); }
+.np-control { background: none !important; }
