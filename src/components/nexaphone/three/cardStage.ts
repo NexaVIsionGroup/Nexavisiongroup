@@ -1,5 +1,6 @@
 import * as THREE from "three";
-import { buildPhone, type Island, type PhoneHandle } from "./buildPhone";
+import { buildPhone, type Island } from "./buildPhone";
+import { buildChip } from "./buildChip";
 import { studioEnvironment, studioLights, STUDIO_INTENSITY } from "./studio";
 import type { Color as Swatch } from "../catalog";
 
@@ -10,11 +11,18 @@ import type { Color as Swatch } from "../catalog";
 
 export type CardModel = { id: string; island: Island; fold: boolean; swatch: Swatch; label: string };
 
+type Built = { group: THREE.Group; tick: (dt: number, t: number) => void; dispose: () => void };
 type Entry = {
   canvas: HTMLCanvasElement;
   ctx: CanvasRenderingContext2D;
-  model: CardModel;
-  phone: PhoneHandle | null;
+  build: () => Built;
+  /** Object height / width to frame, in scene units. */
+  fit: { h: number; w: number };
+  /** Per-frame pose. */
+  pose: (g: THREE.Group, t: number, phase: number, still: boolean) => void;
+  shadowY: number;
+  shadowScale: number;
+  phone: Built | null;
   visible: boolean;
   phase: number;
   onReady: () => void;
@@ -90,10 +98,7 @@ function frame(now: number) {
     const w = Math.round(e.canvas.clientWidth * dpr);
     const h = Math.round(e.canvas.clientHeight * dpr);
     if (w < 8 || h < 8) continue;
-    if (!e.phone) {
-      e.phone = buildPhone(e.model.island, e.model.fold, e.model.swatch, e.model.label, e.model.id);
-      e.phone.setFold?.(1);
-    }
+    if (!e.phone) e.phone = e.build();
     if (e.canvas.width !== w || e.canvas.height !== h) {
       e.canvas.width = w;
       e.canvas.height = h;
@@ -104,20 +109,16 @@ function frame(now: number) {
     // Frame the phone: fit its height, and its width on narrow stages.
     const aspect = w / h;
     camera.aspect = aspect;
-    const fitH = 1.78 / (2 * Math.tan((30 * Math.PI) / 360));
-    const fitW = 1.15 / (2 * Math.tan((30 * Math.PI) / 360) * aspect);
+    const fitH = e.fit.h / (2 * Math.tan((30 * Math.PI) / 360));
+    const fitW = e.fit.w / (2 * Math.tan((30 * Math.PI) / 360) * aspect);
     camera.position.set(0, 0.12, Math.max(fitH, fitW));
     camera.lookAt(0, -0.02, 0);
     camera.updateProjectionMatrix();
 
     const g = e.phone.group;
-    // Eased spin: lingers on the back and the screen, turns quickly through the
-    // edge-on angles where a phone is just a sliver.
-    const th = e.phase + t * 0.5;
-    const yaw = still ? -0.45 : th - 0.38 * Math.sin(2 * th);
-    g.rotation.set(0.06, yaw, 0);
-    g.position.y = still ? 0 : Math.sin(t * 1.2 + e.phase) * 0.025;
-    shadow.position.y = -0.86;
+    e.pose(g, t, e.phase, still);
+    shadow.position.y = e.shadowY;
+    shadow.scale.setScalar(e.shadowScale);
     (shadow.material as THREE.MeshBasicMaterial).opacity = 0.85 - g.position.y * 3;
     e.phone.tick(dt, t);
 
@@ -135,12 +136,43 @@ function frame(now: number) {
   }
 }
 
-/** Show a spinning 3D model on `canvas`. Returns a cleanup function. */
-export function mountCard(canvas: HTMLCanvasElement, model: CardModel, onReady: () => void): () => void {
+// Eased spin: lingers on the back and the screen, turns quickly through the
+// edge-on angles where a phone is just a sliver.
+const phonePose = (g: THREE.Group, t: number, phase: number, still: boolean) => {
+  const th = phase + t * 0.5;
+  g.rotation.set(0.06, still ? -0.45 : th - 0.38 * Math.sin(2 * th), 0);
+  g.position.y = still ? 0 : Math.sin(t * 1.2 + phase) * 0.025;
+};
+
+// The chip tilts and sways so the brushed lid keeps catching the light streaks,
+// but never turns its face away.
+const chipPose = (g: THREE.Group, t: number, phase: number, still: boolean) => {
+  g.rotation.set(-0.38 + (still ? 0 : Math.sin(t * 0.6 + phase) * 0.1), still ? 0.3 : Math.sin(t * 0.45 + phase) * 0.55, 0);
+  g.position.y = -0.04;
+  g.position.y += still ? 0 : Math.sin(t * 1.1 + phase) * 0.02;
+};
+
+export type ObjectSpec = { build: () => Built; fit?: { h: number; w: number }; pose?: Entry["pose"]; shadowY?: number; shadowScale?: number };
+
+/** Show any 3D object on `canvas` with the shared renderer. Returns a cleanup function. */
+export function mountObject(canvas: HTMLCanvasElement, spec: ObjectSpec, onReady: () => void): () => void {
   if (!init()) return () => {};
   const ctx = canvas.getContext("2d");
   if (!ctx) return () => {};
-  const e: Entry = { canvas, ctx, model, phone: null, visible: false, phase: -0.5 + Math.random() * 0.6 + (entries.size % 2) * Math.PI, onReady, ready: false };
+  const e: Entry = {
+    canvas,
+    ctx,
+    build: spec.build,
+    fit: spec.fit ?? { h: 1.78, w: 1.15 },
+    pose: spec.pose ?? phonePose,
+    shadowY: spec.shadowY ?? -0.86,
+    shadowScale: spec.shadowScale ?? 1,
+    phone: null,
+    visible: false,
+    phase: -0.5 + Math.random() * 0.6 + (entries.size % 2) * Math.PI,
+    onReady,
+    ready: false,
+  };
   entries.add(e);
   const io = new IntersectionObserver(([x]) => (e.visible = x.isIntersecting), { rootMargin: "60px" });
   io.observe(canvas);
@@ -154,4 +186,28 @@ export function mountCard(canvas: HTMLCanvasElement, model: CardModel, onReady: 
       raf = 0;
     }
   };
+}
+
+/** A spinning phone for a shop card. */
+export function mountCard(canvas: HTMLCanvasElement, model: CardModel, onReady: () => void): () => void {
+  return mountObject(
+    canvas,
+    {
+      build: () => {
+        const ph = buildPhone(model.island, model.fold, model.swatch, model.label, model.id);
+        ph.setFold?.(1);
+        return ph;
+      },
+    },
+    onReady
+  );
+}
+
+/** The flagship chip tile. */
+export function mountChip(canvas: HTMLCanvasElement, lines: [string, string, string], onReady: () => void): () => void {
+  return mountObject(
+    canvas,
+    { build: () => buildChip(...lines), fit: { h: 1.6, w: 1.5 }, pose: chipPose, shadowY: -0.66, shadowScale: 0.9 },
+    onReady
+  );
 }

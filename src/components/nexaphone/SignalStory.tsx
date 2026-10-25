@@ -74,6 +74,9 @@ export default function SignalStory() {
   return (
     <section className="np-section np-light" id="signal">
       <div className="np-wrap">
+        <p className="np-chapter">
+          <span>Bands</span>
+        </p>
         <Title text="Other phones turn the fast lanes off." style={{ maxWidth: "11em" }} />
         <p className="np-lede" style={{ marginTop: 22 }}>
           When the signal at work is bad, most phones give you one fix: switch bands off in settings. That stops

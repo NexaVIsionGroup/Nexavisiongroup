@@ -111,6 +111,9 @@ export default function DeadBars() {
   return (
     <section className="np-section np-deadbars" id="stuck">
       <div className="np-wrap">
+        <p className="np-chapter">
+          <span>Signal</span>
+        </p>
         <Title text="Full bars. No internet." />
         <motion.p
           className="np-lede"

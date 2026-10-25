@@ -16,6 +16,7 @@ import SignalField from "./SignalField";
 import Scramble from "./Scramble";
 import Title from "./Title";
 import SignalTest from "./SignalTest";
+import Chip3D from "./Chip3D";
 import PhoneRender from "./PhoneRender";
 import { versus } from "./versus";
 import CompareSheet from "./CompareSheet";
@@ -442,14 +443,43 @@ export default function DevicePage({ slug }: { slug: string }) {
         </div>
       </section>
 
-      {/* ── Performance proof (shared card; the page's own stats sit above it) ── */}
-      <section className="np-dsec" id="performance-proof">
+      {/* ── Performance: the chip, its numbers, and the proof that stability feeds it ── */}
+      <section className="np-dsec np-dperf" id="performance-proof">
         <div className="np-wrap">
-          <Title text="Stability is performance." className="np-display np-h2" style={{ maxWidth: "9em" }} />
-          <p className="np-lede np-dpitch">
-            {p.chip} only runs as fast as the connection feeding it. An ordinary phone trades the fast band for a slower
-            one all day; this phone holds the band you locked.
+          <p className="np-chapter">
+            <span>Performance</span>
           </p>
+          <Title text="Flagship silicon. Fed properly." className="np-display np-h2" style={{ maxWidth: "9em" }} />
+          <p className="np-lede np-dpitch">
+            {p.perf.note} {p.chip} only runs as fast as the connection feeding it: an ordinary phone trades the fast
+            band for a slower one all day, and this phone holds the band you locked.
+          </p>
+          <div className="np-perf-grid">
+            <div className="np-perf-chipcard">
+              <Chip3D lines={["SNAPDRAGON", p.chip.replace(/^Snapdragon\s*/i, "").toUpperCase(), "FLAGSHIP CLASS"]} />
+              <div className="np-perf-chipcap">
+                <b>{p.chip}</b> · {p.perf.process} process
+              </div>
+            </div>
+            <div className="np-perf-stats np-perf-stats-dark">
+              <div>
+                <b className="np-num">{p.perf.cpu.match(/[\d.]+\s*GHz/)?.[0] ?? p.perf.cpu}<i aria-hidden>↑</i></b>
+                <span>Top CPU clock</span>
+              </div>
+              <div>
+                <b className="np-num">{p.gb6.toLocaleString()}<i aria-hidden>↑</i></b>
+                <span>Geekbench 6 multi-core</span>
+              </div>
+              <div>
+                <b>{p.perf.gpu}</b>
+                <span>Graphics</span>
+              </div>
+              <div>
+                <b className="np-num">{p.perf.antutu}</b>
+                <span>AnTuTu score</span>
+              </div>
+            </div>
+          </div>
         </div>
         <SignalTest compact />
       </section>

@@ -39,6 +39,9 @@ export default function Gallery() {
   return (
     <section className="np-section" id="gallery">
       <div className="np-wrap">
+        <p className="np-chapter">
+          <span>In the field</span>
+        </p>
         <Title text="In the field." />
         <div className="np-gallery" ref={grid}>
           {gallery.map((g, i) => (

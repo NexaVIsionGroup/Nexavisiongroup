@@ -77,6 +77,9 @@ export default function ShopRail() {
   return (
     <section className="np-section np-shop" id="shop">
       <div className="np-wrap">
+        <p className="np-chapter">
+          <span>Shop</span>
+        </p>
         <Title text="Pick your phone." />
         <p className="np-lede np-shop-lede">
           {t(

@@ -11,6 +11,7 @@ import LandingBar from "@/components/nexaphone/LandingBar";
 import MiniCta from "@/components/nexaphone/MiniCta";
 import WhyNexa from "@/components/nexaphone/WhyNexa";
 import SignalTest from "@/components/nexaphone/SignalTest";
+import Performance from "@/components/nexaphone/Performance";
 import Faq from "@/components/nexaphone/Faq";
 import Gallery from "@/components/nexaphone/Gallery";
 import Closer from "@/components/nexaphone/Closer";
@@ -26,6 +27,7 @@ export default function NexaPhonePage() {
         <SignalStory />
         <SignalTest />
         <LockSequence />
+        <Performance />
         <MiniCta />
         <Marquee />
         <Places />

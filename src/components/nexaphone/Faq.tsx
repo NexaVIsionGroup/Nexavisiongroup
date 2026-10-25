@@ -38,8 +38,11 @@ const QA: [string, string][] = [
 
 export default function Faq() {
   return (
-    <section className="np-section np-faq" id="faq">
+    <section className="np-section np-light np-faq" id="faq">
       <div className="np-wrap">
+        <p className="np-chapter">
+          <span>Questions</span>
+        </p>
         <Title text="Questions, answered." style={{ maxWidth: "9em" }} />
         <div className="np-faq-list">
           {QA.map(([q, a]) => (

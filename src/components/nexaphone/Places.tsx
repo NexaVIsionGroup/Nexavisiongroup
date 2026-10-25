@@ -20,6 +20,9 @@ export default function Places() {
   return (
     <section className="np-section" id="where">
       <div className="np-wrap">
+        <p className="np-chapter">
+          <span>Where it works</span>
+        </p>
         <Title text="Built for the places signal goes to die." style={{ maxWidth: "10em" }} />
         <p className="np-lede" style={{ marginTop: 22, color: "#cfd9df" }}>
           Metal, concrete, crowds and distance all push ordinary phones onto weak connections. Nexa Pro is

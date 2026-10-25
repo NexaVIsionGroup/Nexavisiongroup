@@ -224,3 +224,45 @@
 .np-test-other { color: #ff8a70; font-weight: 500; }
 .np-test-note { margin-top: 14px; color: var(--fog); font-size: 13px; line-height: 1.5; }
 @media (min-width: 760px) { .np-test-card { padding: 24px; } .np-test-graph { height: 300px; } .np-test-results { grid-template-columns: repeat(4, 1fr); } }
+
+
+/* ═══ Phase 2: chapters, alternating sections, chip tile, performance grids ═══ */
+.np-light .np-chapter { color: var(--lock-deep); }
+.np-light .np-chapter::after { background: linear-gradient(90deg, rgba(12, 143, 154, 0.5), transparent); }
+.np-light.np-faq .np-faq-list { box-shadow: inset 0 0 0 1px rgba(15, 26, 33, 0.12); background: #fff; }
+.np-light.np-faq .np-faq-item { border-top-color: rgba(15, 26, 33, 0.08); }
+.np-light.np-faq .np-faq-item summary { color: var(--ink); }
+.np-light.np-faq .np-faq-item summary::after { border-color: var(--lock-deep); }
+.np-light.np-faq .np-faq-item[open] summary { color: var(--lock-deep); }
+.np-light.np-faq .np-faq-item p { color: var(--ink-soft); }
+.np-light.np-faq .np-faq-more { color: var(--ink-soft); }
+.np-light.np-faq .np-faq-more a { color: var(--lock-deep); }
+
+.np-chip { position: relative; aspect-ratio: 1; }
+.np-chip canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; opacity: 0; transition: opacity 0.6s ease; }
+.np-chip[data-ready="true"] canvas { opacity: 1; }
+.np-chip-flat { position: absolute; inset: 14%; display: grid; place-content: center; text-align: center; gap: 4px; border-radius: 10%; background: linear-gradient(145deg, #d7dce2, #9aa3ad 55%, #cfd5db); color: #23282e; box-shadow: 0 0 0 3px #56e0e8, 0 0 40px rgba(86, 224, 232, 0.5); transition: opacity 0.5s ease; }
+.np-chip-flat small { font-size: 11px; font-weight: 800; letter-spacing: 0.18em; }
+.np-chip-flat b { font-family: var(--f-display); font-size: clamp(34px, 11vw, 60px); line-height: 0.95; }
+.np-chip[data-ready="true"] .np-chip-flat { opacity: 0; }
+
+.np-perf-grid { display: grid; gap: 14px; margin-top: 28px; }
+.np-perf-chipcard { position: relative; border-radius: 26px; padding: 10px 10px 0; background: radial-gradient(80% 70% at 50% 40%, #16232c, #090e12 80%); box-shadow: inset 0 0 0 1px rgba(86, 224, 232, 0.25), 0 30px 70px -40px rgba(0, 0, 0, 0.9); overflow: hidden; }
+.np-perf-chipcap { padding: 10px 16px 18px; color: #cfd9df; font-size: 14.5px; text-align: center; }
+.np-perf-chipcap b { color: #fff; }
+.np-perf-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.np-perf-stats > div { padding: 16px 14px 14px; border-radius: 18px; background: #fff; box-shadow: inset 0 0 0 1px rgba(15, 26, 33, 0.08); }
+.np-perf-stats b { display: flex; align-items: baseline; gap: 4px; font-family: var(--f-display); font-size: clamp(26px, 8vw, 40px); line-height: 1; color: var(--ink); }
+.np-perf-stats b small { font-size: 13px; font-weight: 600; color: var(--ink-soft); }
+.np-perf-stats b i { font-style: normal; font-size: 18px; color: var(--lock-deep); transform: translateY(-4px); }
+.np-perf-stats span { display: block; margin-top: 6px; font-size: 13px; color: var(--ink-soft); line-height: 1.3; }
+.np-perf-stats-dark > div { background: rgba(255, 255, 255, 0.04); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08); }
+.np-perf-stats-dark b { color: var(--lock); }
+.np-perf-stats-dark b:not(.np-num) { font-size: 22px; line-height: 1.1; }
+.np-perf-stats-dark b i { color: var(--lock); }
+.np-perf-stats-dark span { color: var(--fog); }
+.np-dperf .np-test { padding-top: 24px; }
+@media (min-width: 760px) {
+  .np-perf-grid { grid-template-columns: 0.9fr 1.1fr; align-items: stretch; }
+  .np-perf-stats > div { padding: 22px 20px 18px; }
+}

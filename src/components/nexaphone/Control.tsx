@@ -21,6 +21,9 @@ export default function Control() {
   return (
     <section className="np-section" id="control" style={{ paddingTop: 0 }}>
       <div className="np-wrap">
+        <p className="np-chapter">
+          <span>Control</span>
+        </p>
         <Title text="A phone that answers to you." style={{ maxWidth: "10em" }} />
         <p className="np-lede" style={{ marginTop: 22, color: "#cfd9df" }}>
           {t("Every Nexa Pro walks out of our shop on our in-house build with full control opened up.", "Every Nexa Pro runs our in-house build with full control opened up.")} The same access that lets it choose a tower

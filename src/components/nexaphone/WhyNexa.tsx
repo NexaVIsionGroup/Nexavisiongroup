@@ -50,6 +50,9 @@ export default function WhyNexa() {
   return (
     <section className="np-section" id="why" style={{ paddingTop: 0 }}>
       <div className="np-wrap">
+        <p className="np-chapter">
+          <span>Compare</span>
+        </p>
         <Title text="Why not just buy a Galaxy?" style={{ maxWidth: "10em" }} />
         <p className="np-lede" style={{ marginTop: 22, color: "#cfd9df" }}>
           A Galaxy Ultra is a great phone, built for everyone, and Samsung keeps it {t("locked up", "locked")}. You can&apos;t choose its
