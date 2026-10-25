@@ -33,7 +33,7 @@ export const bestOf = (scene: number) => {
   return s.indexOf(Math.max(...s));
 };
 
-const CYAN = "79,216,255";
+const CYAN = "79,134,255";
 const STEEL = "143,163,176";
 const AMBER = "217,154,62";
 const BEACON = "255,74,61";
@@ -383,7 +383,7 @@ export default function SignalField({
         ctx.shadowColor = `rgba(${CYAN},${f.lock * 0.8})`;
         ctx.shadowBlur = 30 * f.lock;
       }
-      ctx.fillStyle = "#0b0f1a";
+      ctx.fillStyle = "#07090f";
       ctx.strokeStyle = "#cfd9df";
       ctx.lineWidth = 1.6;
       ctx.beginPath();

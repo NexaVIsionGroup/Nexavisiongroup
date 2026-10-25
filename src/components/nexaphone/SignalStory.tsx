@@ -45,7 +45,7 @@ function Meter({ mode }: { mode: Mode }) {
             data-mode={mode}
             animate={{
               width: mode === "nexa" ? "92%" : "9%",
-              backgroundColor: mode === "nexa" ? "#0a7fc2" : "#d99a3e",
+              backgroundColor: mode === "nexa" ? "#2f5bff" : "#d99a3e",
             }}
             transition={{ duration: 1.1, ease: EASE }}
           />

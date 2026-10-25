@@ -125,7 +125,7 @@ function boardMap() {
   const g = c.getContext("2d")!;
   g.fillStyle = "#0e1a17";
   g.fillRect(0, 0, S, S);
-  g.strokeStyle = "rgba(79,216,255,.18)";
+  g.strokeStyle = "rgba(79,134,255,.18)";
   g.lineWidth = 2;
   for (let i = 0; i < 70; i++) {
     const x = Math.random() * S;
@@ -137,7 +137,7 @@ function boardMap() {
     g.lineTo(horiz ? x + len : x, horiz ? y : y + len);
     g.lineTo(horiz ? x + len + 20 : x + 20, horiz ? y + 20 : y + len + 20);
     g.stroke();
-    g.fillStyle = "rgba(79,216,255,.35)";
+    g.fillStyle = "rgba(79,134,255,.35)";
     g.beginPath();
     g.arc(x, y, 3, 0, Math.PI * 2);
     g.fill();
@@ -165,7 +165,7 @@ export function buildChip(line1: string, line2: string, line3: string): ChipHand
   // die glow seam: emissive plane just above the board, mostly hidden by the lid
   const seam = new THREE.Mesh(
     track(new THREE.PlaneGeometry(0.8, 0.8)),
-    track(new THREE.MeshBasicMaterial({ color: 0x4fd8ff, toneMapped: false, transparent: true, opacity: 0.9 }))
+    track(new THREE.MeshBasicMaterial({ color: 0x4f86ff, toneMapped: false, transparent: true, opacity: 0.9 }))
   );
   seam.position.z = 0.031;
   group.add(seam);
@@ -181,8 +181,8 @@ export function buildChip(line1: string, line2: string, line3: string): ChipHand
           c.width = c.height = 128;
           const g = c.getContext("2d")!;
           const gr = g.createRadialGradient(64, 64, 20, 64, 64, 64);
-          gr.addColorStop(0, "rgba(79,216,255,.5)");
-          gr.addColorStop(1, "rgba(79,216,255,0)");
+          gr.addColorStop(0, "rgba(79,134,255,.5)");
+          gr.addColorStop(1, "rgba(79,134,255,0)");
           g.fillStyle = gr;
           g.fillRect(0, 0, 128, 128);
           return track(new THREE.CanvasTexture(c));

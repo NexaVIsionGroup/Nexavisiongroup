@@ -125,9 +125,9 @@ function Graph() {
         g.fillText(band, px, y(ordinaryAt(at)) - 8 * dpr);
       });
       // nexa
-      g.strokeStyle = "#4fd8ff";
+      g.strokeStyle = "#4f86ff";
       g.lineWidth = 2.5 * dpr;
-      g.shadowColor = "rgba(79,216,255,.7)";
+      g.shadowColor = "rgba(79,134,255,.7)";
       g.shadowBlur = 10 * dpr;
       g.beginPath();
       first = true;
@@ -141,7 +141,7 @@ function Graph() {
       g.shadowBlur = 0;
       // locked tag
       if (ease > 0.15) {
-        g.fillStyle = "#4fd8ff";
+        g.fillStyle = "#4f86ff";
         g.font = `700 ${10 * dpr}px system-ui`;
         g.textAlign = "left";
         g.fillText("LOCKED  n41", padL + 6 * dpr, y(NEXA) - 10 * dpr);

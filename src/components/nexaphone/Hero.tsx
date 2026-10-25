@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import { t } from "./theme";
 import { useEffect, useRef, useState } from "react";
 import { animate, motion, useMotionValue, useScroll, useTransform } from "framer-motion";
@@ -53,16 +52,11 @@ export default function Hero() {
   const hero = featured();
   const [state, setState] = useState<FieldState>({ phase: "scan", best: 2, scene: 0 });
   const { scrollYProgress } = useScroll({ target: ref, offset: ["start start", "end start"] });
-  const photoY = useTransform(scrollYProgress, [0, 1], ["0%", "30%"]);
-  const photoScale = useTransform(scrollYProgress, [0, 1], [1.08, 1.25]);
   const copyY = useTransform(scrollYProgress, [0, 1], ["0%", "-8%"]);
   const fade = useTransform(scrollYProgress, [0.5, 0.95], [1, 0]);
 
   return (
     <section className="np-hero" id="top" ref={ref}>
-      <motion.div className="np-hero-photo" style={{ y: photoY, scale: photoScale }}>
-        <Image src="/nexaphone/v2/hero.jpg" alt="" fill priority sizes="100vw" />
-      </motion.div>
 
       <motion.div className="np-wrap np-hero-grid" style={{ y: copyY, opacity: fade }}>
         <div className="np-hero-copy">

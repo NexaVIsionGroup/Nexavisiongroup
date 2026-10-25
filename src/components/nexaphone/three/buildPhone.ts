@@ -49,8 +49,8 @@ function lockScreen(w: number, h: number, label: string, punch: boolean) {
     g.fillStyle = bg;
     g.fillRect(0, 0, w, h);
     const au = g.createRadialGradient(w * 0.7, h * 0.28, 10, w * 0.7, h * 0.28, w * 0.9);
-    au.addColorStop(0, "rgba(79,216,255,.35)");
-    au.addColorStop(1, "rgba(79,216,255,0)");
+    au.addColorStop(0, "rgba(79,134,255,.35)");
+    au.addColorStop(1, "rgba(79,134,255,0)");
     g.fillStyle = au;
     g.fillRect(0, 0, w, h);
     g.fillStyle = "#cfe9ec";
@@ -74,13 +74,13 @@ function lockScreen(w: number, h: number, label: string, punch: boolean) {
     const cx = w / 2;
     const cy = h * 0.55;
     for (let r = 1; r <= 3; r++) {
-      g.strokeStyle = `rgba(79,216,255,${0.55 - r * 0.13})`;
+      g.strokeStyle = `rgba(79,134,255,${0.55 - r * 0.13})`;
       g.lineWidth = w * 0.006;
       g.beginPath();
       g.arc(cx, cy, w * 0.07 * r, 0, Math.PI * 2);
       g.stroke();
     }
-    g.fillStyle = "#4fd8ff";
+    g.fillStyle = "#4f86ff";
     g.beginPath();
     g.arc(cx, cy, w * 0.03, 0, Math.PI * 2);
     g.fill();
@@ -88,7 +88,7 @@ function lockScreen(w: number, h: number, label: string, punch: boolean) {
     g.fillStyle = "#eefcfd";
     g.fillText("Locked on Tower C", cx, h * 0.7);
     g.font = `500 ${w * 0.045}px system-ui`;
-    g.fillStyle = "#4fd8ff";
+    g.fillStyle = "#4f86ff";
     g.fillText("842 Mbps  ·  fastest band", cx, h * 0.745);
     g.font = `800 ${w * 0.05}px system-ui`;
     g.fillStyle = "rgba(238,252,253,.5)";
@@ -175,7 +175,7 @@ function circuitTex() {
   return canvasTex(512, 1024, (g) => {
     g.fillStyle = "#0b0e12";
     g.fillRect(0, 0, 512, 1024);
-    g.strokeStyle = "rgba(79,216,255,.35)";
+    g.strokeStyle = "rgba(79,134,255,.35)";
     g.lineWidth = 2;
     let seed = 7;
     const rnd = () => ((seed = (seed * 9301 + 49297) % 233280) / 233280);
@@ -190,7 +190,7 @@ function circuitTex() {
         g.lineTo(x, y);
       }
       g.stroke();
-      g.fillStyle = "rgba(79,216,255,.6)";
+      g.fillStyle = "rgba(79,134,255,.6)";
       g.fillRect(x - 3, y - 3, 6, 6);
     }
   });
