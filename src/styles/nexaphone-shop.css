@@ -266,3 +266,25 @@
   .np-perf-grid { grid-template-columns: 0.9fr 1.1fr; align-items: stretch; }
   .np-perf-stats > div { padding: 22px 20px 18px; }
 }
+
+
+/* ═══ Phase 3: exploded view ═══ */
+.np-inside { margin-top: 26px; }
+.np-inside-stage { position: sticky; top: 64px; z-index: 1; height: min(52svh, 520px); border-radius: 24px; background: radial-gradient(80% 70% at 50% 45%, #15222b, #080d11 85%); box-shadow: inset 0 0 0 1px rgba(86, 224, 232, 0.2); overflow: hidden; }
+.np-inside-stage canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; opacity: 0; transition: opacity 0.6s ease; }
+.np-inside-stage[data-ready="true"] canvas { opacity: 1; }
+.np-inside-hint { position: absolute; left: 50%; bottom: 12px; transform: translateX(-50%); font-size: 12px; font-weight: 600; letter-spacing: 0.06em; color: var(--fog); white-space: nowrap; }
+.np-inside-list { list-style: none; margin: 18px 0 0; padding: 0 0 20svh; display: grid; gap: 10px; }
+.np-inside-list li { display: grid; grid-template-columns: 44px 1fr; gap: 12px; align-items: start; padding: 14px 16px; border-radius: 18px; background: rgba(255, 255, 255, 0.03); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.07); transition: background 0.3s, box-shadow 0.3s, transform 0.3s; }
+.np-inside-list li[data-active="true"] { background: rgba(86, 224, 232, 0.07); box-shadow: inset 0 0 0 1px rgba(86, 224, 232, 0.5); transform: translateX(4px); }
+.np-inside-list li[data-hot="true"][data-active="true"] { box-shadow: inset 0 0 0 2px var(--lock), 0 0 30px rgba(86, 224, 232, 0.25); }
+.np-inside-n { font-family: var(--f-display); font-size: 30px; line-height: 1; color: rgba(255, 255, 255, 0.25); }
+.np-inside-list li[data-active="true"] .np-inside-n { color: var(--lock); }
+.np-inside-list strong { display: block; font-size: 17px; }
+.np-inside-list li[data-hot="true"] strong { color: var(--lock); }
+.np-inside-list p { margin-top: 4px; color: #cfd9df; font-size: 14.5px; line-height: 1.45; min-height: 1.4em; }
+@media (min-width: 860px) {
+  .np-inside { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 24px; align-items: start; }
+  .np-inside-stage { top: 90px; height: min(70svh, 640px); }
+  .np-inside-list { margin-top: 0; padding-top: 10svh; }
+}

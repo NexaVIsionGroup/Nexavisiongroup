@@ -1,6 +1,7 @@
 import * as THREE from "three";
 import { buildPhone, type Island } from "./buildPhone";
 import { buildChip } from "./buildChip";
+import { buildExploded, type ExplodedSpec, type Layer } from "./buildExploded";
 import { studioEnvironment, studioLights, STUDIO_INTENSITY } from "./studio";
 import type { Color as Swatch } from "../catalog";
 
@@ -200,6 +201,41 @@ export function mountCard(canvas: HTMLCanvasElement, model: CardModel, onReady: 
       },
     },
     onReady
+  );
+}
+
+/** Scroll-driven exploded phone. `getProgress` 0..1 opens the stack; `getFocus` spotlights a layer. */
+export function mountExploded(
+  canvas: HTMLCanvasElement,
+  spec: ExplodedSpec,
+  getProgress: () => number,
+  getFocus: () => number,
+  onReady: (layers: Layer[]) => void
+): () => void {
+  let handle: ReturnType<typeof buildExploded> | null = null;
+  return mountObject(
+    canvas,
+    {
+      build: () => {
+        handle = buildExploded(spec);
+        onReady(handle.layers);
+        return handle;
+      },
+      fit: { h: 2.05, w: 1.9 },
+      pose: (g, t, _phase, still) => {
+        const pr = getProgress();
+        handle?.setExplode(pr);
+        handle?.setFocus(getFocus());
+        // Turn from a straight-on front view toward a three-quarter view as it opens,
+        // so the layers fan out across the screen instead of stacking in depth.
+        const yaw = 0.15 + pr * 0.75 + (still ? 0 : Math.sin(t * 0.5) * 0.06);
+        g.rotation.set(-0.12 - pr * 0.18, Math.PI + yaw, 0);
+        g.position.set(pr * 0.1, 0.05, 0);
+      },
+      shadowY: -1.0,
+      shadowScale: 1.1,
+    },
+    () => {}
   );
 }
 

@@ -17,6 +17,7 @@ import Scramble from "./Scramble";
 import Title from "./Title";
 import SignalTest from "./SignalTest";
 import Chip3D from "./Chip3D";
+import Exploded3D from "./Exploded3D";
 import PhoneRender from "./PhoneRender";
 import { versus } from "./versus";
 import CompareSheet from "./CompareSheet";
@@ -482,6 +483,20 @@ export default function DevicePage({ slug }: { slug: string }) {
           </div>
         </div>
         <SignalTest compact />
+      </section>
+
+      {/* ── Inside: scroll-driven exploded view ── */}
+      <section className="np-dsec np-dinside" id="inside">
+        <div className="np-wrap">
+          <p className="np-chapter">
+            <span>Inside</span>
+          </p>
+          <Title text="What's in the box. Literally." className="np-display np-h2" style={{ maxWidth: "10em" }} />
+          <p className="np-lede np-dpitch">
+            Flagship glass, screen and silicon, and one layer no other phone has. Scroll and it comes apart.
+          </p>
+          <Exploded3D p={p} />
+        </div>
       </section>
 
       {/* ── Specs ── */}
