@@ -6,6 +6,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { places } from "./data";
 import { useCoverflow } from "./useCoverflow";
 import Title from "./Title";
+import RailProgress from "./RailProgress";
 
 export default function Places() {
   const rail = useRef<HTMLDivElement>(null);
@@ -41,6 +42,7 @@ export default function Places() {
             </article>
           ))}
         </div>
+        <RailProgress rail={rail} />
         <div className="np-rail-hint">
           <button aria-label="Previous" onClick={() => nudge(-1)}>
             <ChevronLeft size={22} />

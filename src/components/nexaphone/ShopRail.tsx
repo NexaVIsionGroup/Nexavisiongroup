@@ -8,6 +8,7 @@ import { LayoutGrid, Rows3 } from "lucide-react";
 import { fromPrice, money, products, type Product } from "./catalog";
 import { useCart } from "./cart";
 import Card3D from "./Card3D";
+import RailProgress from "./RailProgress";
 import Title from "./Title";
 import { useCoverflow } from "./useCoverflow";
 
@@ -48,6 +49,12 @@ export function ShopCard({ p, big = false }: { p: Product; big?: boolean }) {
           {p.chips.map((c) => (
             <span key={c}>{c}</span>
           ))}
+        </div>
+        <div className="np-shop-colors" aria-label={`${p.colors.length} colors`}>
+          {p.colors.map((c) => (
+            <i key={c.name} style={{ background: c.hex }} title={c.name} />
+          ))}
+          <span>{p.colors[0].name}{p.colors.length > 1 ? ` +${p.colors.length - 1}` : ""}</span>
         </div>
         <div className="np-shop-price">
           <span>From</span>
@@ -123,6 +130,7 @@ export default function ShopRail() {
         </AnimatePresence>
       </motion.div>
       <div className="np-wrap">
+        {!grid && <RailProgress rail={rail} />}
         <p className="np-shop-foot">
           Like new, tested in our shop, backed by our warranty. Not sure which one? <Link href="#talk">Talk to a person</Link>.
         </p>

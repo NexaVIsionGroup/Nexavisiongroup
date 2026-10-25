@@ -13,6 +13,7 @@ export default function Closer() {
       <section className="np-section np-closer">
         <div className="np-closer-photo">
           <Image src="/nexaphone/v2/closer.jpg" alt="" fill sizes="100vw" />
+          <video className="np-closer-video" src="/nexaphone/v4/closer-loop.mp4" poster="/nexaphone/v2/closer.jpg" autoPlay muted loop playsInline preload="metadata" aria-hidden />
         </div>
         <div className="np-closer-rings" aria-hidden>
           <span />

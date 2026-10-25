@@ -288,3 +288,17 @@
   .np-inside-stage { top: 90px; height: min(70svh, 640px); }
   .np-inside-list { margin-top: 0; padding-top: 10svh; }
 }
+
+
+/* ═══ Phase 4: rail progress, card colours, model switcher, closer loop ═══ */
+.np-railbar { height: 3px; margin: 14px var(--gutter) 0; border-radius: 2px; background: rgba(127, 140, 150, 0.25); overflow: hidden; }
+.np-railbar span { display: block; height: 100%; width: 100%; transform-origin: 0 50%; background: var(--lock-deep); transition: transform 0.15s linear; }
+.np-section:not(.np-light) .np-railbar span { background: var(--lock); }
+.np-shop-colors { display: flex; align-items: center; gap: 5px; font-size: 12.5px; color: var(--ink-soft); }
+.np-shop-colors i { width: 14px; height: 14px; border-radius: 50%; box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.25); }
+.np-shop-colors span { margin-left: 4px; }
+.np-shop-rail[data-grid="true"] .np-shop-colors span { display: none; }
+.np-jump-model { position: relative; flex: none; display: inline-flex; align-items: center; min-height: 38px; padding: 0 14px; border-radius: 999px; background: rgba(255, 255, 255, 0.08); box-shadow: inset 0 0 0 1px rgba(86, 224, 232, 0.45); color: var(--paper); font-family: var(--f-display); font-size: 17px; letter-spacing: 0.02em; }
+.np-jump-model select { position: absolute; inset: 0; opacity: 0; width: 100%; font-size: 16px; }
+.np-closer-video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+@media (prefers-reduced-motion: reduce) { .np-closer-video { display: none; } }

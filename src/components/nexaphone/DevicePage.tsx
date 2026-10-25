@@ -36,6 +36,8 @@ const CODES: Record<string, string> = { n10: "NX-10", n11: "NX-11", n12: "NX-12"
 const STOCK = { in: "In stock", low: "Low stock", out: "Sold out" };
 const JUMPS = [
   { id: "overview", label: "Overview" },
+  { id: "performance-proof", label: "Performance" },
+  { id: "inside", label: "Inside" },
   { id: "specs", label: "Specs" },
   { id: "compare", label: "Compare" },
   { id: "talk", label: "Talk to us" },
@@ -387,6 +389,16 @@ export default function DevicePage({ slug }: { slug: string }) {
       {/* ── Sticky jump chips ── */}
       <div className="np-wrap">
         <nav className="np-jump" aria-label="On this page">
+          <label className="np-jump-model">
+            <select value={p.slug} onChange={(e) => router.push(`/nexaphone/phones/${e.target.value}`)} aria-label="Switch model">
+              {shopProducts().map((m) => (
+                <option key={m.id} value={m.slug}>
+                  {m.name}
+                </option>
+              ))}
+            </select>
+            <span>{p.name.replace("Nexa ", "")} ▾</span>
+          </label>
           {JUMPS.map((j) => (
             <a key={j.id} href={`#${j.id}`} data-on={active === j.id}>
               {j.label}
