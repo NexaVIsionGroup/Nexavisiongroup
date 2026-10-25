@@ -198,3 +198,29 @@
 .np-card3d[data-ready="true"] canvas { opacity: 1; }
 .np-card3d svg { transition: opacity 0.4s ease; }
 .np-card3d[data-ready="true"] svg { opacity: 0; }
+
+/* ═══ Performance chapter: signal test proof card ═══ */
+.np-chapter { display: flex; align-items: center; gap: 12px; margin-bottom: 18px; color: var(--lock); font-size: 12px; font-weight: 800; letter-spacing: 0.18em; text-transform: uppercase; }
+.np-chapter::after { content: ""; flex: 1; height: 1px; background: linear-gradient(90deg, rgba(86, 224, 232, 0.6), transparent); }
+.np-test { background: var(--night); }
+.np-test-compact { padding-top: 0; }
+.np-test-card { margin-top: 28px; padding: 18px 16px 16px; border-radius: 24px; background: linear-gradient(180deg, #121c23, #0b1218); box-shadow: inset 0 0 0 1px rgba(86, 224, 232, 0.22), 0 30px 70px -40px rgba(0, 0, 0, 0.9); }
+.np-test-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; }
+.np-test-head strong { font-family: var(--f-display); font-size: 26px; letter-spacing: 0.02em; }
+.np-test-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+.np-test-tags span { font-size: 12px; font-weight: 600; padding: 5px 10px; border-radius: 999px; background: rgba(255, 255, 255, 0.06); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12); color: #cfd9df; }
+.np-test-tags span[data-ex] { color: var(--lock); box-shadow: inset 0 0 0 1px rgba(86, 224, 232, 0.5); }
+.np-test-legend { display: flex; align-items: center; gap: 8px; margin: 14px 0 6px; color: var(--fog); font-size: 13px; }
+.np-test-legend i { width: 18px; height: 3px; border-radius: 2px; background: #56e0e8; box-shadow: 0 0 8px #56e0e8; margin-left: 8px; }
+.np-test-legend i:first-child { margin-left: 0; }
+.np-test-legend i[data-other] { background: #ff8a70; box-shadow: none; }
+.np-test-graph { display: block; width: 100%; height: 210px; border-radius: 14px; background: rgba(0, 0, 0, 0.25); }
+.np-test-results { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 14px; }
+.np-test-results > div { padding: 12px 12px 10px; border-radius: 14px; background: rgba(255, 255, 255, 0.04); }
+.np-test-results small { display: block; color: var(--fog); font-size: 12px; margin-bottom: 4px; }
+.np-test-results b { display: flex; align-items: baseline; gap: 6px; font-family: var(--f-display); font-size: 26px; color: var(--lock); }
+.np-test-results b em { color: rgba(255, 255, 255, 0.25); font-style: normal; font-size: 20px; }
+.np-test-results b small { display: inline; font-size: 12px; margin: 0; }
+.np-test-other { color: #ff8a70; font-weight: 500; }
+.np-test-note { margin-top: 14px; color: var(--fog); font-size: 13px; line-height: 1.5; }
+@media (min-width: 760px) { .np-test-card { padding: 24px; } .np-test-graph { height: 300px; } .np-test-results { grid-template-columns: repeat(4, 1fr); } }

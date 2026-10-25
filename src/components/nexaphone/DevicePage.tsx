@@ -15,6 +15,7 @@ import TalkToUs from "./TalkToUs";
 import SignalField from "./SignalField";
 import Scramble from "./Scramble";
 import Title from "./Title";
+import SignalTest from "./SignalTest";
 import PhoneRender from "./PhoneRender";
 import { versus } from "./versus";
 import CompareSheet from "./CompareSheet";
@@ -439,6 +440,18 @@ export default function DevicePage({ slug }: { slug: string }) {
             airplane-mode resets, and no connecting to towers you haven&apos;t approved.
           </p>
         </div>
+      </section>
+
+      {/* ── Performance proof (shared card; the page's own stats sit above it) ── */}
+      <section className="np-dsec" id="performance-proof">
+        <div className="np-wrap">
+          <Title text="Stability is performance." className="np-display np-h2" style={{ maxWidth: "9em" }} />
+          <p className="np-lede np-dpitch">
+            {p.chip} only runs as fast as the connection feeding it. An ordinary phone trades the fast band for a slower
+            one all day; this phone holds the band you locked.
+          </p>
+        </div>
+        <SignalTest compact />
       </section>
 
       {/* ── Specs ── */}
