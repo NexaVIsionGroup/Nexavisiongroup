@@ -36,7 +36,7 @@
 </div>
 <script>
 const SIZE=1452, TB=[330,590,930,340], VW=1000, VH=470;
-let C=[[104,556],[1108,392],[1300,868],[240,1030]];
+let C=[[94,588],[1094,383],[1300,819],[316,1074]];
 const saved=localStorage.getItem('corners'); if(saved){try{C=JSON.parse(saved)}catch(e){}}
 const stage=document.getElementById('stage'), clip=document.getElementById('clip'), vid=document.getElementById('vid'), thumbs=document.getElementById('thumbs'), out=document.getElementById('out');
 const zoom=document.getElementById('zoom'), zc=zoom.querySelector('canvas').getContext('2d'), photo=document.getElementById('photo');
@@ -55,6 +55,6 @@ H.forEach(h=>{h.addEventListener('pointerdown',e=>{drag={i:+h.dataset.i,ox:e.cli
   h.addEventListener('pointerup',()=>{drag=null;zoom.style.display='none'});h.addEventListener('pointercancel',()=>{drag=null;zoom.style.display='none'})});
 document.getElementById('copy').onclick=()=>{navigator.clipboard?.writeText(out.textContent);document.getElementById('copy').textContent='Copied'};
 document.getElementById('toggleThumbs').onclick=()=>{thumbs.style.display=thumbs.style.display==='none'?'':'none'};
-document.getElementById('reset').onclick=()=>{C=[[104,556],[1108,392],[1300,868],[240,1030]];render()};
+document.getElementById('reset').onclick=()=>{C=[[94,588],[1094,383],[1300,819],[316,1074]];render()};
 new ResizeObserver(render).observe(stage);render();
 </script>
