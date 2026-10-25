@@ -1,0 +1,60 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Corner tool</title>
+<style>
+  html,body{margin:0;background:#07090f;color:#eef2f8;font:14px system-ui;overflow:hidden;touch-action:none}
+  #stage{position:relative;width:100vw;height:100vw;max-height:100vh;overflow:hidden;background:#000}
+  #photo{position:absolute;left:0;top:0;width:100%;height:100%;display:block}
+  #clip{position:absolute;left:0;top:0;width:100%;height:100%;overflow:hidden}
+  #vid{position:absolute;left:0;top:0;transform-origin:0 0;width:1000px;height:470px;object-fit:cover;max-width:none}
+  #thumbs{position:absolute;pointer-events:none;max-width:none}
+  .h{position:absolute;width:44px;height:44px;margin:-22px 0 0 -22px;border-radius:50%;background:rgba(79,134,255,.25);box-shadow:0 0 0 2px #4f86ff,0 0 14px #4f86ff;touch-action:none}
+  .h::after{content:"";position:absolute;left:50%;top:50%;width:6px;height:6px;margin:-3px;border-radius:50%;background:#fff}
+  #bar{position:fixed;left:0;right:0;bottom:0;padding:10px 12px calc(10px + env(safe-area-inset-bottom));background:rgba(7,9,15,.92);display:grid;gap:8px}
+  #out{font:13px ui-monospace,monospace;word-break:break-all;color:#bfe0ff}
+  .row{display:flex;gap:8px;flex-wrap:wrap}
+  button{min-height:40px;padding:0 14px;border:0;border-radius:8px;background:#4f86ff;color:#fff;font-weight:700}
+  button.g{background:#1a2238}
+  #zoom{position:absolute;right:8px;top:8px;width:150px;height:150px;border-radius:50%;overflow:hidden;box-shadow:0 0 0 2px #4f86ff;display:none;pointer-events:none;background:#000}
+  #zoom canvas{display:block}
+</style>
+<div id="stage">
+  <img id="photo" src="hands.jpg" alt="">
+  <div id="clip"><video id="vid" src="hands-loop.mp4" autoplay muted loop playsinline></video></div>
+  <img id="thumbs" src="hands-thumbs.webp" alt="">
+  <div class="h" data-i="0"></div><div class="h" data-i="1"></div><div class="h" data-i="2"></div><div class="h" data-i="3"></div>
+  <div id="zoom"><canvas width="150" height="150"></canvas></div>
+</div>
+<div id="bar">
+  <div id="out"></div>
+  <div class="row">
+    <button id="copy">Copy numbers</button>
+    <button class="g" id="toggleThumbs">Thumbs on/off</button>
+    <button class="g" id="reset">Reset</button>
+  </div>
+</div>
+<script>
+const SIZE=1452, TB=[330,590,930,340], VW=1000, VH=470;
+let C=[[104,556],[1108,392],[1300,868],[240,1030]];
+const saved=localStorage.getItem('corners'); if(saved){try{C=JSON.parse(saved)}catch(e){}}
+const stage=document.getElementById('stage'), clip=document.getElementById('clip'), vid=document.getElementById('vid'), thumbs=document.getElementById('thumbs'), out=document.getElementById('out');
+const zoom=document.getElementById('zoom'), zc=zoom.querySelector('canvas').getContext('2d'), photo=document.getElementById('photo');
+const H=[...document.querySelectorAll('.h')];
+const S=()=>stage.clientWidth/SIZE;
+function homography(c,w,h){const [[x0,y0],[x1,y1],[x2,y2],[x3,y3]]=c;const sx=x0-x1+x2-x3,sy=y0-y1+y2-y3,dx1=x1-x2,dx2=x3-x2,dy1=y1-y2,dy2=y3-y2,det=dx1*dy2-dx2*dy1;const g=(sx*dy2-sy*dx2)/det,hh=(dx1*sy-dy1*sx)/det;const a=x1-x0+g*x1,b=x3-x0+hh*x3,cc=x0,d=y1-y0+g*y1,e=y3-y0+hh*y3,f=y0;return `matrix3d(${[a/w,d/w,0,g/w,b/h,e/h,0,hh/h,0,0,1,0,cc,f,0,1].map(v=>v.toFixed(6)).join(',')})`}
+function render(){const s=S();const pts=C.map(([x,y])=>[x*s,y*s]);vid.style.transform=homography(pts,VW,VH);clip.style.clipPath=`polygon(${pts.map(p=>p[0].toFixed(1)+'px '+p[1].toFixed(1)+'px').join(',')})`;
+  thumbs.style.left=TB[0]*s+'px';thumbs.style.top=TB[1]*s+'px';thumbs.style.width=TB[2]*s+'px';thumbs.style.height=TB[3]*s+'px';
+  H.forEach((h,i)=>{h.style.left=pts[i][0]+'px';h.style.top=pts[i][1]+'px'});
+  out.textContent='corners={[['+C.map(p=>p.map(Math.round).join(', ')).join('], [')+']]}';localStorage.setItem('corners',JSON.stringify(C))}
+let drag=null;
+H.forEach(h=>{h.addEventListener('pointerdown',e=>{drag={i:+h.dataset.i,ox:e.clientX,oy:e.clientY,start:[...C[+h.dataset.i]]};h.setPointerCapture(e.pointerId);zoom.style.display='block'});
+  h.addEventListener('pointermove',e=>{if(!drag)return;const s=S();C[drag.i]=[drag.start[0]+(e.clientX-drag.ox)/s,drag.start[1]+(e.clientY-drag.oy)/s];render();
+    // loupe: 3x zoom of the photo around the corner
+    const [x,y]=C[drag.i];zc.clearRect(0,0,150,150);zc.drawImage(photo,x-25,y-25,50,50,0,0,150,150);zc.strokeStyle='#4f86ff';zc.beginPath();zc.moveTo(75,0);zc.lineTo(75,150);zc.moveTo(0,75);zc.lineTo(150,75);zc.stroke()});
+  h.addEventListener('pointerup',()=>{drag=null;zoom.style.display='none'});h.addEventListener('pointercancel',()=>{drag=null;zoom.style.display='none'})});
+document.getElementById('copy').onclick=()=>{navigator.clipboard?.writeText(out.textContent);document.getElementById('copy').textContent='Copied'};
+document.getElementById('toggleThumbs').onclick=()=>{thumbs.style.display=thumbs.style.display==='none'?'':'none'};
+document.getElementById('reset').onclick=()=>{C=[[104,556],[1108,392],[1300,868],[240,1030]];render()};
+new ResizeObserver(render).observe(stage);render();
+</script>
