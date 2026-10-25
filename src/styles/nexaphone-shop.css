@@ -627,3 +627,11 @@
 .np-test-legend i { border-radius: 0; }
 /* Junctions a little shorter on phones so the page keeps moving */
 .np-junction { height: clamp(300px, 88vw, 700px); }
+
+/* Marquee: a lab readout strip, not a solid sticker — black, hairlines, electric type, no tilt */
+.np-marquee { background: none; color: var(--paper); transform: none; margin: 0; padding: 18px 0; border-top: 1px solid var(--hair); border-bottom: 1px solid var(--hair); box-shadow: none; }
+.np-marquee-item { font-family: var(--f-body); font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; font-size: clamp(1.1rem, 4.4vw, 1.8rem); background: linear-gradient(180deg, var(--blue-hi), var(--blue-mid) 70%, var(--blue-lo)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.np-marquee-mark { color: var(--lock); --lock: var(--lock); opacity: 0.8; }
+.np-marquee-row + .np-marquee-row { display: none; }
+/* Lock sequence step titles match the chapter heads */
+.np-seq .np-h3 { font-family: var(--f-body); font-weight: 600; text-transform: none; letter-spacing: -0.01em; font-size: clamp(1.6rem, 6.5vw, 2.4rem); background: linear-gradient(180deg, var(--blue-hi) 0%, var(--blue-mid) 55%, var(--blue-lo) 100%); -webkit-background-clip: text; background-clip: text; color: transparent; }
