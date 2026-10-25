@@ -13,6 +13,7 @@ import WhyNexa from "@/components/nexaphone/WhyNexa";
 import SignalTest from "@/components/nexaphone/SignalTest";
 import Performance from "@/components/nexaphone/Performance";
 import Junction from "@/components/nexaphone/Junction";
+import PhoneInHands from "@/components/nexaphone/PhoneInHands";
 import ChapterEnd from "@/components/nexaphone/ChapterEnd";
 import Faq from "@/components/nexaphone/Faq";
 import Gallery from "@/components/nexaphone/Gallery";
@@ -24,7 +25,7 @@ export default function NexaPhonePage() {
       <Nav dock={false} />
       <main>
         <Hero />
-        <Junction src="/nexaphone/placeholder/hands.jpg" video="/nexaphone/placeholder/hands-loop.mp4" from="dark" to="light" focus="50% 45%" />
+        <PhoneInHands photo="/nexaphone/placeholder/hands.jpg" thumbs="/nexaphone/placeholder/hands-thumbs.webp" thumbsBox={[270, 570, 970, 342]} video="/nexaphone/placeholder/hands-loop.mp4" size={[1452, 1452]} corners={[[104, 556], [1108, 392], [1224, 874], [210, 906]]} from="dark" to="light" focus={[0.5, 0.45]} />
         <ShopRail />
         <Junction src="/nexaphone/placeholder/shards.jpg" from="light" to="dark" focus="50% 50%" />
         <DeadBars />

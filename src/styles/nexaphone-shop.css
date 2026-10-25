@@ -680,3 +680,16 @@
 
 .np-junction-video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; filter: saturate(1.08) contrast(1.03); }
 @media (prefers-reduced-motion: reduce) { .np-junction-video { display: none; } }
+
+/* Phone-in-hands junction: video projected onto the photographed screen */
+.np-pih { height: clamp(340px, 100vw, 760px); }
+.np-pih-photo { position: absolute; max-width: none; display: block; }
+.np-pih-mask { position: absolute; overflow: hidden; -webkit-mask-size: 100% 100%; mask-size: 100% 100%; -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat; }
+.np-pih-video { position: absolute; transform-origin: 0 0; object-fit: cover; display: block; }
+@media (prefers-reduced-motion: reduce) { .np-pih-mask { display: none; } }
+.np-pih-clip { position: absolute; overflow: hidden; }
+.np-pih-thumbs { position: absolute; max-width: none; display: block; pointer-events: none; }
+@media (prefers-reduced-motion: reduce) { .np-pih-clip, .np-pih-thumbs { display: none; } }
+.np-pih-video { max-width: none; max-height: none; }
+/* faint glass glare so the projected video sits under the screen glass */
+.np-pih-clip::after { content: ""; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(112deg, rgba(255, 255, 255, 0.14) 0%, rgba(255, 255, 255, 0.04) 28%, transparent 46%, rgba(255, 255, 255, 0.05) 78%, transparent 100%); mix-blend-mode: screen; }
