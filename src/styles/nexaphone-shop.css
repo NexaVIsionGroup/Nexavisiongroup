@@ -667,3 +667,4 @@
 .np-field-select select { background-position: right 0 center; }
 .np-sum-total b { background: linear-gradient(180deg, var(--blue-hi), var(--blue-mid) 60%, var(--blue-lo)); -webkit-background-clip: text; background-clip: text; color: transparent; }
 .np-back { color: var(--fog); }
+@media (min-width: 900px) { .np-buybox { max-width: 720px; } .np-buybox-actions { grid-template-columns: 1fr 1fr; } }

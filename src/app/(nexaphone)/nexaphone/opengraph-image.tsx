@@ -2,7 +2,7 @@ import { ImageResponse } from "next/og";
 
 // Link preview for texts and social shares of /nexaphone (and inherited by child pages).
 export const runtime = "edge";
-export const alt = "Nexa Pro: phones that lock to the tower you choose";
+export const alt = "Nexa Pro: a phone that answers to you. Lock the tower, lock the band, keep the speed.";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
@@ -46,7 +46,7 @@ export default async function OG() {
           display: "flex",
           flexDirection: "column",
           justifyContent: "space-between",
-          background: "radial-gradient(circle at 78% 30%, #173340 0%, #07090f 55%)",
+          background: "radial-gradient(circle at 78% 30%, #10203f 0%, #07090f 55%)",
           padding: 64,
           color: "#eef2f8",
           fontFamily: "Plex",
@@ -64,10 +64,10 @@ export default async function OG() {
           ))}
         </div>
         <div style={{ display: "flex", flexDirection: "column", fontFamily: "Display" }}>
-          <div style={{ fontSize: 132, lineHeight: 0.9 }}>PICK THE TOWER.</div>
-          <div style={{ fontSize: 132, lineHeight: 0.9, color: "#4f86ff" }}>KEEP THE SPEED.</div>
+          <div style={{ fontSize: 124, lineHeight: 0.9 }}>A PHONE THAT</div>
+          <div style={{ fontSize: 124, lineHeight: 0.9, color: "#4f86ff" }}>ANSWERS TO YOU.</div>
           <div style={{ fontSize: 30, color: "#a9b7c1", marginTop: 22, fontFamily: "Plex" }}>
-            No more full bars and no internet. Flagship phones, rebuilt for work.
+            Flagship gaming phones that lock the tower and band you choose. No lag spikes, no hops mid-match.
           </div>
         </div>
       </div>
