@@ -58,19 +58,24 @@ function lidMaps(line1: string, line2: string, line3: string) {
     g.lineTo(S, y + (Math.random() - 0.5) * 2);
     g.stroke();
   }
-  // engraving
+  // engraving — each line shrinks to fit inside the lid (max 78% of its width)
+  const engrave = (text: string, y: number, size: number, weight: number, track: number, color: string) => {
+    const ls = g as unknown as { letterSpacing: string };
+    let px = size;
+    for (;;) {
+      g.font = `${weight} ${px}px system-ui, -apple-system, Segoe UI, sans-serif`;
+      ls.letterSpacing = `${track * (px / size)}px`;
+      if (g.measureText(text).width <= S * 0.78 || px < 8) break;
+      px *= 0.94;
+    }
+    g.fillStyle = color;
+    g.fillText(text, S / 2, y);
+    ls.letterSpacing = "0px";
+  };
   g.textAlign = "center";
-  g.fillStyle = "#0b0e11";
-  g.font = `800 ${S * 0.078}px system-ui, -apple-system, Segoe UI, sans-serif`;
-  (g as unknown as { letterSpacing: string }).letterSpacing = `${S * 0.012}px`;
-  g.fillText(line1, S / 2, S * 0.4);
-  g.font = `900 ${S * 0.16}px system-ui, -apple-system, Segoe UI, sans-serif`;
-  (g as unknown as { letterSpacing: string }).letterSpacing = `${S * 0.004}px`;
-  g.fillText(line2, S / 2, S * 0.6);
-  g.font = `700 ${S * 0.038}px system-ui, -apple-system, Segoe UI, sans-serif`;
-  (g as unknown as { letterSpacing: string }).letterSpacing = `${S * 0.016}px`;
-  g.fillStyle = "#15191d";
-  g.fillText(line3, S / 2, S * 0.72);
+  engrave(line1, S * 0.4, S * 0.078, 800, S * 0.012, "#0b0e11");
+  engrave(line2, S * 0.6, S * 0.16, 900, S * 0.004, "#0b0e11");
+  engrave(line3, S * 0.72, S * 0.038, 700, S * 0.016, "#15191d");
   // corner marks
   g.strokeStyle = "#2a2f35";
   g.lineWidth = 4;
@@ -99,10 +104,15 @@ function lidMaps(line1: string, line2: string, line3: string) {
   }
   gb.textAlign = "center";
   gb.fillStyle = "#000";
-  gb.font = `800 ${S * 0.072}px system-ui, sans-serif`;
-  gb.fillText(line1, S / 2, S * 0.4);
-  gb.font = `900 ${S * 0.16}px system-ui, sans-serif`;
-  gb.fillText(line2, S / 2, S * 0.6);
+  for (const [text, y, size, weight] of [[line1, S * 0.4, S * 0.078, 800], [line2, S * 0.6, S * 0.16, 900]] as [string, number, number, number][]) {
+    let px = size;
+    for (;;) {
+      gb.font = `${weight} ${px}px system-ui, sans-serif`;
+      if (gb.measureText(text).width <= S * 0.78 || px < 8) break;
+      px *= 0.94;
+    }
+    gb.fillText(text, S / 2, y);
+  }
   const bump = new THREE.CanvasTexture(b);
   return { map, bump };
 }

@@ -302,3 +302,47 @@
 .np-jump-model select { position: absolute; inset: 0; opacity: 0; width: 100%; font-size: 16px; }
 .np-closer-video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
 @media (prefers-reduced-motion: reduce) { .np-closer-video { display: none; } }
+
+/* ═══ Polish pass (owner 2026-10-25): gradient seams, faded headlines, glow ═══ */
+/* Light sections fade in from and out to the dark around them (the seam uses the section's own padding) */
+.np-light { position: relative; isolation: isolate; }
+.np-light::before, .np-light::after { content: ""; position: absolute; left: 0; right: 0; height: clamp(80px, 12vw, 150px); z-index: -1; pointer-events: none; }
+.np-light::before { top: 0; background: linear-gradient(180deg, var(--night) 0%, rgba(13, 20, 25, 0.55) 35%, var(--paper) 100%); }
+.np-light::after { bottom: 0; background: linear-gradient(0deg, var(--night) 0%, rgba(13, 20, 25, 0.55) 35%, var(--paper) 100%); }
+.np-shop::before { background: linear-gradient(180deg, var(--night) 0%, rgba(13, 20, 25, 0.55) 35%, var(--paper) 100%); }
+
+/* Headlines: bright at the top, fading toward the baseline (the look of the big gaming-phone pages) */
+.np-h1 .np-word-in, .np-h2 .np-word-in, .np-h3 .np-word-in { background: linear-gradient(180deg, #ffffff 20%, rgba(233, 238, 240, 0.62) 100%); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.np-light .np-h2 .np-word-in, .np-light .np-h3 .np-word-in { background: linear-gradient(180deg, var(--ink) 25%, rgba(15, 26, 33, 0.58) 100%); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.np-h1 .np-word-in { filter: drop-shadow(0 6px 30px rgba(86, 224, 232, 0.18)); }
+/* Big stat numbers get the cyan-to-white sheen */
+.np-perf-stats-dark b.np-num, .np-test-results b .np-num:first-child, .np-stat-v { background: linear-gradient(180deg, #ffffff 0%, var(--lock) 70%); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.np-test-results b .np-test-other { background: none; color: #ff8a70; }
+
+/* Glow: primary buttons, header, bars */
+.np-btn-lock { background: linear-gradient(180deg, #7eeaf0, #56e0e8 55%, #3fd0d9); box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.25) inset, 0 10px 28px -10px rgba(86, 224, 232, 0.9), 0 0 22px rgba(86, 224, 232, 0.35); }
+.np-btn-lock:hover { box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.35) inset, 0 12px 32px -10px rgba(86, 224, 232, 1), 0 0 34px rgba(86, 224, 232, 0.55); }
+.np-btn-ghost { box-shadow: inset 0 0 0 1px rgba(86, 224, 232, 0.35), 0 0 18px -6px rgba(86, 224, 232, 0.35); }
+.np-light .np-btn-ghost { box-shadow: inset 0 0 0 1px rgba(12, 143, 154, 0.45); }
+.np-nav[data-solid="true"] { box-shadow: 0 1px 0 rgba(86, 224, 232, 0.25), 0 14px 40px -24px rgba(86, 224, 232, 0.45); }
+.np-cart-btn { box-shadow: inset 0 0 0 1px rgba(86, 224, 232, 0.4), 0 0 16px -4px rgba(86, 224, 232, 0.45); }
+.np-lbar, .np-buybar { box-shadow: 0 18px 50px rgba(0, 0, 0, 0.55), inset 0 0 0 1px rgba(86, 224, 232, 0.45), 0 0 30px -8px rgba(86, 224, 232, 0.5); }
+.np-jump a[data-on="true"], .np-picks button[aria-pressed="true"] { box-shadow: 0 0 18px rgba(86, 224, 232, 0.45); }
+.np-picks button[aria-pressed="true"] { background: var(--ink); color: var(--lock); }
+
+/* Cards and stages: a lit edge so they lift off the page */
+.np-shop-card { box-shadow: 0 1px 0 rgba(15, 26, 33, 0.06), 0 26px 60px -30px rgba(15, 26, 33, 0.45), 0 0 0 1px rgba(12, 143, 154, 0.12); }
+.np-shop-stage { background: radial-gradient(85% 75% at 50% 62%, #ffffff, var(--paper-2)); }
+.np-shop-stage::after { content: ""; position: absolute; left: 12%; right: 12%; bottom: 8%; height: 18%; border-radius: 50%; background: radial-gradient(50% 50% at 50% 50%, rgba(86, 224, 232, 0.35), transparent 70%); pointer-events: none; }
+.np-perf-chipcard, .np-test-card, .np-inside-stage, .np-overview .np-dhero-stage { box-shadow: inset 0 0 0 1px rgba(86, 224, 232, 0.35), 0 0 40px -14px rgba(86, 224, 232, 0.45), 0 30px 70px -40px rgba(0, 0, 0, 0.9); }
+.np-perf-stats > div { box-shadow: inset 0 0 0 1px rgba(15, 26, 33, 0.08), 0 14px 30px -24px rgba(12, 143, 154, 0.5); }
+.np-chapter span { text-shadow: 0 0 14px rgba(86, 224, 232, 0.45); }
+.np-light .np-chapter span { text-shadow: none; }
+/* The shop section is light too (own class), so it takes the light rules */
+.np-shop { position: relative; isolation: isolate; }
+.np-shop::before, .np-shop::after { content: ""; position: absolute; left: 0; right: 0; height: clamp(80px, 12vw, 150px); z-index: -1; pointer-events: none; }
+.np-shop::after { bottom: 0; background: linear-gradient(0deg, var(--night) 0%, rgba(13, 20, 25, 0.55) 35%, var(--paper) 100%); }
+.np-shop .np-h2 .np-word-in, .np-shop .np-h3 .np-word-in { background: linear-gradient(180deg, var(--ink) 25%, rgba(15, 26, 33, 0.58) 100%); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.np-shop .np-chapter { color: var(--lock-deep); }
+.np-shop .np-chapter::after { background: linear-gradient(90deg, rgba(12, 143, 154, 0.5), transparent); }
+.np-shop .np-chapter span { text-shadow: none; }
