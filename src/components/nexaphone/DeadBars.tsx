@@ -123,9 +123,9 @@ export default function DeadBars() {
           viewport={{ once: true }}
           transition={{ duration: 0.7, ease: EASE }}
         >
-          Your phone says 4G and full bars, and nothing loads. So you flip airplane mode on and off and hope it
-          lands on 5G. It happens because ordinary phones pick their own tower, hop whenever they like, and park
-          on one that has stopped delivering. That hop is the lag spike that costs you the round.{t(" They call it a cell for a reason.", "")} A Nexa Pro doesn&apos;t pick. You do.
+          Full bars, nothing loads, so you toggle airplane mode and hope. Ordinary phones pick their own tower, hop
+          whenever they like, and park on one that has stopped delivering. That hop is the lag spike that costs
+          you the round.{t(" They call it a cell for a reason.", "")} A Nexa Pro doesn&apos;t pick. You do.
         </motion.p>
 
         <div className="np-db-grid" ref={ref}>
@@ -136,10 +136,9 @@ export default function DeadBars() {
         <div className="np-engine">
           <h3 className="np-display">The Nexa Signal Engine</h3>
           <p>
-            Flagship radios plus our own software, working as one. Ordinary phones hop between towers on their own,
-            and that hopping is how they end up stuck on a dead one. The Signal Engine turns it off. We lock each
-            phone to the exact tower and frequency that perform best where you play, and it stays there. No
-            hopping, no dead cells, no airplane mode, no spike in the last circle.
+            Flagship radios plus our own software, working as one. The Signal Engine turns the hopping off: we lock
+            each phone to the exact tower and frequency that perform best where you play, and it stays there. No
+            dead cells, no airplane mode, no spike in the last circle.
           </p>
           <p>
             It also means the phone ignores towers you haven&apos;t approved, including fake cell sites (IMSI

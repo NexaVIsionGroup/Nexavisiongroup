@@ -635,3 +635,35 @@
 .np-marquee-row + .np-marquee-row { display: none; }
 /* Lock sequence step titles match the chapter heads */
 .np-seq .np-h3 { font-family: var(--f-body); font-weight: 600; text-transform: none; letter-spacing: -0.01em; font-size: clamp(1.6rem, 6.5vw, 2.4rem); background: linear-gradient(180deg, var(--blue-hi) 0%, var(--blue-mid) 55%, var(--blue-lo) 100%); -webkit-background-clip: text; background-clip: text; color: transparent; }
+
+
+/* ═══ Round 3 ═══ */
+/* 1. Buy box melts into the 3D stage (no hard edge above the overview) */
+.np-overview { position: relative; }
+.np-overview::before { content: ""; position: absolute; left: 0; right: 0; top: -1px; height: 160px; z-index: 1; pointer-events: none; background: linear-gradient(180deg, var(--night) 0%, rgba(7, 9, 15, 0.85) 30%, rgba(7, 9, 15, 0.4) 65%, rgba(7, 9, 15, 0) 100%); }
+.np-overview .np-dhero-bg { opacity: 0.6; }
+.np-overview .np-dhero-stage::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 120px; pointer-events: none; background: linear-gradient(0deg, var(--night) 0%, rgba(7, 9, 15, 0) 100%); z-index: 1; }
+.np-overview .np-drag-hint { z-index: 2; }
+
+/* 2. Hero scene: a light streak crossing the towers, same language as the junctions */
+.np-scene { overflow: hidden; }
+.np-scene::after { content: ""; position: absolute; inset: -20% -40%; z-index: 1; pointer-events: none; mix-blend-mode: screen; opacity: 0.75;
+  background:
+    linear-gradient(104deg, transparent 44%, rgba(79, 134, 255, 0.14) 48.5%, rgba(219, 231, 255, 0.45) 49.7%, rgba(255, 255, 255, 0.8) 50%, rgba(219, 231, 255, 0.45) 50.3%, rgba(79, 134, 255, 0.14) 51.5%, transparent 56%);
+  background-size: 160% 100%; background-repeat: no-repeat; background-position: -40% 0; }
+@supports (animation-timeline: view()) {
+  .np-scene::after { animation: np-hero-sweep linear both; animation-timeline: view(); animation-range: entry 0% exit 100%; }
+  @keyframes np-hero-sweep { from { background-position: -40% 0; } to { background-position: 60% 0; } }
+}
+.np-readout { z-index: 2; }
+
+/* 3. Checkout in the house voice */
+.np-checkout h1.np-display, .np-done h1.np-display { font-family: var(--f-body); font-weight: 600; text-transform: none; letter-spacing: -0.015em; font-size: clamp(2rem, 8vw, 3.2rem); background: linear-gradient(180deg, var(--blue-hi) 0%, var(--blue-mid) 55%, var(--blue-lo) 100%); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.np-summary h2 { font-family: var(--f-body); font-weight: 600; font-size: 13px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--lock); }
+.np-form legend { font-size: 13px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--lock); font-weight: 700; }
+.np-field input, .np-field textarea, .np-field-select select { border-radius: 0; background: none; box-shadow: inset 0 -1px 0 var(--hair); padding-left: 0; padding-right: 0; }
+.np-field input:focus, .np-field textarea:focus, .np-field-select select:focus { box-shadow: inset 0 -2px 0 var(--lock); background: none; }
+.np-field span { left: 0; }
+.np-field-select select { background-position: right 0 center; }
+.np-sum-total b { background: linear-gradient(180deg, var(--blue-hi), var(--blue-mid) 60%, var(--blue-lo)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.np-back { color: var(--fog); }
