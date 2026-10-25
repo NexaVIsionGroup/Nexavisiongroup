@@ -4,7 +4,7 @@
 <title>Corner tool</title>
 <style>
   html,body{margin:0;background:#07090f;color:#eef2f8;font:14px system-ui;overflow:hidden;touch-action:none}
-  #stage{position:relative;width:100vw;height:100vw;max-height:100vh;overflow:hidden;background:#000}
+  #stage{position:relative;width:min(100vw,calc(100vh - 130px));aspect-ratio:1;margin:0 auto;overflow:hidden;background:#000}
   #photo{position:absolute;left:0;top:0;width:100%;height:100%;display:block}
   #clip{position:absolute;left:0;top:0;width:100%;height:100%;overflow:hidden}
   #vid{position:absolute;left:0;top:0;transform-origin:0 0;width:1000px;height:470px;object-fit:cover;max-width:none}
