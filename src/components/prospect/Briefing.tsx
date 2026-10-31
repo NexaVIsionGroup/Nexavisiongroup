@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
 import {
   ArrowDown, ArrowRight, ArrowUpRight, Bike, Check, ChevronLeft, ChevronRight, Eye, Gift, MapPin, ShieldCheck,
@@ -11,16 +11,19 @@ import type { Answers, Brief, BriefFinding } from "@/lib/questionnaires";
 import { useCoverflow } from "@/components/nexaphone/useCoverflow";
 import RailProgress from "@/components/nexaphone/RailProgress";
 import { CountUp, EASE, Money, Rise, Words, useSeen } from "./motion";
+import { useViewTracking, type TrackFn } from "./track";
 
 const ICONS: Record<string, React.ElementType> = { ShoppingBag, Bike, MapPin, Gift, Smartphone, TrendingUp };
 
-export default function Briefing({ brief, answers, progress, onStart }: {
+export default function Briefing({ brief, answers, progress, onStart, track }: {
   brief: Brief;
   answers: Answers;
   /** answered sections / total, for the "continue" button */
   progress: { done: number; total: number };
   onStart: () => void;
+  track: TrackFn;
 }) {
+  useViewTracking(track, true);
   const name = String(answers.owner_first || "").trim();
   const started = progress.done > 0;
   const startLabel = started ? `Continue setup · ${progress.done} of ${progress.total} done` : "Let's get started";
@@ -30,7 +33,7 @@ export default function Briefing({ brief, answers, progress, onStart }: {
       <Hero brief={brief} hello={name ? `Hi ${name}` : brief.hello} startLabel={startLabel} started={started} onStart={onStart} />
 
       <div className="pr-wrap">
-        <div className="pr-facts">
+        <div className="pr-facts" data-track="facts">
           {brief.facts.map((f, i) => (
             <Rise key={f.label} delay={i * 0.08} className="pr-fact">
               <b><CountUp value={f.value} /></b>
@@ -42,7 +45,7 @@ export default function Briefing({ brief, answers, progress, onStart }: {
 
       {brief.doors && <Doors doors={brief.doors} />}
 
-      <section className="pr-section" id="found">
+      <section className="pr-section" id="found" data-track="found">
         <div className="pr-wrap">
           <div className="pr-section-head">
             <p className="pr-chapter"><b>01</b> What we found</p>
@@ -64,14 +67,14 @@ export default function Briefing({ brief, answers, progress, onStart }: {
         </div>
       )}
 
-      <Calculator brief={brief} />
+      <Calculator brief={brief} track={track} />
 
-      <Build brief={brief} />
+      <Build brief={brief} track={track} />
 
       <section className="pr-section" style={{ paddingTop: 0 }}>
         <div className="pr-wrap">
           <Rise>
-            <div className="pr-promise">
+            <div className="pr-promise" data-track="promise">
               <Eye className="pr-promise-eye" strokeWidth={1} />
               <p className="pr-chapter"><b>04</b> Our promise</p>
               <Words text={brief.promise.title} className="pr-h2" />
@@ -88,7 +91,7 @@ export default function Briefing({ brief, answers, progress, onStart }: {
 
           <Steps steps={brief.steps} />
 
-          <div className="pr-final">
+          <div className="pr-final" data-track="final">
             {brief.heroImage && <div className="pr-final-bg"><Image src={brief.heroImage} alt="" fill sizes="100vw" /></div>}
             <Words text="Ready when you are." className="pr-h2" />
             <Rise delay={0.1}>
@@ -118,7 +121,7 @@ function Hero({ brief, hello, startLabel, started, onStart }: { brief: Brief; he
   const bgY = useTransform(scrollYProgress, [0, 1], ["0%", "14%"]);
 
   return (
-    <header className="pr-hero" ref={ref}>
+    <header className="pr-hero" ref={ref} data-track="hero">
       {brief.heroImage && (
         <motion.div className="pr-hero-bg" style={{ y: bgY }}>
           <Image src={brief.heroImage} alt="" fill priority sizes="100vw" />
@@ -174,7 +177,7 @@ function Doors({ doors }: { doors: NonNullable<Brief["doors"]> }) {
 // ── one finding ─────────────────────────────────────────────
 function Finding({ f }: { f: BriefFinding }) {
   return (
-    <article className="pr-finding" data-tone={f.tone || "info"}>
+    <article className="pr-finding" data-tone={f.tone || "info"} data-track={`finding:${f.id}`}>
       <div>
         <Rise>
           <div className="pr-stat">
@@ -245,7 +248,7 @@ function Compare({ rows }: { rows: NonNullable<BriefFinding["compare"]> }) {
 }
 
 // ── savings calculator ─────────────────────────────────────
-function Calculator({ brief }: { brief: Brief }) {
+function Calculator({ brief, track }: { brief: Brief; track: TrackFn }) {
   const { resellerPct, appPct, note } = brief.calculator;
   const [site, setSite] = useState(2500);
   const [apps, setApps] = useState(1500);
@@ -253,10 +256,18 @@ function Calculator({ brief }: { brief: Brief }) {
   const fee = site * (resellerPct / 100) * 52;
   const appSave = apps * (shift / 100) * (appPct / 100) * 52;
   const total = fee + appSave;
+  // one "calc" event per pause in slider play, with the values they landed on
+  const touched = useRef(false);
+  useEffect(() => {
+    if (!touched.current) return;
+    const t = setTimeout(() => track("calc", undefined, { site, apps, shift, total: Math.round(total) }), 1200);
+    return () => clearTimeout(t);
+  }, [site, apps, shift, total, track]);
+  const mark = (set: (n: number) => void) => (n: number) => { touched.current = true; set(n); };
   const max = Math.max(1, fee, appSave);
 
   return (
-    <section className="pr-section pr-light" id="money">
+    <section className="pr-section pr-light" id="money" data-track="money">
       <div className="pr-wrap">
         <div className="pr-section-head">
           <p className="pr-chapter"><b>02</b> What it costs you</p>
@@ -265,9 +276,9 @@ function Calculator({ brief }: { brief: Brief }) {
         </div>
         <div className="pr-calc">
           <Rise className="pr-sliders">
-            <Slider label="Weekly sales through “Order Online” on your website" value={site} set={setSite} min={0} max={10000} step={100} fmt={(v) => "$" + v.toLocaleString()} hint={`The ${resellerPct}% is charged on these.`} />
-            <Slider label="Weekly sales on DoorDash, Uber Eats & Grubhub" value={apps} set={setApps} min={0} max={10000} step={100} fmt={(v) => "$" + v.toLocaleString()} hint={`Apps usually keep 15–30%. We use ${appPct}%.`} />
-            <Slider label="App customers who'd order from you directly" value={shift} set={setShift} min={0} max={60} step={5} fmt={(v) => v + "%"} hint="Regulars who'd happily skip the app if your own site were easier." />
+            <Slider label="Weekly sales through “Order Online” on your website" value={site} set={mark(setSite)} min={0} max={10000} step={100} fmt={(v) => "$" + v.toLocaleString()} hint={`The ${resellerPct}% is charged on these.`} />
+            <Slider label="Weekly sales on DoorDash, Uber Eats & Grubhub" value={apps} set={mark(setApps)} min={0} max={10000} step={100} fmt={(v) => "$" + v.toLocaleString()} hint={`Apps usually keep 15–30%. We use ${appPct}%.`} />
+            <Slider label="App customers who'd order from you directly" value={shift} set={mark(setShift)} min={0} max={60} step={5} fmt={(v) => v + "%"} hint="Regulars who'd happily skip the app if your own site were easier." />
           </Rise>
           <Rise delay={0.1} className="pr-result">
             <small>You could keep about</small>
@@ -313,7 +324,7 @@ function Bar({ label, value, pct, color }: { label: string; value: number; pct: 
 }
 
 // ── what we'd build: delivery zone + coverflow cards ────────
-function Build({ brief }: { brief: Brief }) {
+function Build({ brief, track }: { brief: Brief; track: TrackFn }) {
   const rail = useRef<HTMLDivElement>(null);
   useCoverflow(rail, ".pr-card");
   const nudge = (dir: 1 | -1) => {
@@ -323,7 +334,7 @@ function Build({ brief }: { brief: Brief }) {
   };
 
   return (
-    <section className="pr-section" id="build">
+    <section className="pr-section" id="build" data-track="build">
       <div className="pr-wrap">
         <div className="pr-build">
           <div>
@@ -335,7 +346,7 @@ function Build({ brief }: { brief: Brief }) {
               </p>
             </Rise>
           </div>
-          {brief.zone && <Zone zone={brief.zone} business={brief.business} />}
+          {brief.zone && <Zone zone={brief.zone} business={brief.business} track={track} />}
         </div>
       </div>
 
@@ -364,7 +375,7 @@ function Build({ brief }: { brief: Brief }) {
           <Rise>
             <div className="pr-proof">
               <p>{brief.proof.text}</p>
-              {brief.proof.url && <a href={brief.proof.url} target="_blank" rel="noreferrer">{brief.proof.label || "Take a look"} <ArrowUpRight size={18} /></a>}
+              {brief.proof.url && <a href={brief.proof.url} target="_blank" rel="noreferrer" onClick={() => track("view", "proof-link")}>{brief.proof.label || "Take a look"} <ArrowUpRight size={18} /></a>}
             </div>
           </Rise>
         )}
@@ -373,7 +384,7 @@ function Build({ brief }: { brief: Brief }) {
   );
 }
 
-function Zone({ zone, business }: { zone: NonNullable<Brief["zone"]>; business: string }) {
+function Zone({ zone, business, track }: { zone: NonNullable<Brief["zone"]>; business: string; track: TrackFn }) {
   const [r, setR] = useState(zone.defaultRadius);
   const maxR = Math.max(...zone.radii);
   const k = 84 / maxR; // svg units per mile
@@ -434,7 +445,7 @@ function Zone({ zone, business }: { zone: NonNullable<Brief["zone"]>; business: 
         </svg>
         <div className="pr-zone-tabs" role="group" aria-label="Delivery radius">
           {zone.radii.map((rr) => (
-            <button key={rr} type="button" aria-pressed={r === rr} onClick={() => setR(rr)}>{rr} miles</button>
+            <button key={rr} type="button" aria-pressed={r === rr} onClick={() => { setR(rr); track("zone", undefined, { radius: rr }); }}>{rr} miles</button>
           ))}
         </div>
         <p className="pr-zone-count">{inside.length ? `Covers ${inside.map((t) => t.name).join(", ")}.` : "Just the neighborhood."} Distances approximate.</p>

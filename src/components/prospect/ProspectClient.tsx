@@ -1,9 +1,10 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useLayoutEffect, useMemo, useState } from "react";
 import { CloudOff, Loader2 } from "lucide-react";
 import { getTemplate, sectionProgress, visibleSections } from "@/lib/questionnaires";
 import { useCheckup } from "./useCheckup";
+import { useTrack } from "./track";
 import Briefing from "./Briefing";
 import Setup from "./Setup";
 
@@ -13,11 +14,26 @@ import Setup from "./Setup";
 
 export default function ProspectClient({ token }: { token: string }) {
   const q = useCheckup(token);
+  const track = useTrack(token);
   const [step, setStep] = useState(-1); // -1 briefing, 0..n-1 sections, n review
+  const [resumed, setResumed] = useState(false);
   const template = useMemo(() => getTemplate(q.data?.template), [q.data?.template]);
   const sections = useMemo(() => visibleSections(template, q.answers, q.data?.extra_questions), [template, q.answers, q.data?.extra_questions]);
   const n = sections.length;
   const brief = template.brief;
+
+  // Coming back after starting: skip the pitch and land where they left off
+  // (the review page if they already sent it). First visit: the briefing.
+  // Layout effect so the briefing never paints first on a return visit.
+  useLayoutEffect(() => {
+    if (!q.data) return;
+    const started = Object.keys(q.data.answers || {}).length > 0;
+    if (!started) return;
+    const total = visibleSections(template, q.data.answers, q.data.extra_questions).length;
+    setStep(q.data.submitted_at ? total : Math.min(Math.max(0, q.data.current_section || 0), total - 1));
+    setResumed(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [q.data]);
 
   if (q.error) {
     return (
@@ -37,16 +53,26 @@ export default function ProspectClient({ token }: { token: string }) {
   const doneCount = sections.filter((s) => sectionProgress(s, q.answers).answered > 0).length;
   const go = (i: number) => {
     const next = Math.max(-1, Math.min(n, i));
+    if (next === -1) track("back");
+    else track("step", next < n ? sections[next].id : "review", { index: next });
     setStep(next);
     q.flush(next >= 0 && next < n ? { current_section: next } : {});
     window.scrollTo({ top: 0, behavior: next === -1 ? "auto" : "smooth" });
   };
-  const start = () => go(doneCount > 0 ? Math.min(Math.max(0, q.data!.current_section || 0), n - 1) : 0);
+  const start = () => {
+    track("start", undefined, { resumed: doneCount > 0 });
+    go(doneCount > 0 ? Math.min(Math.max(0, q.data!.current_section || 0), n - 1) : 0);
+  };
+  const submit = async () => {
+    const ok = await q.submit();
+    if (ok) track("send");
+    return ok;
+  };
 
   return (
     <div className="pr">
       {step === -1 ? (
-        <Briefing brief={brief} answers={q.answers} progress={{ done: doneCount, total: n }} onStart={start} />
+        <Briefing brief={brief} answers={q.answers} progress={{ done: doneCount, total: n }} onStart={start} track={track} />
       ) : (
         <Setup
           title={q.data.title}
@@ -59,7 +85,10 @@ export default function ProspectClient({ token }: { token: string }) {
           savedAt={q.savedAt}
           contactEmail={brief.contact.email}
           onBriefing={() => go(-1)}
-          submit={q.submit}
+          resumed={resumed}
+          onDismissResumed={() => setResumed(false)}
+          submit={submit}
+          track={track}
           submitting={q.submitting}
           submittedAt={q.submittedAt}
         />

@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/server";
 import { sealPatch, stripSecrets } from "@/lib/questionnaires/secrets";
+import { getTemplate } from "@/lib/questionnaires";
+import { notifyProspect } from "@/lib/questionnaires/notify";
 
 // PUBLIC client endpoint for /q/[token]. The token is the only credential,
 // so responses never include admin notes or internal fields.
@@ -92,6 +94,8 @@ export async function POST(_req: NextRequest, { params }: Ctx) {
     .eq("id", row.id);
 
   const who = row.client_name || row.answers?.p1_first || row.answers?.owner_first || "A client";
+  const t = getTemplate(row.template);
+  if (t.kind === "prospect") await notifyProspect(first ? "submitted" : "resubmitted", row, t);
   await supabase.from("admin_notifications").insert({
     type: "questionnaire_submitted",
     title: first ? "Questionnaire submitted" : "Questionnaire updated",

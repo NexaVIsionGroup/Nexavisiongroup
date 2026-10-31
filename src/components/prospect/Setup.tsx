@@ -10,10 +10,11 @@ import type { AccessField, AccessValue, Answers, Field, Option, Section } from "
 import { isVisible, sectionProgress } from "@/lib/questionnaires";
 import type { SaveState } from "./useCheckup";
 import { EASE } from "./motion";
+import type { TrackFn } from "./track";
 
 const ICONS: Record<string, React.ElementType> = { User, KeyRound, ShoppingBag, Globe, Bike, Target };
 
-export default function Setup({ title, sections, step, go, answers, setAnswer, save, savedAt, contactEmail, onBriefing, submit, submitting, submittedAt }: {
+export default function Setup({ title, sections, step, go, answers, setAnswer, save, savedAt, contactEmail, onBriefing, submit, submitting, submittedAt, resumed, onDismissResumed, track }: {
   title: string;
   sections: Section[];
   /** 0..n-1 sections, n = review */
@@ -28,6 +29,10 @@ export default function Setup({ title, sections, step, go, answers, setAnswer, s
   submit: () => Promise<boolean>;
   submitting: boolean;
   submittedAt: string | null;
+  /** they came back to a link they'd already started */
+  resumed?: boolean;
+  onDismissResumed?: () => void;
+  track?: TrackFn;
 }) {
   const n = sections.length;
   const [dir, setDir] = useState(1);
@@ -71,6 +76,17 @@ export default function Setup({ title, sections, step, go, answers, setAnswer, s
             <i data-on={step === n} />
           </div>
 
+          <AnimatePresence>
+            {resumed && (
+              <motion.div key="wb" className="pr-welcome" initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, height: 0, marginBottom: 0 }} transition={{ duration: 0.4, ease: EASE }}>
+                <Check size={20} strokeWidth={3} />
+                <span>Welcome back{answers.owner_first ? `, ${String(answers.owner_first).trim()}` : ""}. Everything you entered is saved, so you're right where you left off.</span>
+                <button type="button" onClick={onBriefing}>See what we found</button>
+                <button type="button" onClick={onDismissResumed} aria-label="Dismiss">OK</button>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
           <AnimatePresence mode="wait" custom={dir}>
             <motion.div
               key={current ? current.id : sent ? "sent" : "review"}
@@ -81,7 +97,7 @@ export default function Setup({ title, sections, step, go, answers, setAnswer, s
               transition={{ duration: 0.5, ease: EASE }}
             >
               {current ? (
-                <SectionPanel section={current} index={step} count={n} answers={answers} setAnswer={setAnswer} contactEmail={contactEmail} />
+                <SectionPanel section={current} index={step} count={n} answers={answers} setAnswer={setAnswer} contactEmail={contactEmail} track={track} />
               ) : sent ? (
                 <Thanks onReview={() => move(0)} />
               ) : (
@@ -121,8 +137,8 @@ function SaveBadge({ state, at }: { state: SaveState; at: Date | null }) {
   );
 }
 
-function SectionPanel({ section, index, count, answers, setAnswer, contactEmail }: {
-  section: Section; index: number; count: number; answers: Answers; setAnswer: (id: string, v: any) => void; contactEmail: string;
+function SectionPanel({ section, index, count, answers, setAnswer, contactEmail, track }: {
+  section: Section; index: number; count: number; answers: Answers; setAnswer: (id: string, v: any) => void; contactEmail: string; track?: TrackFn;
 }) {
   const Icon = ICONS[section.icon] || KeyRound;
   return (
@@ -136,7 +152,7 @@ function SectionPanel({ section, index, count, answers, setAnswer, contactEmail 
         {section.fields.filter((f) => isVisible(f.showIf, answers)).map((f, i) => (
           <motion.div key={f.id} className="pr-f" data-w={"width" in f && f.width ? f.width : "lg"}
             initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.08 + i * 0.05, ease: EASE }}>
-            <FieldView field={f} value={answers[f.id]} onChange={(v) => setAnswer(f.id, v)} contactEmail={contactEmail} />
+            <FieldView field={f} value={answers[f.id]} onChange={(v) => setAnswer(f.id, v)} contactEmail={contactEmail} track={track} />
           </motion.div>
         ))}
       </div>
@@ -145,13 +161,13 @@ function SectionPanel({ section, index, count, answers, setAnswer, contactEmail 
 }
 
 // ── fields ──────────────────────────────────────────────────
-function FieldView({ field, value, onChange, contactEmail }: { field: Field; value: any; onChange: (v: any) => void; contactEmail: string }) {
+function FieldView({ field, value, onChange, contactEmail, track }: { field: Field; value: any; onChange: (v: any) => void; contactEmail: string; track?: TrackFn }) {
   const id = `f_${field.id}`;
   if (field.type === "info") {
     const Icon = field.tone === "privacy" ? ShieldCheck : field.tone === "tip" ? Lightbulb : Info;
     return <div className="pr-callout" data-tone={field.tone || "note"}><Icon size={22} /><span>{field.label}</span></div>;
   }
-  if (field.type === "access") return <AccessCard field={field} value={value || {}} onChange={onChange} contactEmail={contactEmail} />;
+  if (field.type === "access") return <AccessCard field={field} value={value || {}} onChange={onChange} contactEmail={contactEmail} track={track} />;
 
   return (
     <div>
@@ -235,13 +251,17 @@ function initials(name: string) {
   return (w.length > 1 ? w[0][0] + w[1][0] : name[0]).toUpperCase();
 }
 
-function AccessCard({ field, value, onChange, contactEmail }: { field: AccessField; value: AccessValue; onChange: (v: AccessValue) => void; contactEmail: string }) {
+function AccessCard({ field, value, onChange, contactEmail, track }: { field: AccessField; value: AccessValue; onChange: (v: AccessValue) => void; contactEmail: string; track?: TrackFn }) {
   const v = value || {};
   const [pw, setPw] = useState("");
   const [show, setShow] = useState(false);
   const [copied, setCopied] = useState(false);
   const set = (patch: Partial<AccessValue>) => onChange({ ...v, ...patch });
-  const pick = (via: AccessValue["via"]) => onChange(v.via === via ? { ...v, via: undefined } : { ...v, via });
+  const pick = (via: AccessValue["via"]) => {
+    const next = v.via === via ? undefined : via;
+    track?.("access", field.platform, { via: next || "cleared" });
+    onChange({ ...v, via: next });
+  };
 
   const options: { via: NonNullable<AccessValue["via"]>; label: string; icon: React.ElementType }[] = [
     ...(field.invite ? [{ via: "invite" as const, label: "Invite us", icon: UserPlus }] : []),
@@ -299,7 +319,7 @@ function AccessCard({ field, value, onChange, contactEmail }: { field: AccessFie
                     <button type="button" className="pr-mini" onClick={copy}>{copied ? <Check size={17} /> : <Copy size={17} />} {copied ? "Copied" : `Copy ${contactEmail}`}</button>
                     {field.invite.url && <a className="pr-mini" href={field.invite.url} target="_blank" rel="noreferrer"><ExternalLink size={17} /> Open {field.platform}</a>}
                   </div>
-                  <button type="button" role="checkbox" aria-checked={!!v.done} className="pr-done-toggle" onClick={() => set({ done: !v.done })}>
+                  <button type="button" role="checkbox" aria-checked={!!v.done} className="pr-done-toggle" onClick={() => { track?.("access", field.platform, { via: "invite", done: !v.done }); set({ done: !v.done }); }}>
                     <span className="pr-tick" data-square="true">{v.done && <Check size={15} strokeWidth={3.5} color="#0d1a12" />}</span>
                     I sent the invite
                   </button>

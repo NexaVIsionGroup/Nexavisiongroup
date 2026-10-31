@@ -5,7 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import AppShell from "@/components/admin/AppShell";
 import {
   Loader2, Copy, Check, ExternalLink, AlertTriangle, Sparkles, Eye, Info, Plus, Trash2, ChevronLeft, Save,
-  ChevronDown, ChevronRight, Lock, KeyRound,
+  ChevronDown, ChevronRight, Lock, KeyRound, BarChart3,
 } from "lucide-react";
 import type { AccessField, AccessValue, Answers, ExtraQuestion, Field, MoneyValue, Section } from "@/lib/questionnaires";
 import { FREQ_LABEL, fmtMoney, getTemplate, isVisible, personalize, sectionProgress, visibleSections } from "@/lib/questionnaires";
@@ -128,6 +128,9 @@ export default function QuestionnaireDetail() {
                   {copied ? <Check size={15} className="text-nv-success" /> : <Copy size={15} />}
                 </button>
                 <a href={q.url} target="_blank" rel="noreferrer" className="p-1.5 rounded-md text-nv-text-muted hover:text-nv-teal hover:bg-white/5" title="Open as client"><ExternalLink size={15} /></a>
+                <button onClick={() => router.push(`/admin/questionnaires/${q.id}/stats`)} className="ml-1 flex items-center gap-1.5 rounded-md border border-nv-teal/30 bg-nv-teal/10 px-2.5 py-1.5 text-xs font-medium text-nv-teal hover:bg-nv-teal/20" title="Visits, time on page, what they looked at">
+                  <BarChart3 size={14} /> Stats
+                </button>
               </div>
             </div>
             <select
