@@ -25,11 +25,13 @@ export async function updateSession(request: NextRequest) {
     }
   );
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
   const { pathname } = request.nextUrl;
+  // API calls (real data) get the full server check against Supabase Auth. Admin PAGES are only client shells whose
+  // data comes from those APIs, so they read the session from the cookie (no network round trip) — the page opens
+  // without waiting on Supabase; a bad/expired session still can't load any data.
+  const user = pathname.startsWith("/api/admin")
+    ? (await supabase.auth.getUser()).data.user
+    : (await supabase.auth.getSession()).data.session?.user ?? null;
 
   // Admin routes that don't require auth
   const publicAdminPaths = ["/admin/login", "/admin/join", "/admin/access"];

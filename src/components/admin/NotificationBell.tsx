@@ -20,6 +20,8 @@ async function refresh() {
     if (!r.ok) return;
     shared = await r.json();
     listeners.forEach((l) => l(shared));
+    const nav = navigator as Navigator & { setAppBadge?: (n?: number) => Promise<void>; clearAppBadge?: () => Promise<void> };
+    if (shared.unread > 0) nav.setAppBadge?.(shared.unread).catch(() => {}); else nav.clearAppBadge?.().catch(() => {});
   } catch { /* offline */ }
 }
 
@@ -76,9 +78,13 @@ export default function NotificationBell() {
   const checkPush = useCallback(async () => {
     if (!("serviceWorker" in navigator) || !("PushManager" in window) || !("Notification" in window)) { setPush("unsupported"); return; }
     if (Notification.permission === "denied") { setPush("blocked"); return; }
-    const reg = await navigator.serviceWorker.getRegistration();
+    const reg = await navigator.serviceWorker.getRegistration("/admin/");
     const sub = await reg?.pushManager.getSubscription();
+    // permission already given but no subscription on the /admin/ worker (moved from the old site-wide one, or the
+    // browser dropped it) → re-subscribe silently so alerts keep coming without tapping Turn on again
+    if (!sub && Notification.permission === "granted" && localStorage.getItem("nv_push_off") !== "1") { turnOn(true); return; }
     setPush(sub ? "on" : "off");
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   useEffect(() => { checkPush(); }, [checkPush]);
 
@@ -88,12 +94,12 @@ export default function NotificationBell() {
     return () => document.removeEventListener("mousedown", close);
   }, []);
 
-  async function turnOn() {
+  async function turnOn(silent = false) {
     setBusy(true); setNote("");
     try {
       const perm = await Notification.requestPermission();
       if (perm !== "granted") { setPush(perm === "denied" ? "blocked" : "off"); return; }
-      const reg = (await navigator.serviceWorker.getRegistration()) || (await navigator.serviceWorker.register("/sw.js"));
+      const reg = (await navigator.serviceWorker.getRegistration("/admin/")) || (await navigator.serviceWorker.register("/sw.js", { scope: "/admin/" }));
       await navigator.serviceWorker.ready;
       const key = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
       if (!key) { setNote("Push isn't configured on the server yet."); return; }
@@ -102,17 +108,18 @@ export default function NotificationBell() {
       const r = await post({ action: "subscribe", subscription: sub.toJSON(), device });
       if (r.error) { setNote(r.error); return; }
       setPush("on");
-      await post({ action: "test" });
-      setNote("Sent a test notification to this device.");
+      localStorage.removeItem("nv_push_off");
+      if (!silent) { await post({ action: "test" }); setNote("Sent a test notification to this device."); }
     } catch (e) { setNote(e instanceof Error ? e.message : "Could not turn on notifications."); }
     finally { setBusy(false); }
   }
 
   async function turnOff() {
     setBusy(true);
-    const reg = await navigator.serviceWorker.getRegistration();
+    const reg = await navigator.serviceWorker.getRegistration("/admin/");
     const sub = await reg?.pushManager.getSubscription();
     if (sub) { await post({ action: "unsubscribe", endpoint: sub.endpoint }); await sub.unsubscribe(); }
+    localStorage.setItem("nv_push_off", "1");              // don't silently re-subscribe after an explicit Turn off
     setPush("off"); setBusy(false);
   }
 
@@ -169,7 +176,7 @@ export default function NotificationBell() {
                   : <b className="text-nv-text-primary">Off</b>}
               </span>
               {busy ? <Loader2 size={14} className="animate-spin" />
-                : push === "off" ? <button onClick={turnOn} className="nv-btn-primary px-3 py-1 text-[12px]">Turn on</button>
+                : push === "off" ? <button onClick={() => turnOn()} className="nv-btn-primary px-3 py-1 text-[12px]">Turn on</button>
                 : push === "on" ? (
                   <span className="flex gap-2">
                     <button onClick={async () => { await post({ action: "test" }); setNote("Test sent."); }} className="text-nv-teal">Send test</button>
