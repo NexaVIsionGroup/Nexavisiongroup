@@ -71,6 +71,7 @@ export default function AppShell({ children, title, showBack }: AppShellProps) {
   const supabase = createClient();
   const { badges } = useAdminAlerts();                 // live counts for the nav (emails, questionnaires, requests…)
   const badgeOf = (item: NavItem) => badges[item.path] || 0;
+  const badgeText = (item: NavItem) => (badgeOf(item) > 99 ? "99+" : String(badgeOf(item)));
 
   // Close sidebar on route change (mobile)
   useEffect(() => {
@@ -148,7 +149,7 @@ export default function AppShell({ children, title, showBack }: AppShellProps) {
                 )}
                 {!collapsed && badgeOf(item) > 0 && (
                   <span className="ml-auto bg-nv-error text-white text-xs font-bold px-1.5 py-0.5 rounded-full min-w-[20px] text-center">
-                    {badgeOf(item)}
+                    {badgeText(item)}
                   </span>
                 )}
                 {collapsed && badgeOf(item) > 0 && <span className="absolute ml-5 -mt-4 h-2 w-2 rounded-full bg-nv-error" />}
@@ -206,7 +207,7 @@ export default function AppShell({ children, title, showBack }: AppShellProps) {
                     <item.icon size={20} />
                     <span>{item.label}</span>
                     {badgeOf(item) > 0 && (
-                      <span className="ml-auto bg-nv-error text-white text-xs font-bold px-1.5 py-0.5 rounded-full min-w-[20px] text-center">{badgeOf(item)}</span>
+                      <span className="ml-auto bg-nv-error text-white text-xs font-bold px-1.5 py-0.5 rounded-full min-w-[20px] text-center">{badgeText(item)}</span>
                     )}
                   </button>
                 ))}
@@ -280,7 +281,7 @@ export default function AppShell({ children, title, showBack }: AppShellProps) {
                 <span className="relative">
                   <item.icon size={20} />
                   {badgeOf(item) > 0 && (
-                    <span className="absolute -top-1.5 -right-2.5 min-w-[16px] h-4 px-1 rounded-full bg-nv-error text-white text-[9.5px] font-bold flex items-center justify-center">{badgeOf(item)}</span>
+                    <span className="absolute -top-1.5 -right-2.5 min-w-[16px] h-4 px-1 rounded-full bg-nv-error text-white text-[9.5px] font-bold flex items-center justify-center">{badgeText(item)}</span>
                   )}
                 </span>
                 <span className="text-[10px] font-medium">{item.label}</span>

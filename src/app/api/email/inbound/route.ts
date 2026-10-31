@@ -97,7 +97,10 @@ export async function POST(req: NextRequest) {
       body_text: body_text ?? undefined,
     });
 
-    await notifyAdmin({
+    // the site's own alert emails (contact form, requests…) come back here as inbound mail — they already
+    // notified through notifyAdmin, so don't alert twice
+    const selfNotice = /@nexavisiongroup\.com>?$/i.test(String(from_email || "").trim());
+    if (!selfNotice) await notifyAdmin({
       type: "email", title: `✉️ ${String(from || from_email).replace(/<.*>/, "").trim() || from_email}`,
       message: subjectStr || "(no subject)",
       url: logged?.thread_id ? `/admin/inbox?thread=${logged.thread_id}` : "/admin/inbox",
