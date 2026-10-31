@@ -87,9 +87,14 @@ export function useViewTracking(track: TrackFn, enabled: boolean) {
     if (!enabled) return;
     const els = document.querySelectorAll<HTMLElement>("[data-track]");
     if (!els.length) return;
+    // a section counts as seen at 25% visible, or at half a screen's worth
+    // for sections taller than the screen (so long chapters still register)
     const io = new IntersectionObserver((entries) => {
-      for (const en of entries) if (en.isIntersecting) track("view", en.target.getAttribute("data-track") || undefined);
-    }, { threshold: 0.25 });
+      for (const en of entries) {
+        const need = Math.min(0.25, (window.innerHeight * 0.5) / Math.max(1, en.boundingClientRect.height));
+        if (en.isIntersecting && en.intersectionRatio >= need) track("view", en.target.getAttribute("data-track") || undefined);
+      }
+    }, { threshold: [0.01, 0.05, 0.1, 0.15, 0.25] });
     els.forEach((el) => io.observe(el));
     return () => io.disconnect();
   }, [track, enabled]);
