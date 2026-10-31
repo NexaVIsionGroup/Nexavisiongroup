@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { Resend } from "resend";
+import { notifyAdmin } from "@/lib/notify";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -77,6 +78,11 @@ export async function POST(request: Request) {
           </p>
         </div>
       `,
+    });
+
+    await notifyAdmin({
+      type: "contact", title: `💬 Website message — ${name || "someone"}`,
+      message: `${subject ? subject + " · " : ""}${String(message || "").slice(0, 160)}`, url: "/admin/inbox",
     });
 
     return NextResponse.json({ success: true, message: "Message sent" }, { status: 200 });

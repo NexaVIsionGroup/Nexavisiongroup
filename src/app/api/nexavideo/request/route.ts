@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Resend } from "resend";
 import { db, sha256, cleanUsername, USERNAME_RE, hashPassword } from "@/lib/nexavideo";
+import { notifyAdmin } from "@/lib/notify";
 
 // "Request access" from the Nexa Video download page. The person picks a username + password now; the owner approves
 // in /admin/nexavideo (free trial or permanent) and the account goes live — no invite link to send.
@@ -43,6 +44,10 @@ export async function POST(req: NextRequest) {
     name, contact, email, note, username, password_hash: hashPassword(password), ip_hash: ipHash,
   });
   if (error) return bad("Could not send your request. Try again.", 500);
+  await notifyAdmin({
+    type: "nexavideo_request", title: `🎬 Nexa Video access request — ${name}`,
+    message: `${contact} · username ${username}${note ? ` · “${note.slice(0, 80)}”` : ""}`, url: "/admin/nexavideo",
+  });
 
   try {
     await resend.emails.send({

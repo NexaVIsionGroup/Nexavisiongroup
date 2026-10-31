@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { Resend } from "resend";
 import { createAdminClient } from "@/lib/supabase/server";
 import { products } from "@/components/nexaphone/catalog";
+import { notifyAdmin } from "@/lib/notify";
 
 // Nexa Pro leads: fleet quotes, technical guide requests and phone questions.
 const resend = new Resend(process.env.RESEND_API_KEY);
@@ -50,6 +51,10 @@ export async function POST(req: Request) {
     console.error("nexaphone lead insert", error);
     return NextResponse.json({ error: "We couldn't send that. Try again in a minute." }, { status: 500 });
   }
+  await notifyAdmin({
+    type: "phone_lead", title: `📱 Phone Store ${KINDS[kind] || "lead"} — ${name}`,
+    message: [row.device, row.units ? `${row.units} units` : "", row.company, email].filter(Boolean).join(" · "), url: "/admin/phones",
+  });
 
   const lines = [
     ["Name", row.name],

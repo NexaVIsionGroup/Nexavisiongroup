@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import {
   db, sha256, cleanUsername, USERNAME_RE, hashPassword, mintSession, VM_COOKIE, type VmUser,
 } from "@/lib/vm";
+import { notifyAdmin } from "@/lib/notify";
 
 // Redeems a one-time link.
 //   kind=invite -> the person chooses a username + password (entered twice)
@@ -65,6 +66,10 @@ export async function POST(req: NextRequest) {
   }
   const { error } = await db().from("vm_users").update(patch).eq("id", u.id);
   if (error) return NextResponse.json({ error: "Could not save. Try again." }, { status: 500 });
+  if (u.token_kind === "invite") await notifyAdmin({
+    type: "vm_signup", title: `☁️ Cloud phone sign-up — ${patch.username}`,
+    message: `${u.label ? u.label + " · " : ""}${u.plan === "trial" ? `${u.trial_days || 7}-day trial started` : "full account"}`, url: "/admin/devices",
+  });
 
   const s = mintSession(u.id);
   const res = NextResponse.json({ ok: true });

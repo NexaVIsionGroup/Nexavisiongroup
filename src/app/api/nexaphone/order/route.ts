@@ -4,6 +4,7 @@ import { createAdminClient } from "@/lib/supabase/server";
 import { createHmac, randomBytes } from "crypto";
 import { ADDONS, money, productBySlug } from "@/components/nexaphone/catalog";
 import { shipLabel, verifyQuote, type ShipOption } from "@/lib/nexaphone/shipping";
+import { notifyAdmin } from "@/lib/notify";
 
 // Nexa Pro order. Prices are recomputed here from the catalog — the browser
 // only says what it wants, never what it costs. With NEXA_AUTO_CHECKOUT=1 the
@@ -207,6 +208,11 @@ export async function POST(req: Request) {
   } catch (e) {
     console.error("nexaphone order email", e); // order is saved; don't fail the buyer
   }
+
+  await notifyAdmin({
+    type: "phone_order", title: `🛒 New phone order ${number} — ${customer.name}`,
+    message: `${phones} phone${phones === 1 ? "" : "s"} · ${money(subtotal + shipping)}`, url: "/admin/phones", entityType: "nexaphone_order", entityId: number,
+  });
 
   return NextResponse.json({ ok: true, orderNumber: number, payUrl: payLink });
 }

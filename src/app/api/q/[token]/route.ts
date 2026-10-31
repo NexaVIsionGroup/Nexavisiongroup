@@ -3,6 +3,7 @@ import { createAdminClient } from "@/lib/supabase/server";
 import { sealPatch, stripSecrets } from "@/lib/questionnaires/secrets";
 import { getTemplate } from "@/lib/questionnaires";
 import { notifyProspect } from "@/lib/questionnaires/notify";
+import { notifyAdmin } from "@/lib/notify";
 
 // PUBLIC client endpoint for /q/[token]. The token is the only credential,
 // so responses never include admin notes or internal fields.
@@ -96,13 +97,11 @@ export async function POST(_req: NextRequest, { params }: Ctx) {
   const who = row.client_name || row.answers?.p1_first || row.answers?.owner_first || "A client";
   const t = getTemplate(row.template);
   if (t.kind === "prospect") await notifyProspect(first ? "submitted" : "resubmitted", row, t);
-  await supabase.from("admin_notifications").insert({
+  await notifyAdmin({
     type: "questionnaire_submitted",
-    title: first ? "Questionnaire submitted" : "Questionnaire updated",
-    message: `${who} ${first ? "sent in" : "updated"} “${row.title}”`,
-    entity_type: "client_questionnaire",
-    entity_id: row.id,
-    action_url: `/admin/questionnaires/${row.id}`,
+    title: first ? `📝 Questionnaire submitted — ${who}` : `📝 Questionnaire updated — ${who}`,
+    message: `“${row.title}”`,
+    url: `/admin/questionnaires/${row.id}`, entityType: "client_questionnaire", entityId: row.id,
   });
   await supabase.from("activity_log").insert({
     action: first ? "questionnaire_submitted" : "questionnaire_resubmitted",

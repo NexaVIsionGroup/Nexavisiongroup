@@ -8,6 +8,7 @@ import {
   Paperclip, Menu, Pencil, MoreVertical, ChevronDown, Plus, Settings,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import NotificationBell from "./NotificationBell";
 
 // ── Types ──
 interface Thread {
@@ -205,6 +206,17 @@ export default function AdminInbox() {
     setLoading(false);
   }, [folder, activeAccount]);
   useEffect(() => { fetchThreads(); }, [fetchThreads]);
+
+  // deep link from a notification: /admin/inbox?thread=<id> opens that conversation once the list is loaded
+  const deepLinked = useRef(false);
+  useEffect(() => {
+    if (deepLinked.current || !threads.length) return;
+    const want = new URLSearchParams(window.location.search).get("thread");
+    if (!want) { deepLinked.current = true; return; }
+    const t = threads.find((x) => x.thread_id === want);
+    if (t) { deepLinked.current = true; openThread(t); }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [threads]);
 
   // ── Open thread ──
   const openThread = async (thread: Thread) => {
@@ -722,6 +734,8 @@ export default function AdminInbox() {
               className="flex-1 bg-transparent text-sm text-nv-text-primary placeholder:text-nv-text-muted focus:outline-none" />
           </div>
         </div>
+
+        <NotificationBell />
 
         {/* Account avatar — opens account switcher */}
         <button onClick={() => goToView("accounts")}

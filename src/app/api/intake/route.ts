@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { Resend } from "resend";
+import { notifyAdmin } from "@/lib/notify";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -94,6 +95,11 @@ export async function POST(request: Request) {
           </p>
         </div>
       `,
+    });
+
+    await notifyAdmin({
+      type: "intake", title: `📋 New intake — ${data.name || "unknown"}${data.company ? ` (${data.company})` : ""}`,
+      message: [data.industry, tier ? `tier ${tier}` : "", data.email].filter(Boolean).join(" · "), url: "/admin/customers",
     });
 
     return NextResponse.json(

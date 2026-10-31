@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Resend } from 'resend';
 import { createAdminClient } from '@/lib/supabase/server';
+import { notifyAdmin } from "@/lib/notify";
 
 const BUCKET = 'verification-docs';
 const MAX_BYTES = 10 * 1024 * 1024;
@@ -72,6 +73,14 @@ export async function POST(req: NextRequest, { params }: { params: { token: stri
   await supabase.from('activity_log').insert({
     action: 'verification_submitted', entity_type: 'verification_request',
     entity_id: r.id, details: { documents: rows.length } });
+  {
+    const { data: c } = await supabase.from("customers").select("first_name,last_name").eq("id", r.customer_id).maybeSingle();
+    await notifyAdmin({
+      type: "verification", title: `🪪 Verification submitted — ${[c?.first_name, c?.last_name].filter(Boolean).join(" ") || "a customer"}`,
+      message: `${rows.length} document${rows.length === 1 ? "" : "s"} ready to review`, url: "/admin/verification",
+      entityType: "verification_request", entityId: r.id,
+    });
+  }
 
   try {
     const resend = new Resend(process.env.RESEND_API_KEY);

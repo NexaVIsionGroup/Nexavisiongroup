@@ -26,6 +26,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import AuthGuard from "./AuthGuard";
+import NotificationBell, { useAdminAlerts } from "./NotificationBell";
 
 interface NavItem {
   label: string;
@@ -68,6 +69,8 @@ export default function AppShell({ children, title, showBack }: AppShellProps) {
   const pathname = usePathname();
   const router = useRouter();
   const supabase = createClient();
+  const { badges } = useAdminAlerts();                 // live counts for the nav (emails, questionnaires, requests…)
+  const badgeOf = (item: NavItem) => badges[item.path] || 0;
 
   // Close sidebar on route change (mobile)
   useEffect(() => {
@@ -131,7 +134,7 @@ export default function AppShell({ children, title, showBack }: AppShellProps) {
                 key={item.path}
                 onClick={() => go(item)}
                 className={cn(
-                  "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all",
+                  "relative w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all",
                   isActive(item.path)
                     ? "bg-nv-teal/10 text-nv-teal shadow-nv-glow-sm"
                     : "text-nv-text-secondary hover:text-nv-text-primary hover:bg-white/5"
@@ -143,11 +146,12 @@ export default function AppShell({ children, title, showBack }: AppShellProps) {
                 {!collapsed && item.external && (
                   <ExternalLink size={13} className="ml-auto opacity-50 shrink-0" />
                 )}
-                {!collapsed && item.badge && item.badge > 0 && (
-                  <span className="ml-auto bg-nv-teal text-nv-abyss text-xs font-bold px-1.5 py-0.5 rounded-full min-w-[20px] text-center">
-                    {item.badge}
+                {!collapsed && badgeOf(item) > 0 && (
+                  <span className="ml-auto bg-nv-error text-white text-xs font-bold px-1.5 py-0.5 rounded-full min-w-[20px] text-center">
+                    {badgeOf(item)}
                   </span>
                 )}
+                {collapsed && badgeOf(item) > 0 && <span className="absolute ml-5 -mt-4 h-2 w-2 rounded-full bg-nv-error" />}
               </button>
             ))}
           </nav>
@@ -201,6 +205,9 @@ export default function AppShell({ children, title, showBack }: AppShellProps) {
                   >
                     <item.icon size={20} />
                     <span>{item.label}</span>
+                    {badgeOf(item) > 0 && (
+                      <span className="ml-auto bg-nv-error text-white text-xs font-bold px-1.5 py-0.5 rounded-full min-w-[20px] text-center">{badgeOf(item)}</span>
+                    )}
                   </button>
                 ))}
               </nav>
@@ -247,6 +254,7 @@ export default function AppShell({ children, title, showBack }: AppShellProps) {
                 {title}
               </h1>
             )}
+            <div className="ml-auto"><NotificationBell /></div>
           </header>
 
           {/* Page Content */}
@@ -269,7 +277,12 @@ export default function AppShell({ children, title, showBack }: AppShellProps) {
                     : "text-nv-text-muted"
                 )}
               >
-                <item.icon size={20} />
+                <span className="relative">
+                  <item.icon size={20} />
+                  {badgeOf(item) > 0 && (
+                    <span className="absolute -top-1.5 -right-2.5 min-w-[16px] h-4 px-1 rounded-full bg-nv-error text-white text-[9.5px] font-bold flex items-center justify-center">{badgeOf(item)}</span>
+                  )}
+                </span>
                 <span className="text-[10px] font-medium">{item.label}</span>
               </button>
             ))}

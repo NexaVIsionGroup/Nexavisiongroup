@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db, sha256, cleanUsername, USERNAME_RE, hashPassword, mint, NV_COOKIE, type NvUser } from "@/lib/nexavideo";
+import { notifyAdmin } from "@/lib/notify";
 
 // Redeems a one-time Nexa Video link.
 //   kind=invite -> the person chooses a username + password (entered twice)
@@ -53,6 +54,10 @@ export async function POST(req: NextRequest) {
   }
   const { error } = await db().from("nexavideo_users").update(patch).eq("id", u.id);
   if (error) return NextResponse.json({ error: "Could not save. Try again." }, { status: 500 });
+  if (u.token_kind === "invite") await notifyAdmin({
+    type: "nexavideo_signup", title: `🎬 Nexa Video sign-up — ${patch.username}`,
+    message: `${u.label ? u.label + " · " : ""}${u.plan === "trial" ? `${u.trial_days || 10}-day trial started` : "permanent account"}`, url: "/admin/nexavideo",
+  });
 
   const s = mint(u.id, "web");
   const res = NextResponse.json({ ok: true });

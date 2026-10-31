@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/server';
 import { logEmail } from '@/lib/email';
+import { notifyAdmin } from "@/lib/notify";
 
 function parseEmail(raw: string): string {
   const match = raw.match(/<([^>]+)>/);
@@ -94,6 +95,13 @@ export async function POST(req: NextRequest) {
       subject: subjectStr,
       body_html: body_html ?? undefined,
       body_text: body_text ?? undefined,
+    });
+
+    await notifyAdmin({
+      type: "email", title: `✉️ ${String(from || from_email).replace(/<.*>/, "").trim() || from_email}`,
+      message: subjectStr || "(no subject)",
+      url: logged?.thread_id ? `/admin/inbox?thread=${logged.thread_id}` : "/admin/inbox",
+      entityType: "email_thread", entityId: logged?.thread_id || undefined,
     });
 
     return NextResponse.json({ success: true, message_id: logged?.id, thread_id: logged?.thread_id });
