@@ -28,7 +28,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     const title = `${t.brief.business} × NexaVision Group`;
     const description = "What we found, what it costs you, and how we'd help. Made for " + t.brief.business + ".";
     const image = t.brief.heroImage ? [{ url: t.brief.heroImage }] : undefined;
-    return { title, description, robots, openGraph: { title, description, images: image }, twitter: { card: "summary_large_image", title, description } };
+    return { title: { absolute: title }, description, robots, openGraph: { title, description, images: image }, twitter: { card: "summary_large_image", title, description } };
   }
   return { title: "Household Check-up", robots };
 }
