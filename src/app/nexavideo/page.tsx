@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { cookies } from "next/headers";
-import { NV_COOKIE, userFrom, latestRelease } from "@/lib/nexavideo";
+import { NV_COOKIE, userFrom, latestRelease, trialState, TRIAL_ENDED } from "@/lib/nexavideo";
 import NexaVideoClient from "./NexaVideoClient";
 import { SHOTS } from "./shots";
 
@@ -15,13 +15,16 @@ export const metadata: Metadata = {
 
 export default async function NexaVideoPage() {
   const jar = await cookies();
-  const u = await userFrom(jar.get(NV_COOKIE)?.value);
+  const found = await userFrom(jar.get(NV_COOKIE)?.value);
+  const expired = !!found && trialState(found).expired;
+  const u = expired ? null : found;
   const r = u ? await latestRelease() : null;
   return (
     <NexaVideoClient
       user={u ? { username: u.username! } : null}
       release={r ? { name: r.version_name, size: r.size_bytes, notes: r.notes, date: r.created_at } : null}
       shots={SHOTS}
+      notice={expired ? TRIAL_ENDED : null}
     />
   );
 }

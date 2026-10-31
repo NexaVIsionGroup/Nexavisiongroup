@@ -47,6 +47,9 @@ export async function POST(req: NextRequest) {
     if (taken) return NextResponse.json({ error: "That username is taken. Pick another." }, { status: 409 });
     patch.username = username;
     patch.signed_up_at = new Date().toISOString();
+    if (u.plan === "trial" && !u.trial_ends_at) {
+        patch.trial_ends_at = new Date(Date.now() + (u.trial_days || 10) * 86400_000).toISOString();
+    }
   }
   const { error } = await db().from("nexavideo_users").update(patch).eq("id", u.id);
   if (error) return NextResponse.json({ error: "Could not save. Try again." }, { status: 500 });

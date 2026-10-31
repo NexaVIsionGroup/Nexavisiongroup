@@ -9,6 +9,7 @@ type Props = {
   user: { username: string } | null;
   release: { name: string; size: number | null; notes: string; date: string } | null;
   shots: { src: string; caption: string; tall?: boolean }[];
+  notice?: string | null;
 };
 
 const FEATURES = [
@@ -24,7 +25,7 @@ const FEATURES = [
 
 function mb(n: number | null) { return n ? `${(n / 1048576).toFixed(0)} MB` : ""; }
 
-export default function NexaVideoClient({ user, release, shots }: Props) {
+export default function NexaVideoClient({ user, release, shots, notice }: Props) {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
@@ -106,6 +107,7 @@ export default function NexaVideoClient({ user, release, shots }: Props) {
                 <form onSubmit={signIn}>
                   <div className="text-base font-semibold">Sign in to download</div>
                   <div className="mt-1 text-sm text-white/50">Got an invite link? Open it first to create your account.</div>
+                  {notice && <div className="mt-3 rounded-xl border border-amber-400/30 bg-amber-400/10 px-3 py-2 text-sm text-amber-200">{notice}</div>}
                   <input value={username} onChange={(e) => setUsername(e.target.value)} placeholder="Username" autoComplete="username" autoCapitalize="none"
                     className="mt-5 w-full rounded-xl border border-white/10 bg-black/40 px-4 py-3.5 text-base outline-none placeholder:text-white/30 focus:border-[#4FA3FF]/60" />
                   <input value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Password" type="password" autoComplete="current-password"

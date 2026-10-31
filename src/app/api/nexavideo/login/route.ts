@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { db, cleanUsername, verifyPassword, mint, NV_COOKIE, type NvUser } from "@/lib/nexavideo";
+import { db, cleanUsername, verifyPassword, mint, NV_COOKIE, trialState, TRIAL_ENDED, type NvUser } from "@/lib/nexavideo";
 
 // Sign in. Web (download page) → session cookie. App (body.app = true) → { token } it keeps as a bearer.
 export const dynamic = "force-dynamic";
@@ -28,6 +28,7 @@ export async function POST(req: NextRequest) {
     return bad();
   }
   if (!u.enabled) return NextResponse.json({ error: "This account is turned off." }, { status: 403 });
+  if (trialState(u).expired) return NextResponse.json({ error: TRIAL_ENDED, code: "trial_expired" }, { status: 402 });
 
   const app = body.app === true;
   await db().from("nexavideo_users").update({

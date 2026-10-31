@@ -5,9 +5,12 @@
 // and every request re-reads the row, so turning an account off cuts both the website and the app.
 import crypto from "crypto";
 import { createAdminClient } from "@/lib/supabase/server";
-import { hashPassword, verifyPassword, sha256, newToken, cleanUsername, USERNAME_RE } from "@/lib/vm";
+import { hashPassword, verifyPassword, sha256, newToken, cleanUsername, USERNAME_RE, trialState, TRIAL_CHOICES } from "@/lib/vm";
 
-export { hashPassword, verifyPassword, sha256, newToken, cleanUsername, USERNAME_RE };
+export { hashPassword, verifyPassword, sha256, newToken, cleanUsername, USERNAME_RE, trialState, TRIAL_CHOICES };
+// plan='trial': the clock starts when the invite is redeemed; when it runs out the app is signed out (data kept)
+// until the admin adds days or makes the account permanent.
+export const TRIAL_ENDED = "Your free trial has ended. Ask for more time to keep watching.";
 export const NV_COOKIE = "nexavideo_session";
 export const BUCKET = "nexavideo";
 const WEB_DAYS = 30, APP_DAYS = 365;
@@ -18,6 +21,7 @@ export type NvUser = {
   failed_logins: number; locked_until: string | null; created_at: string; signed_up_at: string | null;
   last_login_at: string | null; last_seen_at: string | null; app_version: string | null; device: string | null;
   downloads: number;
+  plan: "full" | "trial"; trial_days: number | null; trial_ends_at: string | null;
 };
 export type NvRelease = {
   id: string; version_code: number; version_name: string; notes: string; storage_path: string;

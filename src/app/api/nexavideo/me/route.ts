@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { db, userFrom, bearer, latestRelease } from "@/lib/nexavideo";
+import { db, userFrom, bearer, latestRelease, trialState, TRIAL_ENDED } from "@/lib/nexavideo";
 
 // The app checks in on every launch: is this account still allowed, and is there a newer build?
 // 401 = signed out / turned off (the app returns to its sign-in screen).
@@ -8,6 +8,8 @@ export const dynamic = "force-dynamic";
 export async function GET(req: NextRequest) {
   const u = await userFrom(bearer(req.headers));
   if (!u) return NextResponse.json({ ok: false, error: "Signed out or account turned off." }, { status: 401 });
+  const trial = trialState(u);
+  if (trial.expired) return NextResponse.json({ ok: false, error: TRIAL_ENDED, code: "trial_expired" }, { status: 401 });
   const v = req.nextUrl.searchParams;
   await db().from("nexavideo_users").update({
     last_seen_at: new Date().toISOString(),
@@ -17,6 +19,7 @@ export async function GET(req: NextRequest) {
   const r = await latestRelease();
   return NextResponse.json({
     ok: true, username: u.username,
+    trial: trial.onTrial ? { daysLeft: trial.daysLeft, endsAt: u.trial_ends_at } : null,
     latest: r ? { versionCode: r.version_code, versionName: r.version_name, notes: r.notes, size: r.size_bytes } : null,
   });
 }

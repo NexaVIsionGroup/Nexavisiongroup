@@ -34,3 +34,9 @@ create table if not exists public.nexavideo_releases (
   created_at      timestamptz not null default now()
 );
 alter table public.nexavideo_releases enable row level security;
+
+-- 2026-10-31: free trials (same model as vm_users). plan='trial' -> access ends at trial_ends_at; the clock starts
+-- when the invite is redeemed (trial_days is copied into trial_ends_at then). Expired = signed out, data kept.
+alter table public.nexavideo_users add column if not exists plan text not null default 'full' check (plan in ('full','trial'));
+alter table public.nexavideo_users add column if not exists trial_days int;
+alter table public.nexavideo_users add column if not exists trial_ends_at timestamptz;

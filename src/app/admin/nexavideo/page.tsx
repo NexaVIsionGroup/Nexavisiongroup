@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import AppShell from "@/components/admin/AppShell";
-import { Link2, Copy, Check, Loader2, Power, Trash2, KeyRound, RefreshCw, Unlock, Film, ExternalLink, Package } from "lucide-react";
+import { Link2, Copy, Check, Loader2, Power, Trash2, KeyRound, RefreshCw, Unlock, Film, ExternalLink, Package, CalendarPlus, BadgeCheck, Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 // Nexa Video (private Android media-center app) — invite friends, see who uses it, turn accounts off.
@@ -14,6 +14,8 @@ type NvUser = {
   pending_link: "invite" | "reset" | null; link_expires: string | null; locked: boolean;
   created_at: string; last_login_at: string | null; last_seen_at: string | null;
   app_version: string | null; device: string | null; downloads: number;
+  plan: "full" | "trial"; trial_days: number | null; trial_ends_at: string | null;
+  trial_expired: boolean; trial_days_left: number | null;
 };
 type Release = { version_code: number; version_name: string; notes: string; size_bytes: number | null; created_at: string };
 
@@ -37,6 +39,8 @@ export default function NexaVideoAdmin() {
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState("");
   const [label, setLabel] = useState("");
+  const [isTrial, setIsTrial] = useState(true);
+  const [trialDays, setTrialDays] = useState("10");
   const [msg, setMsg] = useState("");
   const [lastLink, setLastLink] = useState<{ link: string; note: string; copied: boolean } | null>(null);
 
@@ -84,10 +88,24 @@ export default function NexaVideoAdmin() {
             <div className="ml-auto flex flex-wrap items-center gap-2">
               <input value={label} onChange={(e) => setLabel(e.target.value)} placeholder="Who is it for?"
                 className="w-52 px-3 py-2 bg-nv-void/60 border border-white/10 rounded-nv-md text-[13px] text-nv-text-primary placeholder:text-nv-text-muted focus:outline-none focus:border-nv-teal/50" />
+              <label className="flex items-center gap-2 text-[13px] text-nv-text-secondary select-none cursor-pointer">
+                <input type="checkbox" checked={isTrial} onChange={(e) => setIsTrial(e.target.checked)} className="accent-[#00E5CC] w-4 h-4" />
+                Free trial
+              </label>
+              {isTrial && (
+                <span className="flex items-center gap-1.5 text-[13px] text-nv-text-secondary">
+                  <input type="number" min={1} max={365} value={trialDays} onChange={(e) => setTrialDays(e.target.value)}
+                    className="w-16 px-2 py-2 bg-nv-void/60 border border-white/10 rounded-nv-md text-[13px] text-nv-text-primary focus:outline-none focus:border-nv-teal/50" />
+                  days
+                </span>
+              )}
               <button disabled={busy !== ""}
-                onClick={async () => { const d = await act("invite", { action: "invite", label }); if (d) { setLabel(""); await showLink(d, "Invite link (7 days, one use)"); } }}
+                onClick={async () => {
+                  const d = await act("invite", { action: "invite", label, trial_days: isTrial ? trialDays : null });
+                  if (d) { setLabel(""); await showLink(d, isTrial ? `${trialDays}-day free-trial invite (link valid 7 days, one use; the trial starts when they sign up)` : "Permanent invite link (7 days, one use)"); }
+                }}
                 className="nv-btn-primary px-4 py-2 text-[13px] flex items-center gap-2 disabled:opacity-40">
-                {busy === "invite" ? <Loader2 size={15} className="animate-spin" /> : <Link2 size={15} />} New invite link
+                {busy === "invite" ? <Loader2 size={15} className="animate-spin" /> : <Link2 size={15} />} {isTrial ? "New trial invite" : "New invite link"}
               </button>
               <button onClick={load} className={BTN} title="Refresh"><RefreshCw size={13} className="text-nv-teal" /></button>
             </div>
@@ -119,6 +137,15 @@ export default function NexaVideoAdmin() {
                       {u.username || <span className="text-nv-text-muted italic">not signed up yet</span>}
                       {u.label && <span className="ml-2 text-[12.5px] text-nv-text-muted">· {u.label}</span>}
                       {!u.enabled && <span className="ml-2 text-[11px] text-nv-error">OFF</span>}
+                      {u.plan === "trial" ? (
+                        <span className={cn("ml-2 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px]",
+                          u.trial_expired ? "bg-nv-error/15 text-nv-error" : "bg-nv-warning/15 text-nv-warning")}>
+                          <Clock size={11} />
+                          {u.trial_expired ? "Trial ended" : u.trial_ends_at ? `Trial · ${u.trial_days_left} day${u.trial_days_left === 1 ? "" : "s"} left` : `${u.trial_days}-day trial (starts at sign-up)`}
+                        </span>
+                      ) : (
+                        <span className="ml-2 inline-flex items-center gap-1 rounded-full bg-nv-teal/10 px-2 py-0.5 text-[11px] text-nv-teal"><BadgeCheck size={11} /> Permanent</span>
+                      )}
                       {u.locked && <span className="ml-2 text-[11px] text-nv-warning">locked (too many tries)</span>}
                     </div>
                     <div className="text-[12px] text-nv-text-muted mt-0.5">
@@ -134,6 +161,15 @@ export default function NexaVideoAdmin() {
                       <KeyRound size={13} /> {u.signed_up ? "Reset password" : "New invite link"}
                     </button>
                     {u.locked && <button className={BTN} onClick={() => act("unlock" + u.id, { action: "unlock", id: u.id })}><Unlock size={13} /> Unlock</button>}
+                    <button className={BTN} disabled={busy !== ""}
+                      onClick={() => { const n = prompt(u.plan === "trial" ? "Add how many days?" : "Put on a trial of how many days (from now)?", "10"); if (n) act("days" + u.id, u.plan === "trial" ? { action: "add_days", id: u.id, days: n } : { action: "set_plan", id: u.id, plan: "trial", days: n }); }}>
+                      <CalendarPlus size={13} /> {u.plan === "trial" ? (u.trial_expired ? "Reactivate" : "Add days") : "Make trial"}
+                    </button>
+                    {u.plan === "trial" && (
+                      <button className={BTN} disabled={busy !== ""} onClick={() => act("perm" + u.id, { action: "set_plan", id: u.id, plan: "full" })}>
+                        <BadgeCheck size={13} /> Make permanent
+                      </button>
+                    )}
                     <button className={BTN} disabled={busy !== ""} onClick={() => act("toggle" + u.id, { action: "toggle", id: u.id, enabled: !u.enabled })}>
                       <Power size={13} /> {u.enabled ? "Turn off" : "Turn on"}
                     </button>
