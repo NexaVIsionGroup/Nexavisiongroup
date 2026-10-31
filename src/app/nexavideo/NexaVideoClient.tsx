@@ -30,6 +30,19 @@ export default function NexaVideoClient({ user, release, shots, notice }: Props)
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  // "Request access": they pick username + password now; the owner switches the account on in the admin
+  const [mode, setMode] = useState<"signin" | "request" | "sent">("signin");
+  const [rq, setRq] = useState({ name: "", contact: "", username: "", password: "", confirm: "", note: "", website: "" });
+  const setR = (k: keyof typeof rq) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => setRq({ ...rq, [k]: e.target.value });
+
+  async function requestAccess(e: React.FormEvent) {
+    e.preventDefault();
+    setBusy(true); setError("");
+    const r = await fetch("/api/nexavideo/request", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(rq) });
+    const j = await r.json().catch(() => ({}));
+    setBusy(false);
+    if (r.ok) setMode("sent"); else setError(j.error || "Could not send your request.");
+  }
 
   async function signIn(e: React.FormEvent) {
     e.preventDefault();
@@ -103,6 +116,34 @@ export default function NexaVideoClient({ user, release, shots, notice }: Props)
                   )}
                   <button onClick={signOut} className="mt-4 w-full text-center text-sm text-white/40 hover:text-white/70">Sign out</button>
                 </>
+              ) : mode === "sent" ? (
+                <div className="text-center">
+                  <div className="text-4xl">🎬</div>
+                  <div className="mt-3 text-xl font-bold">Request sent</div>
+                  <div className="mt-2 text-white/60">Thanks{rq.name ? `, ${rq.name.split(" ")[0]}` : ""}! Once you&apos;re approved you can sign in here and in the app with
+                    the username <span className="font-semibold text-white">{rq.username.trim().toLowerCase()}</span> and the password you chose.</div>
+                  <button onClick={() => { setMode("signin"); setUsername(rq.username.trim().toLowerCase()); }} className="mt-5 text-sm text-[#4FA3FF]">Back to sign in</button>
+                </div>
+              ) : mode === "request" ? (
+                <form onSubmit={requestAccess}>
+                  <div className="text-base font-semibold">Request access</div>
+                  <div className="mt-1 text-sm text-white/50">Pick the username and password you&apos;ll use. You can sign in as soon as you&apos;re approved.</div>
+                  <input className="hidden" tabIndex={-1} autoComplete="off" value={rq.website} onChange={setR("website")} aria-hidden="true" />
+                  <input className="mt-3 w-full rounded-xl border border-white/10 bg-black/40 px-4 py-3.5 text-base outline-none placeholder:text-white/30 focus:border-[#4FA3FF]/60" value={rq.name} onChange={setR("name")} placeholder="Your name" autoComplete="name" />
+                  <input className="mt-3 w-full rounded-xl border border-white/10 bg-black/40 px-4 py-3.5 text-base outline-none placeholder:text-white/30 focus:border-[#4FA3FF]/60" value={rq.contact} onChange={setR("contact")} placeholder="Phone or email" autoComplete="email" />
+                  <input className="mt-3 w-full rounded-xl border border-white/10 bg-black/40 px-4 py-3.5 text-base outline-none placeholder:text-white/30 focus:border-[#4FA3FF]/60" value={rq.username} onChange={setR("username")} placeholder="Choose a username" autoCapitalize="none" autoComplete="username" />
+                  <input className="mt-3 w-full rounded-xl border border-white/10 bg-black/40 px-4 py-3.5 text-base outline-none placeholder:text-white/30 focus:border-[#4FA3FF]/60" value={rq.password} onChange={setR("password")} placeholder="Choose a password (8+ characters)" type="password" autoComplete="new-password" />
+                  <input className="mt-3 w-full rounded-xl border border-white/10 bg-black/40 px-4 py-3.5 text-base outline-none placeholder:text-white/30 focus:border-[#4FA3FF]/60" value={rq.confirm} onChange={setR("confirm")} placeholder="Password again" type="password" autoComplete="new-password" />
+                  <textarea className="mt-3 w-full rounded-xl border border-white/10 bg-black/40 px-4 py-3.5 text-base outline-none placeholder:text-white/30 focus:border-[#4FA3FF]/60" value={rq.note} onChange={setR("note")} placeholder="Anything to add? (optional)" rows={2} maxLength={300} />
+                  {error && <div className="mt-3 text-sm text-rose-400">{error}</div>}
+                  <button disabled={busy}
+                    className="mt-5 w-full rounded-2xl bg-gradient-to-r from-[#2563eb] to-[#7c3aed] px-6 py-4 text-lg font-bold transition hover:brightness-110 disabled:opacity-50">
+                    {busy ? "Sending…" : "Send request"}
+                  </button>
+                  <button type="button" onClick={() => { setMode("signin"); setError(""); }} className="mt-4 w-full text-center text-sm text-white/45 hover:text-white/70">
+                    Already have an account? Sign in
+                  </button>
+                </form>
               ) : (
                 <form onSubmit={signIn}>
                   <div className="text-base font-semibold">Sign in to download</div>
@@ -116,6 +157,10 @@ export default function NexaVideoClient({ user, release, shots, notice }: Props)
                   <button disabled={busy}
                     className="mt-5 w-full rounded-2xl bg-gradient-to-r from-[#2563eb] to-[#7c3aed] px-6 py-4 text-lg font-bold transition hover:brightness-110 disabled:opacity-50">
                     {busy ? "Signing in…" : "Sign in"}
+                  </button>
+                  <button type="button" onClick={() => { setMode("request"); setError(""); }}
+                    className="mt-3 w-full rounded-2xl border border-white/15 bg-white/[0.04] px-6 py-3.5 text-base font-semibold text-white/85 transition hover:border-[#4FA3FF]/50 hover:text-white">
+                    Request access
                   </button>
                 </form>
               )}

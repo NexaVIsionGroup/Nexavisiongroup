@@ -17,6 +17,7 @@ type NvUser = {
   plan: "full" | "trial"; trial_days: number | null; trial_ends_at: string | null;
   trial_expired: boolean; trial_days_left: number | null;
 };
+type AccessRequest = { id: string; name: string; contact: string; note: string; username: string; created_at: string };
 type Release = { version_code: number; version_name: string; notes: string; size_bytes: number | null; created_at: string };
 
 const BTN =
@@ -36,6 +37,7 @@ function ago(s: string | null) {
 export default function NexaVideoAdmin() {
   const [users, setUsers] = useState<NvUser[]>([]);
   const [releases, setReleases] = useState<Release[]>([]);
+  const [requests, setRequests] = useState<AccessRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState("");
   const [label, setLabel] = useState("");
@@ -47,7 +49,7 @@ export default function NexaVideoAdmin() {
   const load = useCallback(async () => {
     const r = await fetch("/api/admin/nexavideo", { cache: "no-store" });
     const d = await r.json().catch(() => ({}));
-    if (r.ok) { setUsers(d.users || []); setReleases(d.releases || []); } else setMsg(d.error || "Could not load.");
+    if (r.ok) { setUsers(d.users || []); setReleases(d.releases || []); setRequests(d.requests || []); } else setMsg(d.error || "Could not load.");
     setLoading(false);
   }, []);
   useEffect(() => { load(); }, [load]);
@@ -73,6 +75,41 @@ export default function NexaVideoAdmin() {
   return (
     <AppShell title="Nexa Video">
       <div className="space-y-4 max-w-5xl">
+        {requests.length > 0 && (
+          <section className="nv-glass rounded-nv-xl border border-nv-warning/30 p-4 sm:p-5">
+            <h2 className="text-[15px] font-semibold text-nv-text-primary flex items-center gap-2">
+              <Clock size={17} className="text-nv-warning" /> Access requests <span className="text-nv-warning">({requests.length})</span>
+            </h2>
+            <p className="text-[12px] text-nv-text-muted mt-0.5">
+              They already chose a username and password — approving switches the account on right away (they get an email if they left one).
+            </p>
+            <div className="mt-2 divide-y divide-white/5">
+              {requests.map((q) => (
+                <div key={q.id} className="py-3 flex flex-wrap items-center gap-3">
+                  <div className="min-w-0 flex-1">
+                    <div className="text-[14px] text-nv-text-primary font-medium">
+                      {q.name} <span className="text-[12.5px] text-nv-text-muted">· {q.contact} · username <span className="font-mono">{q.username}</span></span>
+                    </div>
+                    {q.note && <div className="text-[12.5px] text-nv-text-secondary mt-0.5">“{q.note}”</div>}
+                    <div className="text-[11.5px] text-nv-text-muted mt-0.5">asked {ago(q.created_at)}</div>
+                  </div>
+                  <div className="flex flex-wrap gap-1.5">
+                    <button className="nv-btn-primary px-3 py-1.5 text-[12.5px] flex items-center gap-1.5 disabled:opacity-40" disabled={busy !== ""}
+                      onClick={async () => { const d = await act("ok" + q.id, { action: "approve_request", id: q.id, plan: "trial", days: trialDays }); if (d) setMsg(""); }}>
+                      <Clock size={13} /> Start {trialDays}-day trial
+                    </button>
+                    <button className={BTN} disabled={busy !== ""} onClick={() => act("okf" + q.id, { action: "approve_request", id: q.id, plan: "full" })}>
+                      <BadgeCheck size={13} /> Approve permanent
+                    </button>
+                    <button className={BTN} disabled={busy !== ""} onClick={() => act("no" + q.id, { action: "dismiss_request", id: q.id })}>
+                      <Trash2 size={13} /> Dismiss
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
         <section className="nv-glass rounded-nv-xl border border-nv-teal/10 p-4 sm:p-5 space-y-4">
           <div className="flex flex-wrap items-center gap-3">
             <div>

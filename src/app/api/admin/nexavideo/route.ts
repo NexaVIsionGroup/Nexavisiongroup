@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { Resend } from "resend";
 import { db, newToken, trialState, type NvUser, type NvRelease } from "@/lib/nexavideo";
 
 // Admin management for Nexa Video accounts + published builds.
@@ -27,9 +28,11 @@ function publicUser(u: NvUser) {
 }
 
 export async function GET() {
-  const [users, releases] = await Promise.all([
+  const [users, releases, requests] = await Promise.all([
     db().from("nexavideo_users").select("*").order("created_at", { ascending: true }),
     db().from("nexavideo_releases").select("*").order("version_code", { ascending: false }).limit(10),
+    db().from("nexavideo_requests").select("id,name,contact,note,username,status,created_at,decided_at")
+      .eq("status", "pending").order("created_at", { ascending: false }).limit(50),
   ]);
   if (users.error) return err(users.error.message, 500);
   return NextResponse.json({
@@ -37,6 +40,7 @@ export async function GET() {
     releases: ((releases.data || []) as NvRelease[]).map((r) => ({
       version_code: r.version_code, version_name: r.version_name, notes: r.notes, size_bytes: r.size_bytes, created_at: r.created_at,
     })),
+    requests: requests.data || [],
   });
 }
 
@@ -116,6 +120,42 @@ export async function POST(req: NextRequest) {
           trial_ends_at: u.username ? new Date(Date.now() + n * 86400_000).toISOString() : null,
         }).eq("id", u.id);
       }
+      return NextResponse.json({ ok: true });
+    }
+    // access request → live account (trial of N days from now, or permanent); emails them if they left an email
+    case "approve_request": {
+      const { data: r } = await db().from("nexavideo_requests").select("*").eq("id", id).eq("status", "pending").maybeSingle();
+      if (!r) return err("Request not found (already handled?).", 404);
+      const trial = body.plan !== "full";
+      const n = trial ? days(body.days) || 10 : null;
+      const { data: taken } = await db().from("nexavideo_users").select("id").eq("username", r.username).maybeSingle();
+      if (taken) return err(`The username "${r.username}" was taken meanwhile — dismiss this request and send them an invite instead.`, 409);
+      const now = new Date();
+      const { data: u, error } = await db().from("nexavideo_users").insert({
+        label: `${r.name} · ${r.contact}`.slice(0, 80), username: r.username, password_hash: r.password_hash,
+        plan: trial ? "trial" : "full", trial_days: n,
+        trial_ends_at: trial ? new Date(now.getTime() + n! * 86400_000).toISOString() : null,
+        signed_up_at: now.toISOString(),
+      }).select("id").single();
+      if (error) return err(error.message, 500);
+      await db().from("nexavideo_requests").update({ status: "approved", decided_at: now.toISOString(), user_id: u.id }).eq("id", r.id);
+      if (r.email) {
+        try {
+          await new Resend(process.env.RESEND_API_KEY).emails.send({
+            from: "Nexa Video <info@nexavisiongroup.com>", to: r.email,
+            subject: "You're in — Nexa Video",
+            html: `<div style="font-family:system-ui,sans-serif;background:#0b0c10;color:#e6e6e6;padding:28px;border-radius:14px">
+              <div style="font-size:26px;font-weight:900;letter-spacing:4px;color:#4FA3FF">NEXA <span style="font-size:13px;color:#9aa0aa;letter-spacing:6px">VIDEO</span></div>
+              <h2 style="margin:18px 0 8px">You're in, ${r.name.replace(/[<>&]/g, "")}! 🎬</h2>
+              <p style="color:#c4c9d2">${trial ? `Your ${n}-day free trial has started.` : "Your account is ready."} Sign in with the username <b>${r.username}</b> and the password you chose.</p>
+              <p style="margin:22px 0"><a href="https://nexavisiongroup.com/nexavideo" style="background:#fff;color:#0b0c10;padding:12px 22px;border-radius:24px;font-weight:700;text-decoration:none">Download the app</a></p></div>`,
+          });
+        } catch { /* account is live either way */ }
+      }
+      return NextResponse.json({ ok: true, username: r.username, emailed: !!r.email });
+    }
+    case "dismiss_request": {
+      await db().from("nexavideo_requests").update({ status: "dismissed", decided_at: new Date().toISOString() }).eq("id", id);
       return NextResponse.json({ ok: true });
     }
     case "unlock": {

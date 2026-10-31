@@ -40,3 +40,22 @@ alter table public.nexavideo_releases enable row level security;
 alter table public.nexavideo_users add column if not exists plan text not null default 'full' check (plan in ('full','trial'));
 alter table public.nexavideo_users add column if not exists trial_days int;
 alter table public.nexavideo_users add column if not exists trial_ends_at timestamptz;
+
+-- 2026-10-31: "Request access" from the download page. The person picks username + password up front; the admin
+-- approves (trial or permanent) and a nexavideo_users row is created from it — no invite link needed.
+create table if not exists public.nexavideo_requests (
+  id              uuid primary key default gen_random_uuid(),
+  name            text not null,
+  contact         text not null,                     -- phone or email, as typed
+  email           text,                              -- set when contact looks like an email (approval notice)
+  note            text not null default '',
+  username        text not null,
+  password_hash   text not null,
+  status          text not null default 'pending' check (status in ('pending','approved','dismissed')),
+  ip_hash         text,
+  user_id         uuid,
+  created_at      timestamptz not null default now(),
+  decided_at      timestamptz
+);
+create index if not exists nexavideo_requests_status_idx on public.nexavideo_requests (status, created_at desc);
+alter table public.nexavideo_requests enable row level security;
