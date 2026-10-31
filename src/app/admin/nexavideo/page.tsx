@@ -38,6 +38,7 @@ export default function NexaVideoAdmin() {
   const [users, setUsers] = useState<NvUser[]>([]);
   const [releases, setReleases] = useState<Release[]>([]);
   const [requests, setRequests] = useState<AccessRequest[]>([]);
+  const [downloads, setDownloads] = useState<{ paused: boolean; allow: string[] }>({ paused: false, allow: [] });
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState("");
   const [label, setLabel] = useState("");
@@ -49,7 +50,7 @@ export default function NexaVideoAdmin() {
   const load = useCallback(async () => {
     const r = await fetch("/api/admin/nexavideo", { cache: "no-store" });
     const d = await r.json().catch(() => ({}));
-    if (r.ok) { setUsers(d.users || []); setReleases(d.releases || []); setRequests(d.requests || []); } else setMsg(d.error || "Could not load.");
+    if (r.ok) { setUsers(d.users || []); setReleases(d.releases || []); setRequests(d.requests || []); setDownloads(d.downloads || { paused: false, allow: [] }); } else setMsg(d.error || "Could not load.");
     setLoading(false);
   }, []);
   useEffect(() => { load(); }, [load]);
@@ -222,7 +223,14 @@ export default function NexaVideoAdmin() {
         </section>
 
         <section className="nv-glass rounded-nv-xl border border-nv-teal/10 p-4 sm:p-5">
-          <h2 className="text-[15px] font-semibold text-nv-text-primary flex items-center gap-2"><Package size={17} className="text-nv-teal" /> Builds</h2>
+          <div className="flex flex-wrap items-center gap-3">
+            <h2 className="text-[15px] font-semibold text-nv-text-primary flex items-center gap-2"><Package size={17} className="text-nv-teal" /> Builds</h2>
+            {downloads.paused && <span className="rounded-full bg-nv-warning/15 px-2 py-0.5 text-[11.5px] text-nv-warning">Downloads + updates PAUSED (still allowed: {downloads.allow.join(", ") || "nobody"})</span>}
+            <button className={cn(BTN, "ml-auto")} disabled={busy !== ""}
+              onClick={() => act("dl", { action: "set_downloads", paused: !downloads.paused })}>
+              <Power size={13} /> {downloads.paused ? "Resume downloads" : "Pause downloads"}
+            </button>
+          </div>
           <p className="text-[12px] text-nv-text-muted mt-0.5">
             The newest build is what the download page and the in-app update hand out. Published from the rack with
             <span className="font-mono"> node scripts/nexavideo.mjs release …</span>

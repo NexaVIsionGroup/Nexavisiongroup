@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Resend } from "resend";
-import { db, newToken, trialState, type NvUser, type NvRelease } from "@/lib/nexavideo";
+import { db, newToken, trialState, downloadsState, type NvUser, type NvRelease } from "@/lib/nexavideo";
 
 // Admin management for Nexa Video accounts + published builds.
 // Auth: middleware already requires a Supabase session for /api/admin/*.
@@ -41,6 +41,7 @@ export async function GET() {
       version_code: r.version_code, version_name: r.version_name, notes: r.notes, size_bytes: r.size_bytes, created_at: r.created_at,
     })),
     requests: requests.data || [],
+    downloads: await downloadsState(),
   });
 }
 
@@ -157,6 +158,14 @@ export async function POST(req: NextRequest) {
     case "dismiss_request": {
       await db().from("nexavideo_requests").update({ status: "dismissed", decided_at: new Date().toISOString() }).eq("id", id);
       return NextResponse.json({ ok: true });
+    }
+    // pause / resume downloads + update offers for everyone except the allow-list (admin testers)
+    case "set_downloads": {
+      const cur = await downloadsState();
+      const value = { paused: !!body.paused, allow: cur.allow.length ? cur.allow : ["admin"] };
+      const { error } = await db().from("nexavideo_settings").upsert({ key: "downloads", value, updated_at: new Date().toISOString() });
+      if (error) return err(error.message, 500);
+      return NextResponse.json({ ok: true, downloads: value });
     }
     case "unlock": {
       await db().from("nexavideo_users").update({ failed_logins: 0, locked_until: null }).eq("id", id);

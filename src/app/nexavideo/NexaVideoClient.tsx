@@ -10,6 +10,7 @@ type Props = {
   release: { name: string; size: number | null; notes: string; date: string } | null;
   shots: { src: string; caption: string; tall?: boolean }[];
   notice?: string | null;
+  pausedNote?: string | null;
 };
 
 const FEATURES = [
@@ -25,7 +26,7 @@ const FEATURES = [
 
 function mb(n: number | null) { return n ? `${(n / 1048576).toFixed(0)} MB` : ""; }
 
-export default function NexaVideoClient({ user, release, shots, notice }: Props) {
+export default function NexaVideoClient({ user, release, shots, notice, pausedNote }: Props) {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
@@ -107,7 +108,9 @@ export default function NexaVideoClient({ user, release, shots, notice }: Props)
                       Download for Android
                     </a>
                   ) : (
-                    <div className="mt-4 rounded-2xl border border-white/10 px-5 py-4 text-white/70">The first build is on its way — check back soon.</div>
+                    <div className="mt-4 rounded-2xl border border-amber-400/30 bg-amber-400/10 px-5 py-4 text-amber-100">
+                      {pausedNote || "The first build is on its way — check back soon."}
+                    </div>
                   )}
                   {release && (
                     <div className="mt-3 text-center text-sm text-white/50">

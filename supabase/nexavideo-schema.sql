@@ -59,3 +59,13 @@ create table if not exists public.nexavideo_requests (
 );
 create index if not exists nexavideo_requests_status_idx on public.nexavideo_requests (status, created_at desc);
 alter table public.nexavideo_requests enable row level security;
+
+-- 2026-10-31: switches. key 'downloads' = {"paused": bool, "allow": [usernames that can still download while paused]}
+create table if not exists public.nexavideo_settings (
+  key         text primary key,
+  value       jsonb not null default '{}'::jsonb,
+  updated_at  timestamptz not null default now()
+);
+alter table public.nexavideo_settings enable row level security;
+insert into public.nexavideo_settings (key, value) values ('downloads', '{"paused": true, "allow": ["admin", "screenshots"]}')
+  on conflict (key) do update set value = excluded.value, updated_at = now();

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { db, userFrom, bearer, latestRelease, trialState, TRIAL_ENDED } from "@/lib/nexavideo";
+import { db, userFrom, bearer, latestRelease, trialState, TRIAL_ENDED, downloadsState, canDownload } from "@/lib/nexavideo";
 
 // The app checks in on every launch: is this account still allowed, and is there a newer build?
 // 401 = signed out / turned off (the app returns to its sign-in screen).
@@ -16,7 +16,8 @@ export async function GET(req: NextRequest) {
     app_version: v.get("v")?.slice(0, 20) || u.app_version,
     device: v.get("device")?.slice(0, 80) || u.device,
   }).eq("id", u.id);
-  const r = await latestRelease();
+  // while downloads are paused, apps aren't offered the update either (allow-listed testers still are)
+  const r = canDownload(await downloadsState(), u.username) ? await latestRelease() : null;
   return NextResponse.json({
     ok: true, username: u.username,
     trial: trial.onTrial ? { daysLeft: trial.daysLeft, endsAt: u.trial_ends_at } : null,

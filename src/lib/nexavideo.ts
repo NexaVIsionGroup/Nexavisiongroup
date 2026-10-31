@@ -78,6 +78,16 @@ export async function latestRelease(): Promise<NvRelease | null> {
   return (data as NvRelease | null) || null;
 }
 
+/** downloads switch (admin "Pause downloads"): while paused only the allow-listed usernames can download/update */
+export type DownloadsState = { paused: boolean; allow: string[] };
+export async function downloadsState(): Promise<DownloadsState> {
+  const { data } = await db().from("nexavideo_settings").select("value").eq("key", "downloads").maybeSingle();
+  const v = (data?.value || {}) as Partial<DownloadsState>;
+  return { paused: !!v.paused, allow: Array.isArray(v.allow) ? v.allow : [] };
+}
+export const canDownload = (s: DownloadsState, username: string | null) => !s.paused || (!!username && s.allow.includes(username));
+export const PAUSED = "Downloads are paused for a few minutes while we finish an update — check back soon.";
+
 /** short-lived signed URL for the newest APK (the bucket is private) */
 export async function downloadUrl(r: NvRelease): Promise<string | null> {
   const name = `NexaVideo-${r.version_name}.apk`;
