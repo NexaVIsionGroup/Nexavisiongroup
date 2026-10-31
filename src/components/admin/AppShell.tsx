@@ -22,6 +22,7 @@ import {
   Sparkles,
   ExternalLink,
   ClipboardList,
+  Film,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import AuthGuard from "./AuthGuard";
@@ -47,6 +48,7 @@ const navItems: NavItem[] = [
   { label: "Analytics", icon: BarChart3, path: "/admin/analytics" },
   { label: "Devices", icon: Smartphone, path: "/admin/devices" },
   { label: "Phone Store", icon: ShoppingBag, path: "/admin/phones" },
+  { label: "Nexa Video", icon: Film, path: "/admin/nexavideo" },
   { label: "NEXA AI", icon: Sparkles, path: "https://ai.nexavisiongroup.com", external: true },
   { label: "Settings", icon: Settings, path: "/admin/settings" },
 ];
