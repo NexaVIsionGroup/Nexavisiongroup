@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/server";
 import { getTemplate, totals } from "@/lib/questionnaires";
 import { analyze } from "@/lib/questionnaires/analyze";
+import { stripSecrets } from "@/lib/questionnaires/secrets";
 
 export const dynamic = "force-dynamic";
 
@@ -15,9 +16,10 @@ export async function GET(_req: NextRequest, { params }: Ctx) {
   if (!data) return NextResponse.json({ error: "Not found" }, { status: 404 });
   const t = getTemplate(data.template);
   return NextResponse.json({
-    questionnaire: { ...data, url: `${SITE}/q/${data.token}` },
+    questionnaire: { ...data, answers: stripSecrets(data.answers || {}), url: `${SITE}/q/${data.token}` },
     totals: totals(t, data.answers || {}, data.extra_questions),
     flags: analyze(data.answers || {}, t.id),
+    kind: t.kind || "household",
   });
 }
 
@@ -47,7 +49,13 @@ export async function PATCH(req: NextRequest, { params }: Ctx) {
   }
   if (body.answers_patch && typeof body.answers_patch === "object") {
     const { data: cur } = await supabase.from("client_questionnaires").select("answers").eq("id", params.id).single();
-    updates.answers = { ...(cur?.answers || {}), ...body.answers_patch };
+    // never let an admin patch overwrite a sealed password with nothing
+    const patch: Record<string, any> = {};
+    for (const [k, v] of Object.entries(body.answers_patch)) {
+      const prev = (cur?.answers || {})[k];
+      patch[k] = prev && typeof prev === "object" && prev.pass_enc && v && typeof v === "object" ? { ...(v as object), pass_enc: prev.pass_enc } : v;
+    }
+    updates.answers = { ...(cur?.answers || {}), ...patch };
   }
 
   const { error } = await supabase.from("client_questionnaires").update(updates).eq("id", params.id);

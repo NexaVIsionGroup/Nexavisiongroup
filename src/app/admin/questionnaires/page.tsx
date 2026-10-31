@@ -76,14 +76,17 @@ export default function QuestionnairesPage() {
             </div>
             <div className="grid sm:grid-cols-2 gap-3">
               <L label="Template">
-                <select className="nv-input" value={form.template} onChange={(e) => setForm({ ...form, template: e.target.value })}>
+                <select className="nv-input" value={form.template} onChange={(e) => {
+                  const t = TEMPLATES[e.target.value];
+                  setForm({ ...form, template: e.target.value, title: t?.kind === "prospect" && t.brief ? t.brief.business : "Household Budget & Benefits Check-up" });
+                }}>
                   {Object.values(TEMPLATES).map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
                 </select>
               </L>
               <L label="Title (shown to the client)"><input className="nv-input" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} /></L>
               <L label="Client name (internal)"><input className="nv-input" placeholder="e.g. The Smiths" value={form.client_name} onChange={(e) => setForm({ ...form, client_name: e.target.value })} /></L>
               <L label="Phone (internal)"><input className="nv-input" value={form.client_phone} onChange={(e) => setForm({ ...form, client_phone: e.target.value })} /></L>
-              <L label="Prefill home address" wide><input className="nv-input" placeholder="Street, city" value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} /></L>
+              {TEMPLATES[form.template]?.kind !== "prospect" && <L label="Prefill home address" wide><input className="nv-input" placeholder="Street, city" value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} /></L>}
             </div>
             {err && <p className="text-xs text-nv-error">{err}</p>}
             <button disabled={busy || !form.title.trim()} onClick={create} className="nv-btn-primary py-3 px-5 text-xs flex items-center gap-2 disabled:opacity-50">

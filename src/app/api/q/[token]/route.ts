@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/server";
+import { sealPatch, stripSecrets } from "@/lib/questionnaires/secrets";
 
 // PUBLIC client endpoint for /q/[token]. The token is the only credential,
 // so responses never include admin notes or internal fields.
@@ -39,6 +40,7 @@ export async function GET(_req: NextRequest, { params }: Ctx) {
 
   // client_name is an internal label, keep it out of the public response
   const { open_count, id, client_name, ...pub } = row;
+  pub.answers = stripSecrets(pub.answers || {});
   return NextResponse.json(pub, { headers: { "Cache-Control": "no-store" } });
 }
 
@@ -61,7 +63,13 @@ export async function PATCH(req: NextRequest, { params }: Ctx) {
     const size = JSON.stringify(body.answers).length;
     if (size > 400_000) return NextResponse.json({ error: "Too much data" }, { status: 413 });
     // merge so two open tabs don't wipe each other's sections
-    updates.answers = { ...(row.answers || {}), ...body.answers };
+    let sealed: Record<string, any>;
+    try {
+      sealed = sealPatch(body.answers, row.answers || {});
+    } catch {
+      return NextResponse.json({ error: "Could not save securely" }, { status: 500 });
+    }
+    updates.answers = { ...(row.answers || {}), ...sealed };
   }
   if (Number.isInteger(body.current_section)) updates.current_section = body.current_section;
 
@@ -83,7 +91,7 @@ export async function POST(_req: NextRequest, { params }: Ctx) {
     .update({ status: "submitted", submitted_at: now, updated_at: now })
     .eq("id", row.id);
 
-  const who = row.client_name || row.answers?.p1_first || "A client";
+  const who = row.client_name || row.answers?.p1_first || row.answers?.owner_first || "A client";
   await supabase.from("admin_notifications").insert({
     type: "questionnaire_submitted",
     title: first ? "Questionnaire submitted" : "Questionnaire updated",

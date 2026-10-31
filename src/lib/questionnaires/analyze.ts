@@ -1,4 +1,4 @@
-import type { Answers } from "./types";
+import type { Answers, Template } from "./types";
 import { getTemplate, personalize, totals, fmtMoney } from "./index";
 
 // Admin-only "opportunities" read of a household-budget questionnaire.
@@ -21,9 +21,29 @@ const has = (a: Answers, id: string, ...vals: string[]) => {
 };
 const amt = (a: Answers, id: string) => Number(a[id]?.a || 0);
 
+/** Prospect check-ups: where each access card stands, what to do next. */
+function analyzeProspect(a: Answers, t: Template): Flag[] {
+  const flags: Flag[] = [];
+  for (const s of t.sections) {
+    for (const f of s.fields) {
+      if (f.type !== "access") continue;
+      const v = a[f.id] || {};
+      const key = f.priority === "key";
+      if (v.via === "call") flags.push({ level: "urgent", area: f.platform, title: `${f.platform}: wants us to call and set it up together`, detail: v.note || "Call at their preferred time (see About you)." });
+      else if (v.via === "login") flags.push({ level: "opportunity", area: f.platform, title: `${f.platform}: login shared${v.pass_saved ? "" : " (no password yet)"}`, detail: `User: ${v.user || "not given"}. Reveal the password under Answers. Read-only until a proposal is approved.` });
+      else if (v.via === "invite") flags.push({ level: v.done ? "opportunity" : "review", area: f.platform, title: v.done ? `${f.platform}: invite sent to admin@` : `${f.platform}: chose to invite us, not marked done`, detail: v.done ? "Accept the invite from the admin@nexavisiongroup.com inbox." : "Nudge them, or offer to do it on a call." });
+      else if (v.via === "unknown") flags.push({ level: key ? "review" : "info", area: f.platform, title: `${f.platform}: not sure who has it`, detail: key ? "Key account. Find out who holds it (likely the reseller or whoever built the site)." : "Low priority." });
+      else if (key) flags.push({ level: "info", area: f.platform, title: `${f.platform}: no answer yet`, detail: "Key account for the proposal." });
+    }
+  }
+  const order: Record<FlagLevel, number> = { urgent: 0, opportunity: 1, review: 2, info: 3 };
+  return flags.sort((x, y) => order[x.level] - order[y.level]);
+}
+
 export function analyze(answers: Answers, templateId = "household-budget"): Flag[] {
   const a = answers || {};
   const t = getTemplate(templateId);
+  if (t.kind === "prospect") return analyzeProspect(a, t);
   const tot = totals(t, a);
   const flags: Flag[] = [];
   const p2 = has(a, "p2_exists", "yes");

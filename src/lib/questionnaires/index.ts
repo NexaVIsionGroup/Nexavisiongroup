@@ -1,4 +1,5 @@
 import { householdBudget } from "./household-budget";
+import { PROSPECT_TEMPLATES } from "@/lib/prospects";
 import type {
   Answers,
   ExtraQuestion,
@@ -16,6 +17,8 @@ export * from "./types";
 
 export const TEMPLATES: Record<string, Template> = {
   [householdBudget.id]: householdBudget,
+  // prospect check-ups staged on the Nexa stack (src/lib/prospects)
+  ...Object.fromEntries(PROSPECT_TEMPLATES.map((t) => [t.id, t])),
 };
 
 export function getTemplate(id: string | null | undefined): Template {

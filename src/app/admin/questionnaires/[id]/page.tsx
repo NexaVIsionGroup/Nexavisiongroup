@@ -5,9 +5,9 @@ import { useParams, useRouter } from "next/navigation";
 import AppShell from "@/components/admin/AppShell";
 import {
   Loader2, Copy, Check, ExternalLink, AlertTriangle, Sparkles, Eye, Info, Plus, Trash2, ChevronLeft, Save,
-  ChevronDown, ChevronRight,
+  ChevronDown, ChevronRight, Lock, KeyRound,
 } from "lucide-react";
-import type { Answers, ExtraQuestion, Field, MoneyValue, Section } from "@/lib/questionnaires";
+import type { AccessField, AccessValue, Answers, ExtraQuestion, Field, MoneyValue, Section } from "@/lib/questionnaires";
 import { FREQ_LABEL, fmtMoney, getTemplate, isVisible, personalize, sectionProgress, visibleSections } from "@/lib/questionnaires";
 import type { Flag } from "@/lib/questionnaires/analyze";
 import { STATUS, ago } from "../shared";
@@ -53,6 +53,7 @@ export default function QuestionnaireDetail() {
   const [q, setQ] = useState<Q | null>(null);
   const [tot, setTot] = useState<Totals | null>(null);
   const [flags, setFlags] = useState<Flag[]>([]);
+  const [kind, setKind] = useState<"household" | "prospect">("household");
   const [copied, setCopied] = useState(false);
   const [notes, setNotes] = useState("");
   const [notesSaved, setNotesSaved] = useState(true);
@@ -69,6 +70,7 @@ export default function QuestionnaireDetail() {
         setQ(d.questionnaire);
         setTot(d.totals);
         setFlags(d.flags || []);
+        setKind(d.kind || "household");
         setNotes(d.questionnaire.admin_notes || "");
         setExtra(d.questionnaire.extra_questions || []);
         setExtraDirty(false);
@@ -139,14 +141,14 @@ export default function QuestionnaireDetail() {
         </div>
 
         {/* stats */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        {kind !== "prospect" && <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
           <Stat label="Income / mo" value={fmtMoney(tot.income)} cls="text-nv-teal" />
           <Stat label="Spending / mo" value={fmtMoney(tot.expenses)} cls="text-nv-ember" />
           <Stat label={tot.gap < 0 ? "Shortfall / mo" : "Left over / mo"} value={fmtMoney(Math.abs(tot.gap))} cls={tot.gap < 0 ? "text-nv-error" : "text-nv-success"} />
           <Stat label="Total debt" value={fmtMoney(tot.debt)} cls="text-nv-violet-300" />
-        </div>
+        </div>}
 
-        <div className="grid lg:grid-cols-[1.3fr_1fr] gap-4">
+        <div className={kind === "prospect" ? "grid gap-4" : "grid lg:grid-cols-[1.3fr_1fr] gap-4"}>
           {/* flags */}
           <div className="nv-glass rounded-nv-lg p-5">
             <p className="nv-section-label mb-3">Opportunities &amp; flags ({flags.length})</p>
@@ -169,11 +171,11 @@ export default function QuestionnaireDetail() {
                 })}
               </ul>
             )}
-            <p className="mt-3 text-[11px] text-nv-text-muted">Leads to verify, not eligibility decisions.</p>
+            <p className="mt-3 text-[11px] text-nv-text-muted">{kind === "prospect" ? "Where each account stands. Everything is read-only until a proposal is approved." : "Leads to verify, not eligibility decisions."}</p>
           </div>
 
           {/* breakdown */}
-          <div className="space-y-4">
+          {kind !== "prospect" && <div className="space-y-4">
             <div className="nv-glass rounded-nv-lg p-5">
               <p className="nv-section-label mb-3">Spending by category</p>
               {expenseCats.length === 0 ? <p className="text-sm text-nv-text-muted">No spending entered yet.</p> : (
@@ -198,7 +200,7 @@ export default function QuestionnaireDetail() {
               )}
               {tot.assets > 0 && <p className="mt-3 text-xs text-nv-text-muted">Assets entered: {fmtMoney(tot.assets)}</p>}
             </div>
-          </div>
+          </div>}
         </div>
 
         {/* follow-up questions */}
@@ -262,7 +264,7 @@ export default function QuestionnaireDetail() {
           </div>
           <div className="space-y-2">
             {sections.map((sec) => (
-              <SectionAnswers key={sec.id} section={sec} answers={a} open={!!open[sec.id]} toggle={() => setOpen({ ...open, [sec.id]: !open[sec.id] })} showEmpty={showEmpty} />
+              <SectionAnswers key={sec.id} qid={q.id} section={sec} answers={a} open={!!open[sec.id]} toggle={() => setOpen({ ...open, [sec.id]: !open[sec.id] })} showEmpty={showEmpty} />
             ))}
           </div>
         </div>
@@ -303,12 +305,51 @@ function fmtValue(f: Field, v: any, answers: Answers): string | null {
       return v === "yes" ? "Yes" : v === "no" ? "No" : "Not sure";
     case "list":
       return `${(v as any[]).length} item${(v as any[]).length === 1 ? "" : "s"}`;
+    case "access": {
+      const x = v as AccessValue;
+      if (!x.via) return null;
+      return { invite: x.done ? "Invite sent" : "Will invite (not done yet)", login: "Shared login", call: "Call me to set it up", unknown: "Not sure / doesn't have it", none: "Doesn't use it" }[x.via] || x.via;
+    }
     default:
       return String(v);
   }
 }
 
-function SectionAnswers({ section, answers, open, toggle, showEmpty }: { section: Section; answers: Answers; open: boolean; toggle: () => void; showEmpty: boolean }) {
+function AccessAnswer({ qid, field, v }: { qid: string; field: AccessField; v: AccessValue }) {
+  const [pass, setPass] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+  const reveal = async () => {
+    setBusy(true); setErr(null);
+    try {
+      const r = await fetch(`/api/admin/questionnaires/${qid}/reveal`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ field: field.id }) });
+      const j = await r.json();
+      if (!r.ok) throw new Error(j.error);
+      setPass(j.pass);
+    } catch (e: any) { setErr(e.message || "Failed"); } finally { setBusy(false); }
+  };
+  return (
+    <div className="space-y-1">
+      <span className="text-nv-text-primary">{fmtValue(field, v, {}) || "—"}</span>
+      {v.via === "login" && (
+        <div className="rounded-md bg-nv-deep/60 border border-white/5 px-2 py-1.5 space-y-1">
+          <div><span className="text-nv-text-muted">User:</span> <span className="font-mono text-nv-text-primary select-all">{v.user || "—"}</span></div>
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="text-nv-text-muted">Password:</span>
+            {pass != null ? <span className="font-mono text-nv-teal select-all">{pass}</span> : v.pass_saved ? (
+              <button onClick={reveal} disabled={busy} className="flex items-center gap-1 text-nv-ember hover:text-nv-teal"><Lock size={11} /> {busy ? "…" : "Reveal (logged)"}</button>
+            ) : <span className="text-nv-text-muted/60 italic">not entered</span>}
+            {err && <span className="text-nv-error">{err}</span>}
+          </div>
+          {field.loginUrl && <a href={field.loginUrl} target="_blank" rel="noreferrer" className="text-nv-teal hover:underline flex items-center gap-1"><KeyRound size={11} /> {field.loginUrl}</a>}
+        </div>
+      )}
+      {v.note && <div className="text-nv-text-secondary whitespace-pre-wrap">“{v.note}”</div>}
+    </div>
+  );
+}
+
+function SectionAnswers({ qid, section, answers, open, toggle, showEmpty }: { qid: string; section: Section; answers: Answers; open: boolean; toggle: () => void; showEmpty: boolean }) {
   const p = sectionProgress(section, answers);
   return (
     <div className="rounded-nv-md border border-white/5 bg-white/[0.02]">
@@ -326,7 +367,9 @@ function SectionAnswers({ section, answers, open, toggle, showEmpty }: { section
             return (
               <div key={f.id} className="grid sm:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)] gap-x-4 gap-y-0.5 text-xs border-t border-white/5 pt-2">
                 <span className="text-nv-text-muted">{personalize(f.label, answers)}</span>
-                {f.type === "list" && Array.isArray(v) && v.length ? (
+                {f.type === "access" && shown ? (
+                  <AccessAnswer qid={qid} field={f} v={v} />
+                ) : f.type === "list" && Array.isArray(v) && v.length ? (
                   <div className="space-y-1.5">
                     {v.map((row: any, i: number) => (
                       <div key={i} className="rounded-md bg-nv-deep/60 border border-white/5 px-2 py-1.5">
