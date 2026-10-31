@@ -4,7 +4,7 @@
 // Web session = cookie; the app gets a bearer token. Both are HMAC-signed blobs carrying only the user id,
 // and every request re-reads the row, so turning an account off cuts both the website and the app.
 import crypto from "crypto";
-import { createAdminClient } from "@/lib/supabase/server";
+import { createClient } from "@supabase/supabase-js";
 import { hashPassword, verifyPassword, sha256, newToken, cleanUsername, USERNAME_RE, trialState, TRIAL_CHOICES } from "@/lib/vm";
 
 export { hashPassword, verifyPassword, sha256, newToken, cleanUsername, USERNAME_RE, trialState, TRIAL_CHOICES };
@@ -28,7 +28,10 @@ export type NvRelease = {
   size_bytes: number | null; created_at: string;
 };
 
-export const db = () => createAdminClient();
+// Every read must be live: Next.js caches fetch() GETs (supabase-js reads are GETs) in its Data Cache, which served a
+// trial as still active after it ended and an old "latest build" (2026-10-31). Turning an account off must bite at once.
+const noStore: typeof fetch = (input, init) => fetch(input, { ...init, cache: "no-store" });
+export const db = () => createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!, { global: { fetch: noStore } });
 
 // Separate key from the /vm sessions (domain-separated from the same server secret) so a cloud-phone cookie
 // can never be replayed here and vice versa.
