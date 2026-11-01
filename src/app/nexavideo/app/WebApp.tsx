@@ -386,8 +386,11 @@ function TitlePage({ u, back, play, open }: { u: string; back: () => void; play:
 
   useEffect(() => {
     if (!t || t.k !== "t") return;
-    const s0 = t.episodes[0]?.s ?? t.seasons[0] ?? 1;
-    setSeason(s0); setEps(t.episodes);
+    // the page lists the newest season; open on the season last watched here, else the first one
+    const last = Object.values(loadPos()).filter((s) => s.show?.u === t.u).sort((a, b) => b.at - a.at)[0];
+    const lastS = last ? Number(/· S(\d+) E/.exec(last.label)?.[1]) : NaN;
+    const s0 = lastS && t.seasons.includes(lastS) ? lastS : t.seasons.length ? Math.min(...t.seasons) : t.episodes[0]?.s ?? 1;
+    setSeason(s0); setEps(t.episodes[0]?.s === s0 ? t.episodes : null);
   }, [t]);
   useEffect(() => {
     if (!t || season === null || !t.showId) return;
@@ -402,7 +405,7 @@ function TitlePage({ u, back, play, open }: { u: string; back: () => void; play:
   const x = t.x;
   const poster = x?.p || t.p;
   const rating = x?.r;
-  const meta = [t.y, x?.cert, x?.min ? `${Math.floor(x.min / 60) ? Math.floor(x.min / 60) + "h " : ""}${x.min % 60}m` : "", t.k === "t" && t.seasons.length ? `${t.seasons.length} season${t.seasons.length > 1 ? "s" : ""}` : ""].filter(Boolean);
+  const meta = [t.y, x?.cert, x?.min ? (t.k === "t" ? `${x.min}m episodes` : `${Math.floor(x.min / 60) ? Math.floor(x.min / 60) + "h " : ""}${x.min % 60}m`) : "", t.k === "t" && t.seasons.length ? `${t.seasons.length} season${t.seasons.length > 1 ? "s" : ""}` : ""].filter(Boolean);
   const saved = loadPos();
   const w = watched();
   const show = { u: t.u, t: t.t, p: poster };
@@ -472,7 +475,7 @@ function TitlePage({ u, back, play, open }: { u: string; back: () => void; play:
           <section className="mt-7">
             {t.seasons.length > 1 && (
               <div className="no-scrollbar -mx-4 mb-3 flex gap-2 overflow-x-auto px-4">
-                {t.seasons.map((s) => (
+                {[...t.seasons].sort((a, b) => a - b).map((s) => (
                   <button key={s} onClick={() => setSeason(s)} className={`shrink-0 rounded-full px-4 py-2 text-[14px] font-semibold ${season === s ? "bg-white text-black" : "bg-white/10 text-white/75"}`}>Season {s}</button>
                 ))}
               </div>
@@ -574,6 +577,12 @@ function Player({ req, close, replace }: { req: PlayReq; close: () => void; repl
             if (!d.fatal) return;
             if (d.type === Hls.ErrorTypes.MEDIA_ERROR) { h.recoverMediaError(); return; }
             setStatus("error"); setMsg(d.response?.code === 403 ? "This mirror refused the stream." : "The stream stopped loading.");
+          });
+          // like the Android app: subtitles off by default, English audio when the stream offers several
+          h.on(Hls.Events.MANIFEST_PARSED, () => {
+            h.subtitleTrack = -1; h.subtitleDisplay = false;
+            const en = h.audioTracks.findIndex((a) => /^en/i.test(a.lang || "") || /english/i.test(a.name || ""));
+            if (en >= 0 && h.audioTracks.length > 1) h.audioTrack = en;
           });
           h.loadSource(src.url);
           h.attachMedia(v);
