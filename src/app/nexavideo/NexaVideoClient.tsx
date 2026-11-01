@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 // Nexa Video landing — cinematic dark page: hero + sign-in / download card, features, screenshots, install steps.
 // Signed out: sign-in card (accounts come from invite links). Signed in: the download button for the newest build.
@@ -34,6 +34,9 @@ export default function NexaVideoClient({ user, release, shots, notice, pausedNo
   // "Request access": they pick username + password now; the owner switches the account on in the admin
   const [mode, setMode] = useState<"signin" | "request" | "sent">("signin");
   const [rq, setRq] = useState({ name: "", contact: "", username: "", password: "", confirm: "", note: "", website: "" });
+  // iPhone / iPad: no APK — the web app at /nexavideo/app is their version
+  const [ios, setIos] = useState(false);
+  useEffect(() => { setIos(/iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1)); }, []);
   const setR = (k: keyof typeof rq) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => setRq({ ...rq, [k]: e.target.value });
 
   async function requestAccess(e: React.FormEvent) {
@@ -92,7 +95,7 @@ export default function NexaVideoClient({ user, release, shots, notice, pausedNo
               <span className="bg-gradient-to-r from-[#4FA3FF] via-[#a78bfa] to-[#f472b6] bg-clip-text text-transparent">cinema.</span>
             </h1>
             <p className="mt-6 max-w-xl text-lg leading-relaxed text-white/70 md:text-xl">
-              Movies, TV shows and your own downloads in one beautiful Android app — trending lists, IMDb ratings,
+              Movies, TV shows and your own downloads in one beautiful app for Android and iPhone — trending lists, IMDb ratings,
               trailers, a buttery native player and auto-next episodes. Built for the phone and the big screen.
             </p>
 
@@ -101,7 +104,15 @@ export default function NexaVideoClient({ user, release, shots, notice, pausedNo
               {user ? (
                 <>
                   <div className="text-sm text-white/60">Signed in as <span className="font-semibold text-white">{user.username}</span></div>
-                  {release ? (
+                  {ios ? (
+                    <>
+                      <a href="/nexavideo/app"
+                        className="mt-4 flex items-center justify-center gap-3 rounded-2xl bg-white px-6 py-4 text-lg font-bold text-[#07080b] shadow-[0_10px_40px_-10px_rgba(79,163,255,0.7)] transition hover:scale-[1.02]">
+                        ▶ Open Nexa Video
+                      </a>
+                      <div className="mt-3 text-center text-sm text-white/50">On iPhone: open it, tap Share ⬆︎ → Add to Home Screen.</div>
+                    </>
+                  ) : release ? (
                     <a href="/api/nexavideo/download"
                       className="mt-4 flex items-center justify-center gap-3 rounded-2xl bg-white px-6 py-4 text-lg font-bold text-[#07080b] shadow-[0_10px_40px_-10px_rgba(79,163,255,0.7)] transition hover:scale-[1.02]">
                       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4"><path d="M12 3v12m0 0l-5-5m5 5l5-5M4 21h16" strokeLinecap="round" strokeLinejoin="round" /></svg>
@@ -112,11 +123,12 @@ export default function NexaVideoClient({ user, release, shots, notice, pausedNo
                       {pausedNote || "The first build is on its way — check back soon."}
                     </div>
                   )}
-                  {release && (
+                  {release && !ios && (
                     <div className="mt-3 text-center text-sm text-white/50">
                       Version {release.name}{release.size ? ` · ${mb(release.size)}` : ""} · Android 11+
                     </div>
                   )}
+                  {!ios && <a href="/nexavideo/app" className="mt-3 block text-center text-sm font-semibold text-[#4FA3FF]">Or watch in your browser →</a>}
                   <button onClick={signOut} className="mt-4 w-full text-center text-sm text-white/40 hover:text-white/70">Sign out</button>
                 </>
               ) : mode === "sent" ? (

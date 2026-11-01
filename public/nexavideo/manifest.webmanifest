@@ -1,0 +1,13 @@
+{
+  "name": "Nexa Video",
+  "short_name": "Nexa Video",
+  "start_url": "/nexavideo/app",
+  "scope": "/nexavideo/",
+  "display": "standalone",
+  "background_color": "#07080b",
+  "theme_color": "#07080b",
+  "icons": [
+    { "src": "/nexavideo/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/nexavideo/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}

@@ -37,7 +37,8 @@ export async function POST(req: NextRequest) {
   }).eq("id", u.id);
 
   if (app) return NextResponse.json({ ok: true, token: mint(u.id, "app").value, username: u.username });
-  const s = mint(u.id, "web");
+  // the iPhone home-screen web app keeps its own cookie jar → a long session so friends don't keep signing in
+  const s = mint(u.id, body.webapp === true ? "app" : "web");
   const res = NextResponse.json({ ok: true });
   res.cookies.set(NV_COOKIE, s.value, { httpOnly: true, secure: true, sameSite: "lax", path: "/", maxAge: s.maxAge });
   return res;

@@ -381,3 +381,7 @@
     padding-right: 1.5rem;
   }
 }
+
+/* horizontal rows without a visible scrollbar (Nexa Video web app) */
+.no-scrollbar { scrollbar-width: none; }
+.no-scrollbar::-webkit-scrollbar { display: none; }
