@@ -17,6 +17,9 @@ type PlayReq = { u?: string; src?: { url: string; type: string }; label: string;
 type Saved = { pos: number; dur: number; label: string; poster?: string | null; u: string; show?: { u: string; t: string; p?: string | null }; at: number };
 
 const ACCENT = "#4FA3FF";
+/** titles that aren't on Nexa ("Not on Nexa yet" row) — hidden for now (owner, 2026-11-01); "More like this" is
+ *  filtered on the rack (nvweb SHOW_NOT_ON_NEXA) */
+const SHOW_NOT_ON_NEXA = false;
 
 class SignedOut extends Error {}
 
@@ -283,7 +286,7 @@ function Home({ open, push, play, trialDays, onSignedOut }: { open: (i: Item) =>
       <Row title="Trending TV shows" sub="Most popular on IMDb right now" items={tv.data?.on || []} open={open} onSeeAll={see("Trending TV shows", tv.data?.on || [])} />
       <Row title="New on Nexa" items={home.data.featured} open={open} onSeeAll={see("New on Nexa", home.data.featured)} />
       <Row title="Recently added" items={home.data.recent} open={open} onSeeAll={see("Recently added", home.data.recent)} />
-      {(mov.data?.soon?.length || 0) > 0 && (
+      {SHOW_NOT_ON_NEXA && (mov.data?.soon?.length || 0) > 0 && (
         <Row title="Not on Nexa yet" sub="Hot right now — tap for the trailer" items={mov.data!.soon}
           open={(it) => it.id && api<{ url?: string; type?: string }>("trailer?id=" + it.id).then((t) => t.url && play({ src: { url: t.url, type: t.type || "mp4" }, label: it.t + " — trailer", key: "trailer" })).catch(() => {})} />
       )}
@@ -521,7 +524,7 @@ function TitlePage({ u, back, play, open }: { u: string; back: () => void; play:
         <section className="mt-8">
           <h2 className="mb-2.5 px-4 text-[19px] font-extrabold">More like this</h2>
           <div className="no-scrollbar flex gap-3 overflow-x-auto px-4">
-            {x.similar.slice(0, moreOpen ? 16 : 12).map((s) => <Tile key={s.id} it={s} onClick={() => findAndOpen(s, open, () => setMoreOpen(true))} />)}
+            {x.similar.slice(0, moreOpen ? 16 : 12).map((s) => <Tile key={s.id} it={s} onClick={() => (s.u ? open(s) : findAndOpen(s, open, () => setMoreOpen(true)))} />)}
           </div>
         </section>
       )}
