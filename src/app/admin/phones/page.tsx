@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import AppShell from "@/components/admin/AppShell";
 import { Loader2, RefreshCw, ShoppingBag, MessageSquare, ExternalLink, MapPin, Mail, Phone } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { loadSaved, fetchJson } from "@/lib/admin/cache";
 
 type Item = { name: string; ram: number; storage: string; color: string; addons: string[]; qty: number; unit_price: number; line_total: number };
 type Order = {
@@ -61,17 +62,11 @@ export default function PhoneStorePage() {
   const load = useCallback(async () => {
     setLoading(true);
     setErr("");
-    try {
-      const r = await fetch("/api/admin/nexaphone", { cache: "no-store" });
-      const j = await r.json();
-      if (!r.ok) throw new Error(j.error || "Failed to load");
-      setOrders(j.orders || []);
-      setLeads(j.leads || []);
-    } catch (e) {
-      setErr(e instanceof Error ? e.message : "Failed to load");
-    } finally {
-      setLoading(false);
-    }
+    type Resp = { orders: Order[]; leads: Lead[] };
+    const r = await loadSaved<Resp>("phones", () => fetchJson<Resp>("/api/admin/nexaphone", { cache: "no-store" }),
+      (j) => { setOrders(j.orders || []); setLeads(j.leads || []); setLoading(false); });
+    if (!r.ok) setErr(r.hadCache ? `Could not refresh (${r.error}) — showing the saved copy.` : r.error || "Failed to load");
+    setLoading(false);
   }, []);
   useEffect(() => {
     load();

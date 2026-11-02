@@ -10,8 +10,9 @@ interface AuthGuardProps {
 }
 
 // Renders from the session saved on the device right away (getSession = local, no network) so admin pages open
-// instantly; the server check (getUser) runs once per app session in the background and bounces to login if the
-// session is no longer valid. Data stays protected by the /api/admin middleware either way.
+// instantly; the server check (getUser) runs once per app session in the background and bounces to login ONLY
+// when Supabase says the session is invalid. A failed/offline check keeps the saved session (the data APIs are
+// protected server-side either way), so a bad connection never throws the owner out to the login screen.
 let verified = false;                       // per app session — page changes don't re-check over the network
 
 export default function AuthGuard({ children }: AuthGuardProps) {
@@ -29,16 +30,21 @@ export default function AuthGuard({ children }: AuthGuardProps) {
       setUser(session.user);
       setLoading(false);
       if (!verified) {
-        const { data: { user: real } } = await supabase.auth.getUser();
-        if (!alive) return;
-        if (!real) { router.replace("/admin/login"); return; }
-        verified = true;
+        try {
+          const { data: { user: real }, error } = await supabase.auth.getUser();
+          if (!alive) return;
+          if (real) { verified = true; return; }
+          // no user: only a definite auth answer (401/403) means "logged out"; network trouble keeps the session
+          const status = (error as { status?: number } | null)?.status;
+          const definite = status === 401 || status === 403;
+          if (definite) router.replace("/admin/login");
+        } catch { /* offline — keep the saved session */ }
       }
     })();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (!session?.user) { verified = false; router.replace("/admin/login"); }
-      else setUser(session.user);
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === "SIGNED_OUT") { verified = false; router.replace("/admin/login"); }
+      else if (session?.user) setUser(session.user);
     });
     return () => { alive = false; subscription.unsubscribe(); };
   }, [router, supabase.auth]);

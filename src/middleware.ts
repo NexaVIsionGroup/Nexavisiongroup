@@ -28,7 +28,7 @@ export async function middleware(request: NextRequest) {
     return NextResponse.rewrite(target);
   }
 
-  if (url.pathname.startsWith("/admin") || url.pathname.startsWith("/api/admin")) {
+  if (url.pathname.startsWith("/admin") || url.pathname.startsWith("/api/admin") || url.pathname.startsWith("/api/email")) {
     return await updateSession(request);
   }
   return NextResponse.next();

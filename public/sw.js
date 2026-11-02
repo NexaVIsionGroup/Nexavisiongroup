@@ -1,24 +1,71 @@
-const CACHE_NAME = "nexa-admin-v4";
+const CACHE_NAME = "nexa-admin-v6";
 const STATIC = "nexa-static-v1";
 // Scope /admin/ (registered by PWARegister). Speed strategy:
 //   /_next/static, icons, fonts → cache-first (file names are content-hashed: they never change)
 //   admin pages (navigations)   → stale-while-revalidate: open instantly from the last copy, refresh in the background
 //   /api GETs                   → network-first, but fall back to the saved answer after 2.5 s on a bad connection
-const PRECACHE = ["/admin", "/admin/login"];
+//
+// ⚠️ Never store a REDIRECTED response (e.g. the login page that /admin redirects to when the session is out):
+// Chrome refuses to serve a redirected response for a navigation ("redirect mode is not follow") → the page
+// fails with ERR_FAILED. That was the "app doesn't load half the time" bug (v5 and earlier precached it).
+const PRECACHE = ["/admin", "/admin/login", "/admin/inbox"];
+
+const storable = (res) => !!res && res.ok && !res.redirected && res.type === "basic";
 
 self.addEventListener("install", (e) => {
-  e.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.addAll(PRECACHE)).catch(() => {}));
+  e.waitUntil((async () => {
+    try {
+      const cache = await caches.open(CACHE_NAME);
+      await Promise.all(PRECACHE.map(async (u) => {
+        try {
+          const res = await fetch(u, { credentials: "include", redirect: "follow" });
+          if (storable(res) && new URL(res.url).pathname === u) await cache.put(u, res);
+        } catch { /* offline at install — fine */ }
+      }));
+    } catch { /* ignore */ }
+  })());
   self.skipWaiting();
 });
 
 self.addEventListener("activate", (e) => {
-  e.waitUntil(
-    caches.keys().then((keys) => Promise.all(keys.filter((k) => k !== CACHE_NAME && k !== STATIC).map((k) => caches.delete(k))))
-  );
-  self.clients.claim();
+  e.waitUntil((async () => {
+    const keys = await caches.keys();
+    await Promise.all(keys.filter((k) => k !== CACHE_NAME && k !== STATIC).map((k) => caches.delete(k)));
+    // drop any poisoned (redirected) page copies left by older versions
+    try {
+      const cache = await caches.open(CACHE_NAME);
+      for (const req of await cache.keys()) {
+        const res = await cache.match(req);
+        if (!storable(res)) await cache.delete(req);
+      }
+    } catch { /* ignore */ }
+    await self.clients.claim();
+  })());
 });
 
-const putIn = (name, req, res) => { if (res && res.ok && req.method === "GET") { const c = res.clone(); caches.open(name).then((cache) => cache.put(req, c)); } return res; };
+const putIn = (name, req, res) => {
+  if (storable(res) && req.method === "GET") {
+    const c = res.clone();
+    caches.open(name).then((cache) => cache.put(req, c)).catch(() => {});
+  }
+  return res;
+};
+
+// a cached hit is only usable if it isn't a redirect (see note above)
+const usable = async (req) => {
+  const hit = await caches.match(req).catch(() => undefined);
+  return hit && !hit.redirected ? hit : undefined;
+};
+
+const OFFLINE_PAGE = () => new Response(
+  `<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>NexaVision Admin</title>
+<body style="margin:0;background:#050B18;color:#dfe7f3;font:16px system-ui;display:grid;place-items:center;min-height:100vh;text-align:center">
+<div><p style="font-size:34px;margin:0 0 8px">📡</p><p style="margin:0 0 6px;font-weight:700">You're offline</p>
+<p style="margin:0 0 18px;color:#8896A6;font-size:14px">This page hasn't been saved on this phone yet.</p>
+<button onclick="location.reload()" style="background:#00E5CC;color:#050B18;border:0;border-radius:999px;padding:12px 22px;font-weight:700">Try again</button></div>`,
+  { status: 503, headers: { "Content-Type": "text/html; charset=utf-8" } }
+);
 
 self.addEventListener("fetch", (e) => {
   const req = e.request;
@@ -43,10 +90,13 @@ self.addEventListener("fetch", (e) => {
   }
 
   if (req.mode === "navigate" && url.pathname.startsWith("/admin")) {
-    e.respondWith(caches.match(req).then((hit) => {
-      const fresh = fetch(req).then((res) => putIn(CACHE_NAME, req, res)).catch(() => hit);
-      return hit || fresh;
-    }));
+    e.respondWith((async () => {
+      const hit = await usable(req);
+      const fresh = fetch(req).then((res) => putIn(CACHE_NAME, req, res)).catch(() => null);
+      if (hit) { e.waitUntil(fresh); return hit; }
+      const res = await fresh;
+      return res || OFFLINE_PAGE();
+    })());
     return;
   }
 });

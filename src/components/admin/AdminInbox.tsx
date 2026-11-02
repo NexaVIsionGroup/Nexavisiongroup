@@ -9,6 +9,8 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import NotificationBell from "./NotificationBell";
+import RefreshBar from "./RefreshBar";
+import { useCached, fetchJson, cacheGet, cacheSet } from "@/lib/admin/cache";
 
 // ── Types ──
 interface Thread {
@@ -57,11 +59,8 @@ export default function AdminInbox() {
   // ── State ──
   const [view, setView] = useState<View>("list");
   const [folder, setFolder] = useState<Folder>("inbox");
-  const [threads, setThreads] = useState<Thread[]>([]);
-  const [folderCounts, setFolderCounts] = useState<Record<string, number>>({});
   const [selectedThread, setSelectedThread] = useState<Thread | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
-  const [loading, setLoading] = useState(true);
   const [loadingThread, setLoadingThread] = useState(false);
   const [search, setSearch] = useState("");
 
@@ -77,8 +76,10 @@ export default function AdminInbox() {
   const [composeFiles, setComposeFiles] = useState<{name: string; size: number; base64: string; type: string}[]>([]);
   const composeFileRef = useRef<HTMLInputElement>(null);
 
-  // Accounts
-  const [accounts, setAccounts] = useState<EmailAccount[]>([]);
+  // Accounts — rendered from the device's saved copy, refreshed in the background
+  const accountsQ = useCached<EmailAccount[]>("inbox:accounts", async (signal) =>
+    (await fetchJson<{ accounts: EmailAccount[] }>("/api/admin/email-accounts", { cache: "no-store", signal })).accounts || []);
+  const accounts = accountsQ.data || [];
   const [activeAccount, setActiveAccount] = useState<EmailAccount | null>(null);
   const [fromAccount, setFromAccount] = useState("");
 
@@ -141,31 +142,32 @@ export default function AdminInbox() {
     toastTimer.current = setTimeout(() => setToast(null), 3000);
   };
 
-  // ── Fetch accounts ──
+  // ── Pick the account once the list is known (saved choice → default → first; "" = All Accounts) ──
   const accountsInitialized = useRef(false);
-  const fetchAccounts = async () => {
-    const res = await fetch("/api/admin/email-accounts");
-    const data = await res.json();
-    if (data.accounts?.length) {
-      setAccounts(data.accounts);
-      if (!accountsInitialized.current) {
-        accountsInitialized.current = true;
-        const saved = typeof window !== "undefined" ? localStorage.getItem("nv_inbox_account") : null;
-        const match = saved ? data.accounts.find((a: EmailAccount) => a.email === saved) : null;
-        const pick = match || data.accounts.find((a: EmailAccount) => a.is_default) || data.accounts[0];
-        setActiveAccount(pick);
-        setFromAccount(pick.email);
-      }
-    }
-  };
-  useEffect(() => { fetchAccounts(); }, []);
-
-  // Persist active account selection (only after initialization, never overwrite with null)
+  const [accountReady, setAccountReady] = useState(false);
+  const fetchAccounts = () => accountsQ.refresh();
   useEffect(() => {
-    if (!accountsInitialized.current) return;
-    if (activeAccount && typeof window !== "undefined") {
-      localStorage.setItem("nv_inbox_account", activeAccount.email);
+    if (accountsInitialized.current || !accounts.length) return;
+    accountsInitialized.current = true;
+    const saved = typeof window !== "undefined" ? localStorage.getItem("nv_inbox_account") : null;
+    if (saved === "") {
+      setActiveAccount(null);
+      setFromAccount(accounts.find(a => a.is_default)?.email || accounts[0].email);
+    } else {
+      const match = saved ? accounts.find((a) => a.email === saved) : null;
+      const pick = match || accounts.find((a) => a.is_default) || accounts[0];
+      setActiveAccount(pick);
+      setFromAccount(pick.email);
     }
+    setAccountReady(true);
+  }, [accounts]);
+  // no accounts configured at all → still show the (all-accounts) list
+  useEffect(() => { if (!accountsQ.loading && !accounts.length) setAccountReady(true); }, [accountsQ.loading, accounts.length]);
+
+  // Persist the selection, including "All Accounts", so the app reopens where it was
+  useEffect(() => {
+    if (!accountsInitialized.current || typeof window === "undefined") return;
+    localStorage.setItem("nv_inbox_account", activeAccount ? activeAccount.email : "");
   }, [activeAccount]);
 
   // ── Browser back button handling ──
@@ -194,18 +196,21 @@ export default function AdminInbox() {
     return () => window.removeEventListener("popstate", handlePop);
   }, []);
 
-  // ── Fetch threads ──
-  const fetchThreads = useCallback(async () => {
-    setLoading(true);
+  // ── Threads: saved copy on screen immediately, fresh list in the background ──
+  // Waits for the account choice so the first request isn't wasted on the wrong mailbox.
+  const threadsKey = accountReady ? `inbox:threads:${folder}:${activeAccount ? activeAccount.email : "all"}` : null;
+  const threadsQ = useCached<{ threads: Thread[]; folderCounts: Record<string, number> }>(threadsKey, async (signal) => {
     const params = new URLSearchParams({ folder });
     if (activeAccount) params.set("account", activeAccount.email);
-    const res = await fetch(`/api/email/threads?${params}`);
-    const data = await res.json();
-    setThreads(data.threads || []);
-    setFolderCounts(data.folderCounts || {});
-    setLoading(false);
-  }, [folder, activeAccount]);
-  useEffect(() => { fetchThreads(); }, [fetchThreads]);
+    const data = await fetchJson<{ threads: Thread[]; folderCounts: Record<string, number> }>(`/api/email/threads?${params}`, { cache: "no-store", signal });
+    return { threads: data.threads || [], folderCounts: data.folderCounts || {} };
+  });
+  const threads = threadsQ.data?.threads || [];
+  const folderCounts = threadsQ.data?.folderCounts || {};
+  const loading = !accountReady || threadsQ.loading;
+  const fetchThreads = threadsQ.refresh;
+  const setThreads = (fn: (prev: Thread[]) => Thread[]) =>
+    threadsQ.mutate((cur) => ({ threads: fn(cur?.threads || []), folderCounts: cur?.folderCounts || {} }));
 
   // deep link from a notification: /admin/inbox?thread=<id> opens that conversation once the list is loaded
   const deepLinked = useRef(false);
@@ -218,20 +223,30 @@ export default function AdminInbox() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [threads]);
 
-  // ── Open thread ──
+  // ── Open thread: show the saved conversation at once, then refresh it (and mark it read) ──
+  const [threadError, setThreadError] = useState<string | null>(null);
   const openThread = async (thread: Thread) => {
     setSelectedThread(thread);
     goToView("thread");
-    setLoadingThread(true);
-    const res = await fetch("/api/email/threads", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ thread_id: thread.thread_id, account: activeAccount?.email }),
-    });
-    const data = await res.json();
-    setMessages(data.messages || []);
-    setLoadingThread(false);
-    setThreads(prev => prev.map(t => t.thread_id === thread.thread_id ? { ...t, unread_count: 0 } : t));
+    setThreadError(null);
+    const key = `inbox:thread:${thread.thread_id}:${activeAccount?.email || "all"}`;
+    const saved = await cacheGet<Message[]>(key);
+    setMessages(saved?.v || []);
+    setLoadingThread(!saved);
+    try {
+      const data = await fetchJson<{ messages: Message[] }>("/api/email/threads", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ thread_id: thread.thread_id, account: activeAccount?.email }),
+      });
+      setMessages(data.messages || []);
+      cacheSet(key, data.messages || []);
+      setThreads(prev => prev.map(t => t.thread_id === thread.thread_id ? { ...t, unread_count: 0 } : t));
+    } catch (e) {
+      setThreadError((e as Error)?.message || "Could not load this conversation");
+    } finally {
+      setLoadingThread(false);
+    }
   };
 
   // ── Thread actions ──
@@ -289,6 +304,20 @@ export default function AdminInbox() {
     if (diff < 86400000) return `${Math.floor(diff / 3600000)}h`;
     return new Date(d).toLocaleDateString("en-US", { month: "short", day: "numeric" });
   };
+
+  // Render the list in pages of 60 as you scroll: "All accounts" holds ~900 conversations, and painting all of
+  // them at once is what made that view crawl on the phone.
+  const PAGE = 60;
+  const [shown, setShown] = useState(PAGE);
+  useEffect(() => { setShown(PAGE); }, [folder, activeAccount, search]);
+  const sentinel = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const el = sentinel.current;
+    if (!el) return;
+    const io = new IntersectionObserver((es) => { if (es.some(x => x.isIntersecting)) setShown(n => n + PAGE); }, { rootMargin: "600px" });
+    io.observe(el);
+    return () => io.disconnect();
+  }, [shown, threads.length, search, view]);
 
   const filtered = threads.filter(t => {
     if (!search) return true;
@@ -598,7 +627,13 @@ export default function AdminInbox() {
 
         {/* Messages */}
         <div className="flex-1 overflow-y-auto px-4 pb-4 space-y-4">
-          {loadingThread ? (
+          {threadError && (
+            <div className="flex items-center gap-2 text-xs text-nv-warning">
+              <span className="flex-1">{messages.length ? "Could not refresh — showing the saved copy." : threadError}</span>
+              <button onClick={() => selectedThread && openThread(selectedThread)} className="font-semibold text-nv-teal">Retry</button>
+            </div>
+          )}
+          {loadingThread && !messages.length ? (
             <div className="flex justify-center py-16"><Loader2 size={24} className="text-nv-teal animate-spin" /></div>
           ) : messages.map(msg => (
             <div key={msg.id} className="bg-nv-deep/50 rounded-2xl p-4">
@@ -745,21 +780,32 @@ export default function AdminInbox() {
         </button>
       </div>
 
-      {/* Folder label */}
-      <div className="px-5 py-1.5">
+      {/* Folder label + refresh */}
+      <div className="flex items-center px-5 py-1.5">
         <span className="text-sm font-medium text-nv-text-muted capitalize">{folder}</span>
+        <span className="ml-2 text-xs text-nv-text-muted/70 truncate">{activeAccount ? activeAccount.email : "All accounts"}</span>
+        <button onClick={() => fetchThreads()} aria-label="Refresh" className="ml-auto p-1.5 rounded-full text-nv-text-muted hover:text-nv-teal hover:bg-white/5">
+          <RefreshCw size={16} className={threadsQ.refreshing ? "animate-spin" : ""} />
+        </button>
       </div>
+      <RefreshBar refreshing={threadsQ.refreshing && threads.length > 0} error={threadsQ.error} savedAt={threadsQ.savedAt} onRetry={() => fetchThreads()} />
 
       {/* Thread list */}
       <div className="flex-1 overflow-y-auto">
-        {loading ? (
+        {loading && !threads.length ? (
           <div className="flex justify-center py-16"><Loader2 size={24} className="text-nv-teal animate-spin" /></div>
+        ) : threadsQ.error && !threads.length ? (
+          <div className="flex flex-col items-center justify-center py-20 text-center px-6 gap-3">
+            <Mail size={40} className="text-nv-text-muted/30" />
+            <p className="text-nv-text-muted text-sm">This mailbox could not be loaded.</p>
+            <button onClick={() => fetchThreads()} className="px-4 py-2 rounded-full bg-nv-teal text-nv-abyss text-xs font-bold">Try again</button>
+          </div>
         ) : filtered.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 text-center px-6">
             <Mail size={40} className="text-nv-text-muted/30 mb-4" />
             <p className="text-nv-text-muted text-sm">{search ? "No emails match your search." : "No emails in this folder."}</p>
           </div>
-        ) : filtered.map(thread => {
+        ) : filtered.slice(0, shown).map(thread => {
           const senderEmail = folder === "sent" ? thread.to_email : thread.from_email;
           const senderName = senderEmail.split("@")[0];
           return (
@@ -798,6 +844,11 @@ export default function AdminInbox() {
             </button>
           );
         })}
+        {filtered.length > shown && (
+          <div ref={sentinel} className="py-5 text-center text-xs text-nv-text-muted">
+            {filtered.length - shown} more…
+          </div>
+        )}
       </div>
 
       {/* FAB Compose button — bottom right */}

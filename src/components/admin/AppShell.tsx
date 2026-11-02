@@ -26,6 +26,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import AuthGuard from "./AuthGuard";
+import { cacheClear } from "@/lib/admin/cache";
 import NotificationBell, { useAdminAlerts } from "./NotificationBell";
 
 interface NavItem {
@@ -79,6 +80,7 @@ export default function AppShell({ children, title, showBack }: AppShellProps) {
   }, [pathname]);
 
   const handleLogout = async () => {
+    await cacheClear();                                  // saved lists belong to this login
     await supabase.auth.signOut();
     router.replace("/admin/login");
   };

@@ -5,6 +5,7 @@ import AppShell from "@/components/admin/AppShell";
 import { Loader2, RefreshCw, Search, ChevronDown, Copy, Check, ExternalLink, Mail, Phone, Plus, Send, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import NewInvoiceForm, { type PickCustomer } from "./NewInvoiceForm";
+import { loadSaved, fetchJson } from "@/lib/admin/cache";
 
 type LineItem = { description?: string; quantity?: number; unit_price?: number; amount?: number };
 type Payment = { amount: number; method: string | null; paid_at: string | null; processor: string | null; receipt_url: string | null };
@@ -58,17 +59,11 @@ export default function InvoicesPage() {
   const load = useCallback(async () => {
     setLoading(true);
     setErr("");
-    try {
-      const r = await fetch("/api/admin/invoices", { cache: "no-store" });
-      const j = await r.json();
-      if (!r.ok) throw new Error(j.error || "Failed to load");
-      setInvoices(j.invoices || []);
-      setCustomers(j.customers || []);
-    } catch (e) {
-      setErr(e instanceof Error ? e.message : "Failed to load");
-    } finally {
-      setLoading(false);
-    }
+    type Resp = { invoices: Invoice[]; customers: PickCustomer[] };
+    const r = await loadSaved<Resp>("invoices", () => fetchJson<Resp>("/api/admin/invoices", { cache: "no-store" }),
+      (j) => { setInvoices(j.invoices || []); setCustomers(j.customers || []); setLoading(false); });
+    if (!r.ok) setErr(r.hadCache ? `Could not refresh (${r.error}) — showing the saved copy.` : r.error || "Failed to load");
+    setLoading(false);
   }, []);
   useEffect(() => {
     load();

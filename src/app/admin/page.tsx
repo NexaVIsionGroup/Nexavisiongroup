@@ -43,8 +43,9 @@ export default function AdminDashboard() {
   useEffect(() => {
     const loadDashboard = async () => {
       const {
-        data: { user },
-      } = await supabase.auth.getUser();
+        data: { session },
+      } = await supabase.auth.getSession();          // local read — AuthGuard already verified the session
+      const user = session?.user;
       if (user?.email) {
         setUserName(user.email.split("@")[0]);
       }

@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/client";
 import AppShell from "@/components/admin/AppShell";
 import { ShieldCheck, Plus, Loader2, X, Check, Ban, FileText, RefreshCw, ExternalLink, Download } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { loadSaved, fetchJson } from "@/lib/admin/cache";
 
 interface Req { id: string; customer_id: string | null; customer_name?: string; customer_email?: string; status: string; created_at: string; submitted_at: string | null; reviewed_at: string | null; expires_at: string; }
 interface Doc { id: string; doc_type: string; original_name: string | null; content_type: string | null; size_bytes: number | null; url: string | null; downloadUrl?: string | null; }
@@ -36,9 +37,9 @@ export default function VerificationPage() {
 
   const load = async () => {
     setLoading(true);
-    const r = await fetch("/api/admin/verify");
-    const j = await r.json();
-    setReqs(j.requests || []);
+    await loadSaved<Req[]>("verify", async () =>
+      (await fetchJson<{ requests: Req[] }>("/api/admin/verify", { cache: "no-store" })).requests || [],
+    (v) => { setReqs(v); setLoading(false); });
     setLoading(false);
   };
 

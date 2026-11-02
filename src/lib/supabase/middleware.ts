@@ -29,7 +29,8 @@ export async function updateSession(request: NextRequest) {
   // API calls (real data) get the full server check against Supabase Auth. Admin PAGES are only client shells whose
   // data comes from those APIs, so they read the session from the cookie (no network round trip) — the page opens
   // without waiting on Supabase; a bad/expired session still can't load any data.
-  const user = pathname.startsWith("/api/admin")
+  const isDataApi = pathname.startsWith("/api/admin") || pathname.startsWith("/api/email");
+  const user = isDataApi
     ? (await supabase.auth.getUser()).data.user
     : (await supabase.auth.getSession()).data.session?.user ?? null;
 
@@ -40,12 +41,15 @@ export async function updateSession(request: NextRequest) {
   // Protect /api/admin/* (service-role routes). Exempt the pre-login auth
   // flows and the cron cleanup route (it self-authenticates via CRON_SECRET,
   // and Vercel Cron requests carry no Supabase session cookie).
+  // /api/email/* (threads, compose, reply, drafts) is the admin mailbox → same protection; the inbound
+  // webhook (Resend → /api/email/inbound) must stay public.
   const publicApiAdminPaths = [
     "/api/admin/auth/",
     "/api/admin/verify/cleanup",
+    "/api/email/inbound",
   ];
   if (
-    pathname.startsWith("/api/admin") &&
+    isDataApi &&
     !publicApiAdminPaths.some((p) => pathname.startsWith(p)) &&
     !user
   ) {

@@ -1,14 +1,43 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/server';
 
+// Lists must stay fast on a phone: the table holds ~1k messages with ~26 KB of HTML each, so `select('*')`
+// moved ~36 MB per open and took 6–8 s (and sometimes blew the function limit → the app "didn't load").
+// Now: ONE slim query (no bodies) builds both the thread list and the folder counts; previews are then
+// fetched only for the latest message of the threads actually shown.
+export const maxDuration = 30;
+
+const LIST_COLS = 'id, thread_id, subject, to_email, from_email, direction, read, starred, folder, is_draft, has_attachments, lead_id, created_at';
+const PREVIEW_THREADS = 200;
+const MAX_THREADS = 500;        // newest first; keeps the all-accounts answer small enough for a phone on cell data
+
 export async function GET(req: NextRequest) {
   const supabase = createAdminClient();
   const { searchParams } = new URL(req.url);
   const folder = searchParams.get('folder') || 'inbox';
   const account = searchParams.get('account') || null;
 
-  const { threads, folderCounts } = await buildThreadQuery(supabase, folder, account);
-  return NextResponse.json({ threads, folderCounts });
+  try {
+    const { threads, folderCounts } = await buildThreadQuery(supabase, folder, account);
+    return NextResponse.json({ threads, folderCounts }, { headers: { 'Cache-Control': 'private, no-store' } });
+  } catch (e) {
+    return NextResponse.json({ error: (e as Error).message || 'Could not load mail' }, { status: 500 });
+  }
+}
+
+type Row = {
+  id: string; thread_id: string; subject: string; to_email: string; from_email: string; direction: string;
+  read: boolean; starred: boolean; folder: string; is_draft: boolean; has_attachments: boolean;
+  lead_id: string | null; created_at: string;
+};
+
+function inFolder(msg: Row, folder: string) {
+  if (folder === 'trash') return msg.folder === 'trash';
+  if (folder === 'drafts') return msg.is_draft && msg.folder !== 'trash';
+  if (folder === 'starred') return msg.starred && msg.folder !== 'trash';
+  if (folder === 'sent') return msg.direction === 'outbound' && !msg.is_draft && msg.folder !== 'trash';
+  if (folder === 'spam') return msg.folder === 'spam';
+  return !msg.is_draft && msg.folder !== 'trash' && msg.folder !== 'spam';
 }
 
 async function buildThreadQuery(
@@ -16,41 +45,28 @@ async function buildThreadQuery(
   folder: string,
   account: string | null
 ) {
-  let query = supabase
+  const { data: all, error } = await supabase
     .from('email_messages')
-    .select('*')
+    .select(LIST_COLS)
     .order('created_at', { ascending: false });
+  if (error) throw new Error(error.message);
+  const rows = (all || []) as Row[];
 
-  if (folder === 'trash') query = query.eq('folder', 'trash');
-  else if (folder === 'drafts') query = query.eq('is_draft', true).neq('folder', 'trash');
-  else if (folder === 'starred') query = query.eq('starred', true).neq('folder', 'trash');
-  else if (folder === 'sent') query = query.eq('direction', 'outbound').eq('is_draft', false).neq('folder', 'trash');
-  else if (folder === 'spam') query = query.eq('folder', 'spam');
-  else query = query.eq('is_draft', false).not('folder', 'in', '("trash","spam")');
+  const messages = rows.filter(msg => inFolder(msg, folder)).filter(msg => {
+    if (!account) return true;
+    if (folder === 'inbox') return msg.to_email === account;
+    if (folder === 'sent') return msg.from_email === account;
+    return msg.from_email === account || msg.to_email === account;
+  });
 
-  const { data: rawMessages, error } = await query;
-  if (error) return { threads: [], folderCounts: {} };
-
-  const messages = account
-    ? (rawMessages || []).filter(msg => {
-        if (folder === 'inbox') return msg.to_email === account;
-        if (folder === 'sent') return msg.from_email === account;
-        return msg.from_email === account || msg.to_email === account;
-      })
-    : (rawMessages || []);
-
-  // Folder counts
-  const { data: allMessages } = await supabase
-    .from('email_messages')
-    .select('folder, is_draft, starred, read, direction, from_email, to_email');
-
+  // Folder counts (same rows, no second query)
   const countMessages = account
-    ? (allMessages || []).filter(msg => {
+    ? rows.filter(msg => {
         if (msg.direction === 'inbound') return msg.to_email === account;
         if (msg.direction === 'outbound') return msg.from_email === account;
         return msg.from_email === account || msg.to_email === account;
       })
-    : (allMessages || []);
+    : rows;
 
   const folderCounts: Record<string, number> = { inbox: 0, sent: 0, starred: 0, drafts: 0, trash: 0, spam: 0 };
   for (const msg of countMessages) {
@@ -64,7 +80,7 @@ async function buildThreadQuery(
 
   type ThreadEntry = {
     thread_id: string; subject: string; to_email: string; from_email: string;
-    latest_message: string; latest_body_preview: string; latest_direction: string;
+    latest_message: string; latest_message_id: string; latest_body_preview: string; latest_direction: string;
     message_count: number; unread_count: number; starred: boolean;
     has_attachments: boolean; lead_id: string | null; created_at: string;
     has_inbound: boolean;
@@ -73,14 +89,14 @@ async function buildThreadQuery(
 
   for (const msg of messages) {
     if (!threadMap.has(msg.thread_id)) {
-      const plainText = msg.body_text || (msg.body_html || '').replace(/<[^>]+>/g, '');
       threadMap.set(msg.thread_id, {
         thread_id: msg.thread_id,
         subject: msg.subject,
         to_email: msg.direction === 'outbound' ? msg.to_email : msg.from_email,
         from_email: msg.direction === 'outbound' ? msg.from_email : msg.to_email,
         latest_message: msg.created_at,
-        latest_body_preview: plainText.substring(0, 120),
+        latest_message_id: msg.id,
+        latest_body_preview: '',
         latest_direction: msg.direction,
         message_count: 0, unread_count: 0,
         starred: !!msg.starred, has_attachments: !!msg.has_attachments,
@@ -102,9 +118,30 @@ async function buildThreadQuery(
     }
   }
 
-  const threads = [...threadMap.values()].sort(
-    (a, b) => new Date(b.latest_message).getTime() - new Date(a.latest_message).getTime()
-  );
+  const threads = [...threadMap.values()]
+    .sort((a, b) => new Date(b.latest_message).getTime() - new Date(a.latest_message).getTime())
+    .slice(0, MAX_THREADS);
+
+  // Previews: plain text of the latest message, only for the threads that will be shown
+  const ids = threads.slice(0, PREVIEW_THREADS).map(t => t.latest_message_id);
+  if (ids.length) {
+    const { data: texts } = await supabase.from('email_messages').select('id, body_text').in('id', ids);
+    const byId = new Map<string, string>();
+    const needHtml: string[] = [];
+    for (const r of texts || []) {
+      if (r.body_text) byId.set(r.id, r.body_text);
+      else needHtml.push(r.id);
+    }
+    if (needHtml.length) {
+      const { data: htmls } = await supabase.from('email_messages').select('id, body_html').in('id', needHtml);
+      for (const r of htmls || []) byId.set(r.id, (r.body_html || '').replace(/<style[\s\S]*?<\/style>/gi, '').replace(/<[^>]+>/g, ' '));
+    }
+    for (const t of threads) {
+      const txt = byId.get(t.latest_message_id);
+      if (txt) t.latest_body_preview = txt.replace(/\s+/g, ' ').trim().substring(0, 120);
+    }
+  }
+
   return { threads, folderCounts };
 }
 

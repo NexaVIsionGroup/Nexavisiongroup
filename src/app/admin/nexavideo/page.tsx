@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import AppShell from "@/components/admin/AppShell";
 import { Link2, Copy, Check, Loader2, Power, Trash2, KeyRound, RefreshCw, Unlock, Film, ExternalLink, Package, CalendarPlus, BadgeCheck, Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { loadSaved, fetchJson } from "@/lib/admin/cache";
 
 // Nexa Video (private Android media-center app) — invite friends, see who uses it, turn accounts off.
 // An invite link lets the person pick a username + password at /nexavideo/i/<code>; they download the APK at
@@ -48,9 +49,10 @@ export default function NexaVideoAdmin() {
   const [lastLink, setLastLink] = useState<{ link: string; note: string; copied: boolean } | null>(null);
 
   const load = useCallback(async () => {
-    const r = await fetch("/api/admin/nexavideo", { cache: "no-store" });
-    const d = await r.json().catch(() => ({}));
-    if (r.ok) { setUsers(d.users || []); setReleases(d.releases || []); setRequests(d.requests || []); setDownloads(d.downloads || { paused: false, allow: [] }); } else setMsg(d.error || "Could not load.");
+    type Resp = { users: NvUser[]; releases: Release[]; requests: AccessRequest[]; downloads: { paused: boolean; allow: string[] } };
+    const r = await loadSaved<Resp>("nexavideo", () => fetchJson<Resp>("/api/admin/nexavideo", { cache: "no-store" }),
+      (d) => { setUsers(d.users || []); setReleases(d.releases || []); setRequests(d.requests || []); setDownloads(d.downloads || { paused: false, allow: [] }); setLoading(false); });
+    if (!r.ok) setMsg(r.hadCache ? "Could not refresh — showing the saved copy." : r.error || "Could not load.");
     setLoading(false);
   }, []);
   useEffect(() => { load(); }, [load]);

@@ -6,6 +6,7 @@ import AppShell from "@/components/admin/AppShell";
 import { ClipboardList, Plus, Loader2, Copy, Check, ExternalLink, ChevronRight, X } from "lucide-react";
 import { fmtMoney, TEMPLATES } from "@/lib/questionnaires";
 import { STATUS, ago } from "./shared";
+import { loadSaved, fetchJson } from "@/lib/admin/cache";
 
 interface Row {
   id: string;
@@ -35,10 +36,10 @@ export default function QuestionnairesPage() {
   const [form, setForm] = useState({ title: "Household Budget & Benefits Check-up", client_name: "", address: "", client_phone: "", template: "household-budget" });
 
   const load = () =>
-    fetch("/api/admin/questionnaires")
-      .then((r) => r.json())
-      .then((d) => setRows(d.questionnaires || []))
-      .finally(() => setLoading(false));
+    loadSaved<Row[]>("questionnaires", async () =>
+      (await fetchJson<{ questionnaires: Row[] }>("/api/admin/questionnaires", { cache: "no-store" })).questionnaires || [],
+    (v) => { setRows(v); setLoading(false); })
+      .then((r) => { if (!r.ok && !r.hadCache) { setErr(r.error || "Could not load"); setLoading(false); } });
 
   useEffect(() => { load(); }, []);
 

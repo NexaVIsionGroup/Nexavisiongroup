@@ -17,6 +17,7 @@ import {
   X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { loadSaved, fetchJson } from "@/lib/admin/cache";
 
 interface EmailAccount {
   id: string;
@@ -59,9 +60,9 @@ export default function SettingsPage() {
   // ── Fetch email accounts ──
   const fetchAccounts = async () => {
     setLoadingAccounts(true);
-    const res = await fetch("/api/admin/email-accounts");
-    const data = await res.json();
-    setAccounts(data.accounts || []);
+    await loadSaved<EmailAccount[]>("inbox:accounts", async () =>
+      (await fetchJson<{ accounts: EmailAccount[] }>("/api/admin/email-accounts", { cache: "no-store" })).accounts || [],
+    (v) => { setAccounts(v); setLoadingAccounts(false); });
     setLoadingAccounts(false);
   };
 

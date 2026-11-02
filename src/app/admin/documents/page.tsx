@@ -22,6 +22,7 @@ import {
   RefreshCw,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { loadSaved, fetchJson } from "@/lib/admin/cache";
 
 interface Doc {
   id: string;
@@ -101,9 +102,9 @@ export default function DocumentsPage() {
 
   const load = async () => {
     setLoading(true);
-    const r = await fetch("/api/admin/documents");
-    const j = await r.json();
-    setDocs(j.documents || []);
+    await loadSaved<Doc[]>("documents", async () =>
+      (await fetchJson<{ documents: Doc[] }>("/api/admin/documents", { cache: "no-store" })).documents || [],
+    (v) => { setDocs(v); setLoading(false); });
     setLoading(false);
   };
 

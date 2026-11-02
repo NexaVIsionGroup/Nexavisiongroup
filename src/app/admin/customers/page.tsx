@@ -13,6 +13,7 @@ import {
   Loader2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { loadSaved, fetchJson } from "@/lib/admin/cache";
 
 interface Customer {
   id: string;
@@ -50,20 +51,20 @@ export default function CustomersPage() {
 
   const supabase = createClient();
 
+  // saved copy first (instant), then the live list
   const loadCustomers = async () => {
     setLoading(true);
-    let query = supabase
-      .from("customers")
-      .select("*")
-      .order("created_at", { ascending: false });
-
-    if (filter !== "all") {
-      query = query.eq("customer_type", filter);
-    }
-
-    const { data } = await query;
-    setCustomers(data || []);
-    setLoading(false);
+    const r = await loadSaved<Customer[]>(`customers:${filter}`, async () => {
+      let query = supabase
+        .from("customers")
+        .select("*")
+        .order("created_at", { ascending: false });
+      if (filter !== "all") query = query.eq("customer_type", filter);
+      const { data, error } = await query;
+      if (error) throw new Error(error.message);
+      return (data || []) as Customer[];
+    }, (v) => { setCustomers(v); setLoading(false); });
+    if (!r.ok && !r.hadCache) setLoading(false);
   };
 
   useEffect(() => {
