@@ -385,3 +385,42 @@
 /* horizontal rows without a visible scrollbar (Nexa Video web app) */
 .no-scrollbar { scrollbar-width: none; }
 .no-scrollbar::-webkit-scrollbar { display: none; }
+
+/* ═══════════════════════════════════════════════════
+   ADMIN MAIL CLIENT — LIGHT MODE
+   AdminInbox wraps each view in <div class="contents nv-light"> when the owner picks light mode.
+   The components keep their dark utility classes; this scope re-colours them.
+   ═══════════════════════════════════════════════════ */
+.nv-light { color-scheme: light; }
+.nv-light .bg-nv-void, .nv-inbox-root:has(> .nv-light) { background-color: #f3f5f9 !important; }
+.nv-light .bg-nv-abyss { background-color: #ffffff !important; }
+.nv-light .bg-nv-deep { background-color: #ffffff !important; }
+.nv-light .bg-nv-deep\/50 { background-color: #ffffff !important; box-shadow: 0 1px 2px rgba(10, 22, 40, .06); }
+.nv-light .bg-nv-void\/60 { background-color: #f3f5f9 !important; }
+.nv-light .hover\:bg-nv-slate:hover { background-color: #e8edf5 !important; }
+.nv-light .bg-white\/5, .nv-light .bg-white\/\[0\.03\] { background-color: rgba(10, 22, 40, .05) !important; }
+.nv-light .hover\:bg-white\/5:hover, .nv-light .hover\:bg-white\/\[0\.03\]:hover, .nv-light .active\:bg-white\/\[0\.03\]:active { background-color: rgba(10, 22, 40, .07) !important; }
+.nv-light .bg-white\/15 { background-color: rgba(10, 22, 40, .18) !important; }
+.nv-light .bg-nv-teal\/5, .nv-light .bg-nv-teal\/\[0\.02\] { background-color: rgba(0, 158, 143, .07) !important; }
+.nv-light .bg-nv-teal\/10 { background-color: rgba(0, 158, 143, .12) !important; }
+.nv-light .bg-black\/50 { background-color: rgba(10, 22, 40, .35) !important; }
+.nv-light .border-white\/5, .nv-light .border-white\/\[0\.04\] { border-color: rgba(10, 22, 40, .08) !important; }
+.nv-light .border-white\/10 { border-color: rgba(10, 22, 40, .14) !important; }
+.nv-light .hover\:border-white\/30:hover { border-color: rgba(10, 22, 40, .3) !important; }
+.nv-light .border-white { border-color: #0A1628 !important; }
+.nv-light .text-nv-text-primary, .nv-light .hover\:text-nv-text-primary:hover { color: #0A1628 !important; }
+.nv-light .text-nv-text-secondary { color: #3f4d61 !important; }
+.nv-light .text-nv-text-muted, .nv-light .placeholder\:text-nv-text-muted::placeholder { color: #6b7a90 !important; }
+.nv-light .text-nv-text-muted\/30 { color: rgba(107, 122, 144, .35) !important; }
+.nv-light .text-nv-text-muted\/70 { color: rgba(107, 122, 144, .8) !important; }
+.nv-light .text-nv-teal, .nv-light .hover\:text-nv-teal:hover { color: #008f82 !important; }
+.nv-light .bg-nv-teal { background-color: #00b5a3 !important; }
+.nv-light .text-nv-abyss { color: #ffffff !important; }
+.nv-light .border-nv-teal\/20, .nv-light .border-nv-teal\/30 { border-color: rgba(0, 143, 130, .35) !important; }
+.nv-light .shadow-nv-glow, .nv-light .shadow-nv-glow-sm { box-shadow: 0 6px 20px rgba(10, 22, 40, .12) !important; }
+.nv-light .nv-gradient-text-teal { background-image: linear-gradient(90deg, #008f82, #5a3f8f) !important; }
+.nv-light .text-nv-warning { color: #a16207 !important; }
+.nv-light .text-nv-error, .nv-light .hover\:text-nv-error:hover { color: #dc2626 !important; }
+.nv-light .bg-nv-warning\/15 { background-color: rgba(161, 98, 7, .12) !important; }
+.nv-light .bg-nv-deep\/50 pre, .nv-light .bg-nv-deep\/50 .text-nv-text-secondary { color: #1f2a3a !important; }
+.nv-light .\[\&_a\]\:text-nv-teal a { color: #008f82 !important; }

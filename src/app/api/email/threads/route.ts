@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/server';
+import { signAttachmentUrls } from '@/lib/emailAttachments';
 
 // Lists must stay fast on a phone: the table holds ~1k messages with ~26 KB of HTML each, so `select('*')`
 // moved ~36 MB per open and took 6–8 s (and sometimes blew the function limit → the app "didn't load").
@@ -168,7 +169,8 @@ export async function POST(req: NextRequest) {
     : (allMsgs || []);
 
   const messageIds = messages.map(m => m.id);
-  const { data: attachments } = await supabase.from('email_attachments').select('*').in('message_id', messageIds);
+  const { data: rawAttachments } = await supabase.from('email_attachments').select('*').in('message_id', messageIds);
+  const attachments = await signAttachmentUrls(rawAttachments || []);
   const attMap = new Map<string, typeof attachments>();
   for (const att of attachments || []) {
     if (!attMap.has(att.message_id)) attMap.set(att.message_id, []);

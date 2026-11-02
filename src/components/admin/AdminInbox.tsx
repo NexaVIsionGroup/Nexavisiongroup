@@ -6,7 +6,9 @@ import {
   Search, RefreshCw, ChevronLeft, Archive, MailOpen,
   Reply, Forward, Mail, X, Check, Loader2, Users,
   Paperclip, Menu, Pencil, MoreVertical, ChevronDown, Plus, Settings,
+  LayoutDashboard, Sun, Moon, Download,
 } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import NotificationBell from "./NotificationBell";
 import RefreshBar from "./RefreshBar";
@@ -56,6 +58,21 @@ function avatarColor(email: string): string {
 }
 
 export default function AdminInbox() {
+  const router = useRouter();
+  // ── Theme: light/dark for the mail client only (saved on the device) ──
+  const [light, setLight] = useState(false);
+  useEffect(() => { try { setLight(localStorage.getItem("nv_inbox_theme") === "light"); } catch { /* ignore */ } }, []);
+  const toggleTheme = () => setLight((l) => { const n = !l; try { localStorage.setItem("nv_inbox_theme", n ? "light" : "dark"); } catch { /* ignore */ } return n; });
+  // every view is wrapped in this (display: contents → no layout change; `nv-light` re-colours the children)
+  const Theme = ({ children }: { children: React.ReactNode }) => <div className={cn("contents", light && "nv-light")}>{children}</div>;
+  const ThemeButton = ({ className }: { className?: string }) => (
+    <button onClick={toggleTheme} aria-label={light ? "Switch to dark mode" : "Switch to light mode"} title={light ? "Dark mode" : "Light mode"}
+      className={cn("p-2 rounded-full text-nv-text-muted hover:text-nv-teal hover:bg-white/5 transition-colors", className)}>
+      {light ? <Moon size={20} /> : <Sun size={20} />}
+    </button>
+  );
+  const goDashboard = () => router.push("/admin");
+
   // ── State ──
   const [view, setView] = useState<View>("list");
   const [folder, setFolder] = useState<Folder>("inbox");
@@ -330,6 +347,7 @@ export default function AdminInbox() {
   // ═══════════════════════════════════════════
   if (view === "accounts") {
     return (
+      <Theme>
       <div className="fixed inset-0 z-[60] bg-nv-void flex flex-col">
         {/* Header */}
         <div className="flex items-center gap-3 px-5 py-4 border-b border-white/5">
@@ -486,6 +504,7 @@ export default function AdminInbox() {
           </div>
         )}
       </div>
+      </Theme>
     );
   }
 
@@ -494,6 +513,7 @@ export default function AdminInbox() {
   // ═══════════════════════════════════════════
   if (view === "compose") {
     return (
+      <Theme>
       <div className="fixed inset-0 z-[60] bg-nv-void flex flex-col">
         <div className="flex items-center gap-2 px-4 py-3 border-b border-white/5">
           <button onClick={() => window.history.back()} className="p-1.5 rounded-full text-nv-text-muted hover:text-nv-text-primary hover:bg-white/5">
@@ -584,6 +604,7 @@ export default function AdminInbox() {
           </button>
         </div>
       </div>
+      </Theme>
     );
   }
 
@@ -592,6 +613,7 @@ export default function AdminInbox() {
   // ═══════════════════════════════════════════
   if (view === "thread" && selectedThread) {
     return (
+      <Theme>
       <div className="fixed inset-0 z-[60] bg-nv-void flex flex-col">
         {/* Thread toolbar */}
         <div className="flex items-center gap-1 px-2 py-2 border-b border-white/5">
@@ -599,6 +621,7 @@ export default function AdminInbox() {
             <ChevronLeft size={24} />
           </button>
           <div className="flex-1" />
+          <ThemeButton />
           <button onClick={() => threadAction("trash")} className="p-2 rounded-full text-nv-text-muted hover:text-nv-error hover:bg-white/5">
             <Trash2 size={20} />
           </button>
@@ -673,10 +696,17 @@ export default function AdminInbox() {
               {msg.attachments?.length > 0 && (
                 <div className="mt-3 flex flex-wrap gap-2">
                   {msg.attachments.map(att => (
-                    <a key={att.id} href={att.s3_url} target="_blank" rel="noopener noreferrer"
-                      className="flex items-center gap-1.5 px-3 py-2 bg-white/5 border border-white/10 rounded-xl text-xs text-nv-teal hover:border-nv-teal/30">
-                      <Paperclip size={12} /> {att.filename}
-                    </a>
+                    <span key={att.id} className="flex items-center bg-white/5 border border-white/10 rounded-xl text-xs text-nv-teal overflow-hidden">
+                      <a href={att.s3_url || undefined} target="_blank" rel="noopener noreferrer"
+                        className="flex items-center gap-1.5 px-3 py-2 hover:bg-white/5 max-w-[220px]">
+                        <Paperclip size={12} className="shrink-0" /> <span className="truncate">{att.filename}</span>
+                        {att.size_bytes > 0 && <span className="text-nv-text-muted shrink-0">{att.size_bytes > 1048576 ? `${(att.size_bytes / 1048576).toFixed(1)} MB` : `${Math.max(1, Math.round(att.size_bytes / 1024))} KB`}</span>}
+                      </a>
+                      <a href={att.s3_url || undefined} download={att.filename} aria-label={`Download ${att.filename}`}
+                        className="px-2.5 py-2 border-l border-white/10 hover:bg-white/5 text-nv-text-muted hover:text-nv-teal">
+                        <Download size={13} />
+                      </a>
+                    </span>
                   ))}
                 </div>
               )}
@@ -696,6 +726,7 @@ export default function AdminInbox() {
           </button>
         </div>
       </div>
+      </Theme>
     );
   }
 
@@ -724,6 +755,11 @@ export default function AdminInbox() {
 
         {/* Folders */}
         <nav className="flex-1 overflow-y-auto px-2">
+          <button onClick={goDashboard}
+            className="w-full flex items-center gap-4 px-4 py-3 rounded-full text-[15px] font-medium text-nv-text-secondary hover:bg-white/5 mb-0.5">
+            <LayoutDashboard size={20} /> <span className="flex-1 text-left">Dashboard</span>
+          </button>
+          <div className="h-px bg-white/5 my-2 mx-4" />
           {FOLDERS.map(f => (
             <button key={f.key} onClick={() => { setFolder(f.key); setSidebarOpen(false); setSelectedThread(null); setView("list"); }}
               className={cn(
@@ -745,6 +781,17 @@ export default function AdminInbox() {
             <Users size={20} /> <span className="flex-1 text-left">Contacts</span>
           </button>
         </nav>
+
+        {/* Appearance */}
+        <button onClick={toggleTheme}
+          className="flex items-center gap-4 mx-2 mb-3 px-4 py-3 rounded-full text-[15px] font-medium text-nv-text-secondary hover:bg-white/5"
+          style={{ marginBottom: "calc(0.75rem + env(safe-area-inset-bottom))" }}>
+          {light ? <Moon size={20} /> : <Sun size={20} />}
+          <span className="flex-1 text-left">{light ? "Dark mode" : "Light mode"}</span>
+          <span className={cn("relative inline-flex h-6 w-11 items-center rounded-full transition-colors", light ? "bg-nv-teal" : "bg-white/15")}>
+            <span className={cn("inline-block h-5 w-5 rounded-full bg-white shadow transition-transform", light ? "translate-x-5" : "translate-x-0.5")} />
+          </span>
+        </button>
       </div>
     </div>
   );
@@ -753,13 +800,17 @@ export default function AdminInbox() {
   // MAIN LIST VIEW
   // ═══════════════════════════════════════════
   return (
+    <Theme>
     <div className="h-full flex flex-col bg-nv-void relative">
       {sidebarOpen && <Sidebar />}
 
       {/* Top bar — Gmail style: hamburger, search pill, avatar */}
-      <div className="flex items-center gap-3 px-4 py-2">
+      <div className="flex items-center gap-2 px-3 py-2">
         <button onClick={() => setSidebarOpen(true)} className="p-1.5 rounded-full text-nv-text-muted hover:text-nv-text-primary hover:bg-white/5">
           <Menu size={24} />
+        </button>
+        <button onClick={goDashboard} aria-label="Back to dashboard" title="Dashboard" className="p-1.5 rounded-full text-nv-text-muted hover:text-nv-teal hover:bg-white/5">
+          <LayoutDashboard size={22} />
         </button>
 
         <div className="flex-1 relative">
@@ -770,6 +821,7 @@ export default function AdminInbox() {
           </div>
         </div>
 
+        <ThemeButton className="p-1.5" />
         <NotificationBell />
 
         {/* Account avatar — opens account switcher */}
@@ -865,5 +917,6 @@ export default function AdminInbox() {
         </div>
       )}
     </div>
+    </Theme>
   );
 }

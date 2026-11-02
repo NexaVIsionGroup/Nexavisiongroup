@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { storeOutboundAttachments } from '@/lib/emailAttachments';
 import { Resend } from 'resend';
 import { createAdminClient } from '@/lib/supabase/server';
 import { logEmail, buildEmailHtml, stripHtml, getFromHeader, fetchEmailAccounts, DEFAULT_FROM_EMAIL } from '@/lib/email';
@@ -37,12 +38,6 @@ export async function POST(req: NextRequest) {
         content: att.content,
       }));
     }
-    if (attachments?.length) {
-      params.attachments = attachments.map((att: any) => ({
-        filename: att.filename,
-        content: att.content,
-      }));
-    }
 
     const { data, error } = await r.emails.send(params);
     if (error) {
@@ -67,7 +62,9 @@ export async function POST(req: NextRequest) {
       folder: 'sent',
       cc_emails: cc_emails || [],
       bcc_emails: bcc_emails || [],
+      has_attachments: !!attachments?.length,
     });
+    if (logged?.id && attachments?.length) await storeOutboundAttachments(logged.id, attachments);
 
     return NextResponse.json({ success: true, thread_id, message_id: logged?.id, resend_id: data?.id });
   } catch (err: unknown) {

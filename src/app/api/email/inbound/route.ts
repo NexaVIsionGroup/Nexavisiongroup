@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/server';
 import { logEmail } from '@/lib/email';
 import { notifyAdmin } from "@/lib/notify";
+import { ingestInboundAttachments } from "@/lib/emailAttachments";
 
 function parseEmail(raw: string): string {
   const match = raw.match(/<([^>]+)>/);
@@ -44,6 +45,7 @@ export async function POST(req: NextRequest) {
     let body_html: string | null = null;
     let body_text: string | null = null;
     let in_reply_to: string | null = null;
+    let attachmentCount = 0;
 
     try {
       const resp = await fetch(`https://api.resend.com/emails/receiving/${email_id}`, {
@@ -53,6 +55,7 @@ export async function POST(req: NextRequest) {
         const full = await resp.json();
         body_html = full.html || null;
         body_text = full.text || null;
+        attachmentCount = Array.isArray(full.attachments) ? full.attachments.length : 0;
         const headers = full.headers || {};
         in_reply_to = headers['in-reply-to'] || headers['In-Reply-To'] || null;
         if (in_reply_to) in_reply_to = in_reply_to.replace(/[<>]/g, '').trim();
@@ -95,7 +98,14 @@ export async function POST(req: NextRequest) {
       subject: subjectStr,
       body_html: body_html ?? undefined,
       body_text: body_text ?? undefined,
+      has_attachments: attachmentCount > 0,
     });
+
+    // Resend only keeps the files ~1 h → copy them into our bucket now (failures are logged, never block the email)
+    if (logged?.id && attachmentCount > 0) {
+      try { await ingestInboundAttachments(email_id, logged.id); }
+      catch (err) { console.error('attachment ingest:', err); }
+    }
 
     // the site's own alert emails (contact form, requests…) come back here as inbound mail — they already
     // notified through notifyAdmin, so don't alert twice
