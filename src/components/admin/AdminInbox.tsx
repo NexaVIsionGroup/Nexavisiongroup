@@ -805,7 +805,7 @@ export default function AdminInbox() {
       {sidebarOpen && <Sidebar />}
 
       {/* Top bar — Gmail style: hamburger, search pill, avatar */}
-      <div className="flex items-center gap-2 px-3 py-2">
+      <div className="flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-2">
         <button onClick={() => setSidebarOpen(true)} className="p-1.5 rounded-full text-nv-text-muted hover:text-nv-text-primary hover:bg-white/5">
           <Menu size={24} />
         </button>
@@ -813,19 +813,21 @@ export default function AdminInbox() {
           <LayoutDashboard size={22} />
         </button>
 
-        <div className="flex-1 relative">
-          <div className="flex items-center gap-2 px-4 py-2.5 bg-nv-deep rounded-full border border-white/5">
+        <div className="flex-1 min-w-0 relative">
+          <div className="flex items-center gap-2 px-3 sm:px-4 py-2.5 bg-nv-deep rounded-full border border-white/5">
             <Search size={18} className="text-nv-text-muted shrink-0" />
-            <input type="text" value={search} onChange={e => setSearch(e.target.value)} placeholder="Search in mail"
-              className="flex-1 bg-transparent text-sm text-nv-text-primary placeholder:text-nv-text-muted focus:outline-none" />
+            <input type="text" value={search} onChange={e => setSearch(e.target.value)} placeholder="Search mail"
+              className="flex-1 min-w-0 w-full bg-transparent text-sm text-nv-text-primary placeholder:text-nv-text-muted focus:outline-none" />
           </div>
         </div>
 
-        <ThemeButton className="p-1.5" />
+        {/* Theme toggle lives in the drawer + thread toolbar on phones; the top bar is too narrow for it */}
+        <ThemeButton className="p-1.5 hidden sm:inline-flex" />
         <NotificationBell />
 
         {/* Account avatar — opens account switcher */}
         <button onClick={() => goToView("accounts")}
+          aria-label="Switch account" title="Switch account"
           className="w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold shrink-0"
           style={activeAccount ? { backgroundColor: activeAccount.color + "25", color: activeAccount.color } : { backgroundColor: "#1C2D4A", color: "#8896A6" }}>
           {activeAccount ? activeAccount.initials : "All"}
