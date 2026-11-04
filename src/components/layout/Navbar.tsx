@@ -27,7 +27,7 @@ export function Navbar({ settings }: NavbarProps) {
     message: "Q2 2026: 2 build slots remaining",
     linkText: "Start your project",
     linkHref: "/contact",
-    isActive: true,
+    isActive: false,
     urgencyLevel: "medium",
   };
 
@@ -179,7 +179,7 @@ export function Navbar({ settings }: NavbarProps) {
             >
               <div className="nv-container flex items-center justify-center gap-4 h-10">
                 <span className="hidden sm:inline text-body-xs text-nv-text-muted">
-                  {capacity.isActive ? capacity.message : "Ready to stop losing leads?"}
+                  {capacity.isActive ? capacity.message : "Ready to get started?"}
                 </span>
                 <Link href="/contact">
                   <button className="text-[11px] font-bold tracking-wider uppercase px-4 py-1.5 bg-nv-teal/10 text-nv-teal border border-nv-teal/20 rounded-full hover:bg-nv-teal/20 transition-colors">
