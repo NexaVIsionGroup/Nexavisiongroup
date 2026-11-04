@@ -274,7 +274,7 @@ export function IntakeForm({ settings }: IntakeFormProps) {
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <a
-              href="https://arcticsolutionsllc.com"
+              href="https://arctic.nexavisiongroup.com"
               target="_blank"
               rel="noopener noreferrer"
               className="nv-btn-ghost inline-flex items-center gap-2 px-6 py-3"

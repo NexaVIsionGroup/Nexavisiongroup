@@ -52,7 +52,7 @@ const ARCTIC_CASE_STUDY = {
     "Review Engine",
     "Service Area Pages",
   ],
-  demoUrl: "https://arcticsolutionsllc.com",
+  demoUrl: "https://arctic.nexavisiongroup.com",
   tier: "Starter",
 };
 

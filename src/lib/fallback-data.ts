@@ -67,7 +67,7 @@ export const fallbackHomepage = {
     subheadline:
       "We build automated intake, quoting, and follow-up systems for service businesses. Your website becomes a revenue engine — not a brochure.",
     primaryCta: { label: "Start Your Build", href: "/contact" },
-    secondaryCta: { label: "See a Live System", href: "https://arcticsolutionsllc.com" },
+    secondaryCta: { label: "See a Live System", href: "https://arctic.nexavisiongroup.com" },
     trustLine: "Trusted by Arctic Solutions, RO Unlimited, and service businesses across the Carolinas",
   },
   trustBar: {
@@ -113,7 +113,7 @@ export const fallbackHomepage = {
       { value: "48 hours", label: "first emergency lead captured after launch" },
       { value: "24/7", label: "intake running around the clock without staff" },
     ],
-    demoLink: "https://arcticsolutionsllc.com",
+    demoLink: "https://arctic.nexavisiongroup.com",
   },
   industrySection: {
     sectionLabel: "Industries",

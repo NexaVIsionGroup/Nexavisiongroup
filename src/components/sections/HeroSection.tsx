@@ -51,7 +51,7 @@ export function HeroSection({ data }: HeroProps) {
             )}
             {data.secondaryCta && (
               <a
-                href={data.secondaryCta.href || "https://arcticsolutionsllc.com"}
+                href={data.secondaryCta.href || "https://arctic.nexavisiongroup.com"}
                 target={data.secondaryCta.href?.startsWith("http") ? "_blank" : undefined}
                 rel={data.secondaryCta.href?.startsWith("http") ? "noopener noreferrer" : undefined}
               >

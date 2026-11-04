@@ -39,7 +39,7 @@ const FEATURED_DEMO = {
     { value: "24/7", label: "intake", icon: Shield },
     { value: "48 hours", label: "first lead", icon: Zap },
   ],
-  demoUrl: "https://arcticsolutionsllc.com",
+  demoUrl: "https://arctic.nexavisiongroup.com",
   color: "#00E5CC",
   icon: "Thermometer",
   tier: "Starter + Signature Module",

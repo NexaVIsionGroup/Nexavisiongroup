@@ -25,7 +25,7 @@ const industries: Record<string, IndustryFallback> = {
       "Quote wizards for emergency and scheduled service, automated follow-up, review generation, and service area SEO — built for commercial refrigeration, heating, cooling, and ventilation companies.",
     icon: "Thermometer",
     color: "#00E5CC",
-    demoLink: "https://arcticsolutionsllc.com",
+    demoLink: "https://arctic.nexavisiongroup.com",
     painPoints: [
       { title: "Emergency Calls Go to Voicemail", description: "When a walk-in cooler goes down at 11pm, the first company to answer gets the job. If your intake system can't handle after-hours, you're losing $2,000+ calls.", icon: "PhoneOff" },
       { title: "Quotes Get Lost in Text Threads", description: "Estimating via text and email means no tracking, no follow-up, and no idea which quotes converted. Revenue leaks silently.", icon: "MessageSquareOff" },

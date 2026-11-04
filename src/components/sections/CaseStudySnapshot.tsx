@@ -15,7 +15,7 @@ export function CaseStudySnapshot({ data }: CaseStudySnapshotProps) {
   const body =
     data?.body ||
     "Arctic Solutions is a commercial refrigeration and HVAC company in Upstate South Carolina, covering the Spartanburg region and greater Carolinas. They needed an emergency intake system that could capture after-hours calls, route urgent requests instantly, and automate follow-up. We built it.";
-  const demoLink = data?.demoLink || "https://arcticsolutionsllc.com";
+  const demoLink = data?.demoLink || "https://arctic.nexavisiongroup.com";
 
   const stats = data?.stats || [
     { value: "3 weeks", label: "from kickoff to live deployment", icon: Clock },

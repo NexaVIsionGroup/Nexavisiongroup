@@ -69,7 +69,7 @@ export async function POST(request: Request) {
           </p>
           <p style="color: #8896A6; line-height: 1.6; font-size: 14px;">
             In the meantime, check out a live system we built:
-            <a href="https://arcticsolutionsllc.com" style="color: #00E5CC;">Arctic Solutions Demo →</a>
+            <a href="https://arctic.nexavisiongroup.com" style="color: #00E5CC;">Arctic Solutions Demo →</a>
           </p>
           <hr style="border: none; border-top: 1px solid #1C2D4A; margin: 24px 0;" />
           <p style="font-size: 11px; color: #5A6A7E;">
