@@ -4,7 +4,7 @@
 export const CHECKUP_HREF = "/contact";
 
 export const nav = [
-  { label: "Business App", href: "/#app" },
+  { label: "Business App", href: "/business-app" },
   { label: "Our Work", href: "/#work" },
   { label: "Who We Help", href: "/#who" },
   { label: "Pricing", href: "/pricing" },
@@ -128,4 +128,42 @@ export const appWall = [
     { src: "/site/apps/nexa-v1.webp", label: "NexaVision · admin" },
     { src: "/site/apps/jhps-invoices-v1.webp", label: "JHPS Florida · invoices" },
   ],
+];
+
+// Business App page tour: phone = mock screen key, shot = real (blurred) admin screenshot.
+export const tour = [
+  { key: "inbox", label: "Inbox", phone: "inbox", shot: "/site/apps/denchai-inbox-v1.webp", shotLabel: "Den Chai's inbox",
+    title: "Your own email inbox", text: "Every business email, from every address you own, lands in one inbox. Reply from your phone, star what matters, hand a thread to someone on your team. Attachments are saved, nothing gets lost.", who: "Den Chai, RO Unlimited, NexaVision" },
+  { key: "drive", label: "Drive", phone: "drive", shot: "/site/apps/ro-drive-v1.webp", shotLabel: "RO Unlimited's Drive",
+    title: "Your own private Drive", text: "Job photos, plans, contracts and videos in folders you control. Share a file with a link, keep company files separate from personal ones, and stop paying per-person fees for someone else's cloud.", who: "RO Unlimited" },
+  { key: "quotes", label: "Quotes", phone: "quotes", shot: "/site/apps/jhps-estimates-v1.webp", shotLabel: "JHPS Florida's estimates",
+    title: "Quotes customers accept online", text: "Customers send a video of the job. You build a clean, itemized quote in minutes and send it. They accept with one tap, and it turns into an invoice without retyping anything.", who: "JHPS Florida, RO Unlimited" },
+  { key: "payments", label: "Payments", phone: "payments", shot: "/site/apps/jhps-invoices-v1.webp", shotLabel: "JHPS Florida's invoices",
+    title: "Invoices that get paid", text: "Every invoice has a pay button. Save cards on file, split big jobs into a deposit and payments, and see paid, unpaid and overdue at a glance.", who: "JHPS Florida, NexaVision" },
+  { key: "orders", label: "Orders", phone: "orders", shot: "/site/apps/denchai-orders-v1.webp", shotLabel: "Den Chai's orders and sales",
+    title: "Online orders and sales", text: "Orders come in paid, straight to your phone and your kitchen. See today's sales and your best sellers at a glance.", who: "Den Chai, CrunchTime Bullies" },
+  { key: "reviews", label: "Reviews", phone: "reviews", shot: "/site/apps/denchai-reviews-v1.webp", shotLabel: "Den Chai's review replies",
+    title: "Google review replies on autopilot", text: "Every new review gets a warm, on-brand reply in your voice. You set the rules: post good ones automatically, hold anything sensitive for your OK.", who: "Den Chai" },
+  { key: "team", label: "Team", phone: "team", shot: "/site/apps/ro-v1.webp", shotLabel: "RO Unlimited's business app",
+    title: "Your team, organized", text: "Add employees, choose who can see what, assign tasks and keep track of who's working. Everyone logs in to the same app with their own access.", who: "RO Unlimited, Den Chai" },
+  { key: "editor", label: "Website", phone: "editor", shot: "/site/apps/denchai-v1.webp", shotLabel: "Den Chai's owner dashboard",
+    title: "Change your website yourself", text: "Holiday hours, a new special, a closure banner, pausing online orders on a slammed night: change it from your phone and it's live on your site right away.", who: "Den Chai, JHPS Florida" },
+] as const;
+
+export const whyOwn = [
+  { title: "One login instead of ten", text: "Email, files, quotes, payments, orders and reviews live in one place, built to work together." },
+  { title: "Built around how you work", text: "Your services, your steps, your words. Not a generic tool you have to bend your business to fit." },
+  { title: "You own it", text: "Your name on it, your data in it. No surprise price hikes from a company that doesn't know you." },
+  { title: "It grows with you", text: "Need something new? We add it. Your app gets better every month instead of staying stuck." },
+];
+
+export const moreFeatures = [
+  { title: "Customer portal", text: "Customers log in to see quotes, bills, photos and job progress." },
+  { title: "Phone alerts", text: "New order, lead, email or payment? Your phone tells you instantly." },
+  { title: "Android app", text: "Your app on the home screen with your logo, like any other app." },
+  { title: "AI assistant", text: "Drafts replies, answers questions about your jobs and writes customer updates." },
+  { title: "Video quotes", text: "Customers record the job on their phone; you quote without driving out." },
+  { title: "Reports and sales", text: "Daily sales, best sellers and trends without spreadsheets." },
+  { title: "Document sharing", text: "Send contracts and files to clients with a private link." },
+  { title: "Connects to what you use", text: "Square, Stripe, Google, email, shipping and printers." },
 ];

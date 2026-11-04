@@ -453,3 +453,38 @@ html:has(.nxs), body:has(.nxs) { overflow-x: clip; }
 .nxs-cmp tbody th, .nxs-cmp thead th:first-child { position: sticky; left: 0; z-index: 1; background: #fff; box-shadow: 1px 0 0 var(--hair-ink); }
 .nxs-cmp thead th:first-child { background: #f7faf9; z-index: 2; }
 @media (max-width: 640px) { .nxs-cmp { min-width: 560px; font-size: 15.5px; } .nxs-cmp th, .nxs-cmp td { padding: 14px 12px; } .nxs-cmp tbody th { width: 46%; } }
+
+/* ═══ Business App page: tour ═══ */
+.nxs-ba-hero { padding-bottom: clamp(40px, 6vw, 80px); }
+.nxs-tour { margin-top: clamp(50px, 7vw, 90px); }
+.nxs-tour-tabs { display: flex; gap: 8px; overflow-x: auto; padding: 6px; border-radius: 999px; width: max-content; max-width: 100%; background: rgba(255, 255, 255, 0.04); box-shadow: inset 0 0 0 1px var(--hair); scrollbar-width: none; }
+.nxs-tour-tabs::-webkit-scrollbar { display: none; }
+.nxs-tour-tab { position: relative; flex-shrink: 0; display: inline-flex; align-items: center; gap: 8px; min-height: 46px; padding: 0 18px; border-radius: 999px; color: #c9d8d5; font-weight: 700; font-size: 16px; overflow: hidden; transition: color 0.25s, background 0.25s; }
+.nxs-tour-tab:hover { color: #fff; background: rgba(255, 255, 255, 0.06); }
+.nxs-tour-tab[aria-selected="true"] { color: #03211d; background: var(--glow); box-shadow: 0 0 26px -8px var(--glow); }
+.nxs-tour-prog { position: absolute; left: 14px; right: 14px; bottom: 5px; height: 2px; border-radius: 2px; background: rgba(3, 33, 29, 0.5); transform-origin: left; }
+.nxs-tour-grid { margin-top: 36px; display: grid; gap: 36px; align-items: center; }
+@media (min-width: 1024px) { .nxs-tour-grid { grid-template-columns: 0.72fr 1.28fr; gap: 56px; } }
+.nxs-tour-copy { min-height: 300px; }
+.nxs-tour-copy h3 { font-size: clamp(2rem, 3.6vw, 3rem); margin-top: 14px; color: #fff; }
+.nxs-tour-copy p { margin-top: 14px; color: #c9d8d5; font-size: 19px; max-width: 30em; }
+.nxs-devices { position: relative; padding-right: clamp(40px, 9vw, 130px); padding-bottom: 30px; }
+.nxs-laptop { position: relative; }
+.nxs-laptop-screen { position: relative; aspect-ratio: 16 / 10; border-radius: 18px 18px 6px 6px; overflow: hidden; background: #0a1d1a; border: 10px solid #121c1a;
+  box-shadow: 0 0 0 1px rgba(63, 245, 214, 0.25), 0 60px 120px -50px rgba(0, 0, 0, 0.95), 0 0 100px -40px rgba(63, 245, 214, 0.5); }
+.nxs-laptop-shot { position: absolute; inset: 0; }
+.nxs-laptop-tag { position: absolute; left: 12px; bottom: 12px; z-index: 2; padding: 6px 12px; border-radius: 999px; font-size: 12.5px; font-weight: 700; color: #fff; background: rgba(4, 16, 14, 0.8); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); box-shadow: inset 0 0 0 1px rgba(63, 245, 214, 0.3); }
+.nxs-laptop-base { height: 16px; margin: 0 -5%; border-radius: 0 0 22px 22px; background: linear-gradient(180deg, #2a3936, #121c1a); box-shadow: 0 30px 40px -20px rgba(0, 0, 0, 0.9); }
+.nxs-tour-phone { position: absolute; right: 0; bottom: 0; transform: scale(0.72); transform-origin: bottom right; filter: drop-shadow(0 40px 60px rgba(0, 0, 0, 0.7)); animation: nxs-float 7s ease-in-out infinite; }
+@keyframes nxs-float { 0%, 100% { translate: 0 0; } 50% { translate: 0 -10px; } }
+@media (max-width: 640px) { .nxs-devices { padding-right: 70px; } .nxs-tour-phone { transform: scale(0.42); } .nxs-tour-copy { min-height: 0; } .nxs-tour-tab { padding: 0 14px; font-size: 15px; } }
+@media (prefers-reduced-motion: reduce) { .nxs-tour-phone { animation: none; } }
+
+.nxs-more { margin-top: 36px; display: grid; gap: 0; border-top: 1px solid var(--hair-ink); }
+@media (min-width: 760px) { .nxs-more { grid-template-columns: 1fr 1fr; } .nxs-more li:nth-child(odd) { border-right: 1px solid var(--hair-ink); padding-right: 28px; } .nxs-more li:nth-child(even) { padding-left: 28px; } }
+.nxs-more li { display: flex; gap: 14px; padding: 24px 0; border-bottom: 1px solid var(--hair-ink); }
+.nxs-more svg { color: var(--pine); flex-shrink: 0; margin-top: 4px; }
+.nxs-more b { font-family: var(--font-nx-display), sans-serif; font-size: 21px; letter-spacing: -0.01em; }
+.nxs-more p { color: var(--soft); font-size: 17px; margin-top: 2px; }
+@media (max-width: 640px) { .nxs-tag-note { display: none; } .nxs-laptop-tag { font-size: 11px; padding: 4px 10px; left: 8px; bottom: 8px; } }
+@media (max-width: 900px) { .nxs-tour-tabs { -webkit-mask-image: linear-gradient(90deg, #000 85%, transparent); mask-image: linear-gradient(90deg, #000 85%, transparent); padding-right: 40px; } }

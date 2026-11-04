@@ -117,6 +117,9 @@ export function AppStory() {
           </div>
         </div>
 
+        <div style={{ display: "flex", justifyContent: "center", marginTop: 10 }}>
+          <Link href="/business-app" className="nxs-btn nxs-btn-glow">Take the full tour</Link>
+        </div>
         <div className="nxs-extras">
           {extras.map((e) => (
             <div key={e.title}>

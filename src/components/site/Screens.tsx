@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import {
-  Inbox, Paperclip, FolderOpen, FileText, Image as ImageIcon, Video, Check, CreditCard, ShoppingBag, Package, Star, Sparkles, Play,
+  Inbox, Paperclip, FolderOpen, FileText, Image as ImageIcon, Video, Check, CreditCard, ShoppingBag, Package, Star, Sparkles, Play, Clock, Megaphone, ToggleRight,
 } from "lucide-react";
 
 /** Phone hardware frame; the screen content is passed in. */
@@ -189,6 +189,61 @@ export function ReviewsScreen() {
   );
 }
 
+export function TeamScreen() {
+  const team = [
+    ["MR", "Maria R.", "Manager", "On shift", T.pine],
+    ["JT", "Jake T.", "Kitchen", "On shift", T.pine],
+    ["AL", "Ana L.", "Front of house", "Starts 4:00", T.sun],
+    ["DK", "Dev K.", "Delivery", "Off today", T.mint],
+  ] as const;
+  return (
+    <>
+      <Head over="Today" title="Team" />
+      <div className="nxs-app-body">
+        {team.map(([ini, name, role, st, tone]) => (
+          <div key={name} className="nxs-row">
+            <span className="nxs-row-ico" style={{ ...tone, fontFamily: "var(--font-nx-display)", fontWeight: 800, fontSize: 12 }}>{ini}</span>
+            <span style={{ flex: 1 }}><strong>{name}</strong><span>{role}</span></span>
+            <span className="nxs-pill" style={tone}>{st}</span>
+          </div>
+        ))}
+        <p style={{ margin: "12px 4px 6px", fontWeight: 700 }}>Tasks</p>
+        {[["Restock to-go boxes", true], ["Update weekend specials", false]].map(([t, done]) => (
+          <div key={t as string} className="nxs-row">
+            <span className="nxs-row-ico" style={done ? T.pine : T.mint}>{done ? <Check size={16} /> : <Clock size={16} />}</span>
+            <span><strong>{t}</strong><span>{done ? "Done by Jake" : "Assigned to Maria"}</span></span>
+          </div>
+        ))}
+      </div>
+    </>
+  );
+}
+
+export function EditorScreen() {
+  return (
+    <>
+      <Head over="Your website" title="Edit website" />
+      <div className="nxs-app-body">
+        <div className="nxs-row" style={{ flexDirection: "column", alignItems: "flex-start", gap: 6, padding: 14 }}>
+          <span style={{ display: "flex", gap: 6, alignItems: "center", fontWeight: 700, color: "#0d1d1b" }}><Megaphone size={15} /> Announcement banner</span>
+          <span style={{ padding: "8px 10px", borderRadius: 10, background: "#f2f6f5", width: "100%", color: "#0d1d1b" }}>Closed Thanksgiving Day. Open Friday 11–9!</span>
+        </div>
+        <div className="nxs-row" style={{ justifyContent: "space-between" }}>
+          <span><strong>Online ordering</strong><span>Customers can order now</span></span>
+          <ToggleRight size={30} color="#0f5c55" />
+        </div>
+        <div className="nxs-row" style={{ flexDirection: "column", alignItems: "flex-start", gap: 4, padding: 14 }}>
+          <strong>Hours</strong>
+          {[["Mon", "Closed"], ["Tue – Fri", "11:00 – 9:00"], ["Sat – Sun", "11:00 – 9:00"]].map(([d, h]) => (
+            <span key={d} style={{ display: "flex", justifyContent: "space-between", width: "100%" }}><span>{d}</span><b style={{ color: "#0d1d1b" }}>{h}</b></span>
+          ))}
+        </div>
+        <div className="nxs-row" style={{ ...T.pine, justifyContent: "center", fontWeight: 700 }}><Check size={16} /> Saved to your site</div>
+      </div>
+    </>
+  );
+}
+
 export const SCREENS = {
   inbox: InboxScreen,
   drive: DriveScreen,
@@ -196,4 +251,6 @@ export const SCREENS = {
   payments: PaymentsScreen,
   orders: OrdersScreen,
   reviews: ReviewsScreen,
+  team: TeamScreen,
+  editor: EditorScreen,
 } as const;
