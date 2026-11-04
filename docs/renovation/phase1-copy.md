@@ -109,6 +109,7 @@ Each feature section: what it does, "who has it" (client name), 2–3 plain bull
 | **Website** | **$1,500** | Custom website, mobile-friendly, Google setup, edit-it-yourself content |
 | **Website + Business App** | **$4,500** | Everything above + your app: inbox, Drive, quotes/invoices/payments, alerts (pick the features you need) |
 | **Custom Build** | **$10,000** | Online stores, ordering systems, Android app, anything specific to your business |
+| **Large & Multi-Location Projects** | **Let's talk** | Full operations platforms, multiple locations, staff and vendor systems, integrations with your existing tools, dedicated support |
 | **Care Plan** | **$99/mo** | Hosting, security, updates, small changes, support |
 | **App Care Plan** | **$249/mo** | Care Plan + app hosting, storage, new features each quarter |
 
@@ -117,4 +118,12 @@ FAQ: Do I own it? · How long does it take? · Can I edit it myself? · What if 
 ---
 
 ## ABOUT
-NexaVision Group is a small team in Upstate South Carolina. We started by building the systems for our own businesses (a restaurant and a phone repair shop) and found that most local businesses were stuck with the same problem: a website that looks fine but does nothing, and ten apps that don't talk to each other. So we build the whole thing, and we stick around.
+**Headline:** From a café's online menu to a company's entire operation.
+
+NexaVision Group builds websites and complete business platforms. One week it's a restaurant's online ordering, the next it's a construction company's full operations system with estimates, employees, vendors, its own file storage and its own Android app.
+
+Most businesses are stuck with the same problem: a website that looks fine but does nothing, and ten apps that don't talk to each other. We replace that with one system built around how you work. Then we stay on to host it, maintain it and keep adding to it.
+
+**What we handle:** websites · business apps · online stores & ordering · payments & billing · customer portals · email systems · private file storage · Android apps · integrations with Square, Stripe, Google and more · hosting and support.
+
+Based in South Carolina. Serving businesses across the Southeast and beyond.
