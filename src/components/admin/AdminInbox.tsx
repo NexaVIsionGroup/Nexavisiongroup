@@ -1192,6 +1192,10 @@ export default function AdminInbox() {
           const unread = thread.unread_count > 0;
           const isSel = selected.has(thread.thread_id);
           const acct = accountByEmail.get((mailboxOf(thread) || "").toLowerCase());
+          const mailbox = mailboxOf(thread) || "";
+          const allMode = !activeAccount && !!mailbox;
+          const headName = allMode ? mailbox.split("@")[0] : name;
+          const headColor = allMode ? (acct?.color || avatarColor(mailbox)) : avatarColor(other);
           return (
             <SwipeRow key={thread.thread_id} disabled={selectMode} rightLabel={unread ? "Read" : "Unread"}
               onLeft={() => threadAction(inTrash ? "delete" : "trash", [thread.thread_id])}
@@ -1205,24 +1209,24 @@ export default function AdminInbox() {
                 {/* Avatar — tap to select */}
                 <button onClick={(e) => { e.stopPropagation(); toggleSelect(thread.thread_id); }} aria-label={isSel ? "Deselect" : "Select"}
                   className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold shrink-0 mt-0.5"
-                  style={isSel ? undefined : { backgroundColor: avatarColor(other) + "25", color: avatarColor(other) }}>
-                  {isSel ? <CheckCircle2 size={26} className="text-nv-teal" /> : selectMode ? <Circle size={26} className="text-nv-text-muted/50" /> : name.charAt(0).toUpperCase()}
+                  style={isSel ? undefined : { backgroundColor: headColor + "25", color: headColor }}>
+                  {isSel ? <CheckCircle2 size={26} className="text-nv-teal" /> : selectMode ? <Circle size={26} className="text-nv-text-muted/50" /> : headName.charAt(0).toUpperCase()}
                 </button>
 
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-1.5">
-                    <span className={cn("text-[15px] truncate", unread ? "font-bold text-nv-text-primary" : "font-medium text-nv-text-secondary")}>{name}</span>
+                    <span className={cn("text-[15px] truncate", unread ? "font-bold text-nv-text-primary" : "font-medium text-nv-text-secondary")}>{headName}</span>
                     {thread.message_count > 1 && <span className="text-xs text-nv-text-muted shrink-0">{thread.message_count}</span>}
                     {thread.has_attachments && <Paperclip size={13} className="text-nv-text-muted shrink-0" />}
                     <span className="flex-1" />
                     <span className={cn("text-xs shrink-0", unread ? "text-nv-teal font-semibold" : "text-nv-text-muted")}>{timeAgo(thread.latest_message)}</span>
                   </div>
                   <p className={cn("text-sm truncate mt-0.5", unread ? "font-semibold text-nv-text-primary" : "text-nv-text-secondary")}>{thread.subject || "(no subject)"}</p>
-                  {!activeAccount && mailboxOf(thread) ? (
+                  {allMode ? (
                     <p className="flex items-center gap-2 mt-0.5 min-w-0">
-                      <span className="shrink-0 inline-flex items-center gap-1.5 text-[12px] font-medium" style={{ color: acct?.color || (light ? "#3f4d61" : "#8896A6") }}>
-                        <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: acct?.color || "#5A6A7E" }} />
-                        {folder === "sent" ? "from" : "to"} {mailboxOf(thread)}
+                      <span className="shrink-0 inline-flex items-center gap-1.5 text-[12px] font-medium max-w-[60%]" style={{ color: light ? "#3f4d61" : "#8896A6" }}>
+                        <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: avatarColor(other) }} />
+                        <span className="truncate">{folder === "sent" ? "to" : "from"} {name}</span>
                       </span>
                       <span className="text-[13px] text-nv-text-muted truncate">{cleanPreview(thread.latest_body_preview)}</span>
                     </p>
