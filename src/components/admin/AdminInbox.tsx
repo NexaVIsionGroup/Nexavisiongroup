@@ -428,21 +428,37 @@ export default function AdminInbox() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [messages.length, view]);
 
-  // ── Thread actions: change the screen first, tell the server, then re-sync in the background ──
+  // ── Thread actions: tell the server at once, update the screen optimistically, re-sync afterwards.
+  //    Undo waits for the original request to finish so it can never overtake it (a slow "trash" landing
+  //    after a fast "restore" used to leave the conversation in Trash).
   const threadAction = async (action: string, threadIds?: string[], opts?: { quiet?: boolean }) => {
     const ids = threadIds || (selectedThread ? [selectedThread.thread_id] : []);
     if (!ids.length) return;
     const idSet = new Set(ids);
     const removed = threads.filter(t => idSet.has(t.thread_id));
     const label = ids.length > 1 ? `${ids.length} conversations` : "Conversation";
+    let undone = false;
+    const req = (async () => {
+      try {
+        const r = await fetch("/api/email/threads", {
+          method: action === "delete" ? "DELETE" : "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ thread_ids: ids, action, account: activeAccount?.email }),
+        });
+        if (!r.ok) throw new Error(String(r.status));
+      } catch {
+        showToast("Could not reach the server. The change was not saved.");
+      }
+    })();
     if (action === "trash" || action === "spam" || action === "restore" || action === "delete") {
       setThreads(prev => prev.filter(t => !idSet.has(t.thread_id)));
       if (!opts?.quiet) {
         const undoAction = action === "restore" ? (folder === "spam" ? "spam" : "trash") : action === "delete" ? null : "restore";
         const msg = action === "trash" ? `${label} moved to Trash` : action === "spam" ? `${label} marked as spam` : action === "restore" ? `${label} moved to Inbox` : `${label} deleted forever`;
         showToast(msg, undoAction ? () => {
+          undone = true;
           setThreads(prev => [...removed, ...prev].sort((a, b) => new Date(b.latest_message).getTime() - new Date(a.latest_message).getTime()));
-          threadAction(undoAction, ids, { quiet: true });
+          req.then(() => threadAction(undoAction, ids, { quiet: true }));
         } : undefined);
       }
     } else if (action === "mark_read" || action === "mark_unread") {
@@ -452,17 +468,8 @@ export default function AdminInbox() {
       setThreads(prev => prev.map(t => idSet.has(t.thread_id) ? { ...t, starred: action === "star" } : t));
       if (selectedThread && idSet.has(selectedThread.thread_id)) setSelectedThread({ ...selectedThread, starred: action === "star" });
     }
-    try {
-      const r = await fetch("/api/email/threads", {
-        method: action === "delete" ? "DELETE" : "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ thread_ids: ids, action, account: activeAccount?.email }),
-      });
-      if (!r.ok) throw new Error(String(r.status));
-    } catch {
-      showToast("Could not reach the server. The change was not saved.");
-    }
-    fetchThreads();
+    await req;
+    if (!undone) fetchThreads();
   };
   const toggleSelect = (id: string) => setSelected(prev => { const n = new Set(prev); if (n.has(id)) n.delete(id); else n.add(id); return n; });
   const bulk = (action: string) => { const ids = [...selected]; setSelected(new Set()); threadAction(action, ids); };
