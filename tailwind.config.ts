@@ -10,6 +10,17 @@ const config: Config = {
     extend: {
       /* ── NexaVision Color System ── */
       colors: {
+        // ── New site (2026-11 renovation) ──
+        nx: {
+          paper: "#F7F9F8",
+          ink: "#172321",
+          soft: "#4A5A57",
+          pine: "#0F5C55",
+          "pine-dark": "#0A413C",
+          mint: "#E3F1ED",
+          sun: "#F4B740",
+          line: "#D6E0DD",
+        },
         // Base surfaces
         "nv-void": "#050B18",        // deepest background
         "nv-abyss": "#0A1628",       // primary background (dark navy)
@@ -75,6 +86,8 @@ const config: Config = {
 
       /* ── Typography ── */
       fontFamily: {
+        "nx-display": ["var(--font-nx-display)", "system-ui", "sans-serif"],
+        "nx-body": ["var(--font-nx-body)", "system-ui", "sans-serif"],
         display: ["var(--font-display)", "system-ui", "sans-serif"],
         body: ["var(--font-body)", "system-ui", "sans-serif"],
         mono: ["var(--font-mono)", "monospace"],
