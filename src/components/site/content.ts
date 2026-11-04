@@ -105,3 +105,25 @@ export const extras = [
 ];
 
 export const marquee = ["Den Chai", "RO Unlimited", "JHPS Florida", "CrunchTime Bullies", "Palm Art Studio", "Websites", "Business apps", "Online ordering", "Private Drives", "Email inboxes", "Quotes and invoices", "Online stores", "Android apps"];
+
+// Real admin apps (blurred) for the app wall. Customer details blurred for privacy.
+export const appWall = [
+  [
+    { src: "/site/apps/denchai-v1.webp", label: "Den Chai · owner dashboard" },
+    { src: "/site/apps/ro-drive-v1.webp", label: "RO Unlimited · private Drive" },
+    { src: "/site/apps/nexa-invoices-v1.webp", label: "NexaVision · invoices" },
+    { src: "/site/apps/denchai-reviews-v1.webp", label: "Den Chai · review replies" },
+  ],
+  [
+    { src: "/site/apps/ro-v1.webp", label: "RO Unlimited · business app" },
+    { src: "/site/apps/denchai-orders-v1.webp", label: "Den Chai · orders and sales" },
+    { src: "/site/apps/crunch-v1.webp", label: "CrunchTime · store dashboard" },
+    { src: "/site/apps/ro-estimates-v1.webp", label: "RO Unlimited · estimates" },
+  ],
+  [
+    { src: "/site/apps/ro-customers-v1.webp", label: "RO Unlimited · customers" },
+    { src: "/site/apps/denchai-inbox-v1.webp", label: "Den Chai · email inbox" },
+    { src: "/site/apps/nexa-v1.webp", label: "NexaVision · admin" },
+    { src: "/site/apps/denchai-v1.webp", label: "Den Chai · owner dashboard" },
+  ],
+];

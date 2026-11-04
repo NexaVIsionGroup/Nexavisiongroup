@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { nav, CHECKUP_HREF } from "./content";
+import { Logo } from "./Logo";
 
 export function SiteFooter() {
   return (
@@ -7,7 +8,7 @@ export function SiteFooter() {
       <div className="nxs-wrap">
         <div className="nxs-footer-grid">
           <div>
-            <Link href="/" className="nxs-logo"><span className="nxs-logo-mark" aria-hidden />NexaVision<span>Group</span></Link>
+            <Logo uid="foot" />
             <p style={{ marginTop: 16, maxWidth: 26 + "em", color: "#b7c8c4" }}>
               Websites and business apps, built for you and run by us. From a café&rsquo;s online menu to a company&rsquo;s entire operation.
             </p>

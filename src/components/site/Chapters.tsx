@@ -8,7 +8,7 @@ import type { MotionValue } from "framer-motion";
 import { Check, Plus } from "lucide-react";
 import { Rise } from "./Rise";
 import { Phone, SCREENS } from "./Screens";
-import { juggling, appStory, extras, work, audiences, steps, pricing, carePlans, CHECKUP_HREF } from "./content";
+import { juggling, appStory, extras, work, audiences, steps, pricing, carePlans, appWall, CHECKUP_HREF } from "./content";
 
 const EASE = [0.22, 1, 0.36, 1] as [number, number, number, number];
 
@@ -329,6 +329,45 @@ export function Closer() {
         <motion.span style={{ display: "inline-block", x: mx, y: my }}>
           <Link ref={btn} href={CHECKUP_HREF} className="nxs-btn nxs-btn-glow">Get my free check-up</Link>
         </motion.span>
+      </div>
+    </section>
+  );
+}
+
+/* ─────────── App wall: real (blurred) admin apps on tilted columns that drift with scroll ─────────── */
+function WallColumn({ items, y }: { items: (typeof appWall)[number]; y: MotionValue<string> }) {
+  return (
+    <motion.div className="nxs-wall-col" style={{ y }}>
+      {[...items, ...items].map((it, i) => (
+        <figure key={i} className="nxs-wall-item">
+          <Image src={it.src} alt={i < items.length ? `${it.label} (customer details blurred)` : ""} width={1200} height={750} sizes="(min-width: 1024px) 420px, 45vw" />
+          <figcaption>{it.label}</figcaption>
+        </figure>
+      ))}
+    </motion.div>
+  );
+}
+
+export function AppWall() {
+  const ref = useRef<HTMLElement>(null);
+  const { scrollYProgress } = useScroll({ target: ref, offset: ["start end", "end start"] });
+  const up = useTransform(scrollYProgress, [0, 1], ["0%", "-38%"]);
+  const down = useTransform(scrollYProgress, [0, 1], ["-38%", "0%"]);
+  const up2 = useTransform(scrollYProgress, [0, 1], ["-8%", "-46%"]);
+  return (
+    <section ref={ref} className="nxs-dark nxs-wall" aria-labelledby="wall-h">
+      <div className="nxs-wrap nxs-wall-copy">
+        <Rise text="Not mockups. Real apps, running real businesses." className="nxs-display nxs-h2 nxs-grad" />
+        <p className="nxs-lede" style={{ marginTop: 22 }} id="wall-h">
+          These are live admin apps we built for our clients. Customer names, emails and numbers are blurred to protect their privacy.
+        </p>
+      </div>
+      <div className="nxs-wall-stage" aria-hidden>
+        <div className="nxs-wall-grid">
+          <WallColumn items={appWall[0]} y={up} />
+          <WallColumn items={appWall[1]} y={down} />
+          <WallColumn items={appWall[2]} y={up2} />
+        </div>
       </div>
     </section>
   );

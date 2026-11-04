@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Menu, X } from "lucide-react";
 import { nav, CHECKUP_HREF } from "./content";
+import { Logo } from "./Logo";
 
 export function SiteNav() {
   const [open, setOpen] = useState(false);
@@ -20,10 +21,7 @@ export function SiteNav() {
     <>
       <header className="nxs-nav" data-solid={solid || open}>
         <div className="nxs-wrap nxs-nav-inner">
-          <Link href="/" className="nxs-logo" onClick={() => setOpen(false)}>
-            <span className="nxs-logo-mark" aria-hidden />
-            NexaVision<span>Group</span>
-          </Link>
+          <Logo uid="nav" onClick={() => setOpen(false)} />
           <nav className="nxs-nav-links" aria-label="Main">
             {nav.map((n) => <Link key={n.href} href={n.href}>{n.label}</Link>)}
             <Link href={CHECKUP_HREF} className="nxs-btn nxs-btn-glow nxs-nav-cta">Get a free check-up</Link>

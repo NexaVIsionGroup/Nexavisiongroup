@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { SiteShell } from "@/components/site/SiteShell";
 import { Hero } from "@/components/site/Hero";
 import { Junction } from "@/components/site/Junction";
-import { FrontDoor, AppStory, Work, WhoAndHow, Pricing, Closer } from "@/components/site/Chapters";
+import { FrontDoor, AppStory, AppWall, Work, WhoAndHow, Pricing, Closer } from "@/components/site/Chapters";
 
 export const metadata: Metadata = {
   title: { absolute: "NexaVision Group | Websites and Business Apps for Your Business" },
@@ -18,6 +18,7 @@ export default function Page() {
       <FrontDoor />
       <Junction src="/site/scenes/phone-v1.webp" from="light" to="dark" focus="45% 50%" caption="Your whole business, in your pocket." />
       <AppStory />
+      <AppWall />
       <Junction src="/site/scenes/crane-v1.webp" from="dark" to="light" focus="50% 60%" />
       <Work />
       <Junction src="/site/scenes/lawn-v1.webp" from="light" to="dark" focus="50% 35%" />
