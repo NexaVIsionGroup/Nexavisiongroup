@@ -205,7 +205,7 @@
 @media (min-width: 760px) { .nxs-extras { grid-template-columns: repeat(2, 1fr); } }
 .nxs-extras > div { display: flex; gap: 16px; padding: 24px 6px; border-bottom: 1px solid var(--hair); }
 @media (min-width: 760px) { .nxs-extras > div:nth-child(odd) { border-right: 1px solid var(--hair); padding-right: 24px; } .nxs-extras > div:nth-child(even) { padding-left: 24px; } }
-.nxs-extras h4 { font-family: var(--font-nx-display), sans-serif; font-size: 22px; font-weight: 700; letter-spacing: -0.01em; color: #fff; }
+.nxs-extras h3 { font-family: var(--font-nx-display), sans-serif; font-size: 22px; font-weight: 700; letter-spacing: -0.01em; color: #fff; }
 .nxs-extras p { color: #b7c8c4; font-size: 17px; margin-top: 4px; }
 .nxs-extras svg { color: var(--glow); flex-shrink: 0; margin-top: 4px; }
 
@@ -284,7 +284,7 @@
 .nxs-footer { border-top: 1px solid var(--hair); padding: 70px 0 30px; }
 .nxs-footer-grid { display: grid; gap: 40px; }
 @media (min-width: 860px) { .nxs-footer-grid { grid-template-columns: 1.5fr 1fr 1fr; } }
-.nxs-footer h4 { color: var(--sun); font-size: 15px; font-weight: 700; margin-bottom: 14px; }
+.nxs-footer .nxs-footer-h { color: var(--sun); font-size: 15px; font-weight: 700; margin-bottom: 14px; }
 .nxs-footer a { color: #cfdcda; text-decoration: none; display: inline-block; padding: 5px 0; font-size: 17px; }
 .nxs-footer a:hover { color: #fff; text-decoration: underline; }
 .nxs-footer-base { margin-top: 56px; padding-top: 22px; border-top: 1px solid var(--hair); color: #8ea39f; font-size: 15px; }

@@ -26,7 +26,8 @@ export function Rise({
     ? { initial: "hidden", animate: "shown" }
     : { initial: "hidden", whileInView: "shown", viewport: { once: true, margin: "0px 0px -10% 0px" } };
   return (
-    <Tag className={className} aria-label={text} {...trigger} transition={{ staggerChildren: 0.06, delayChildren: delay }}>
+    <Tag className={className} {...trigger} transition={{ staggerChildren: 0.06, delayChildren: delay }}>
+      <span className="sr-only">{text}</span>
       {words.map((w, i) => (
         <Fragment key={i}>
         <span aria-hidden className="nxs-word">

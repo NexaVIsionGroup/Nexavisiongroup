@@ -14,11 +14,11 @@ export function SiteFooter() {
             </p>
           </div>
           <nav aria-label="Footer">
-            <h4>Pages</h4>
+            <p className="nxs-footer-h">Pages</p>
             <ul>{nav.map((n) => <li key={n.href}><Link href={n.href}>{n.label}</Link></li>)}</ul>
           </nav>
           <div>
-            <h4>Get in touch</h4>
+            <p className="nxs-footer-h">Get in touch</p>
             <ul>
               <li><Link href={CHECKUP_HREF}>Get a free check-up</Link></li>
               <li><a href="mailto:admin@nexavisiongroup.com">admin@nexavisiongroup.com</a></li>

@@ -124,7 +124,7 @@ export function AppStory() {
           {extras.map((e) => (
             <div key={e.title}>
               <Plus size={22} aria-hidden />
-              <span><h4>{e.title}</h4><p>{e.text}</p></span>
+              <span><h3>{e.title}</h3><p>{e.text}</p></span>
             </div>
           ))}
         </div>
@@ -150,7 +150,7 @@ function TiltCard({ w, i }: { w: (typeof work)[number]; i: number }) {
   const host = w.url.replace(/^https?:\/\//, "");
   return (
     <article className="nxs-card">
-      <a href={w.url} target="_blank" rel="noopener noreferrer" aria-label={`Visit ${w.name} (opens in a new tab)`}>
+      <a href={w.url} target="_blank" rel="noopener noreferrer" aria-label={`${host}: visit the ${w.name} website (opens in a new tab)`}>
         <div ref={ref} className="nxs-card-inner" onPointerMove={move} onPointerLeave={leave}>
           <div className="nxs-browser">
             <div className="nxs-browser-bar"><i /><i /><i /><span className="nxs-browser-url">{host}</span></div>

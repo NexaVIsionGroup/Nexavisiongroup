@@ -105,7 +105,7 @@ export function Hero() {
             <span className="nxs-live" />
             <Scramble text="Websites and business apps" speed={34} />
           </motion.p>
-          <h1 className="nxs-display nxs-h1" aria-label="More than a website. Your own business app.">
+          <h1 className="nxs-display nxs-h1">
             <Rise as="span" immediate text="More than a website." className="nxs-line" delay={0.15} />
             <Rise as="span" immediate text="Your own business app." className="nxs-line nxs-grad-glow" delay={0.45} />
           </h1>
