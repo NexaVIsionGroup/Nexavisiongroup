@@ -84,3 +84,24 @@ export const carePlans = [
   { name: "Care Plan", price: "$99", text: "Hosting, security, updates, small changes and support." },
   { name: "App Care Plan", price: "$249", text: "Care Plan plus app hosting, storage and new features every quarter." },
 ];
+
+// Pinned phone story: each step swaps the phone screen.
+export const appStory = [
+  { screen: "inbox", title: "Your own email inbox", text: "Every business email and attachment lands in one place. Reply from your phone, assign it to someone on your team, never lose a thread again.", who: "Den Chai, RO Unlimited, NexaVision" },
+  { screen: "drive", title: "Your own private Drive", text: "Job photos, plans, contracts, invoices. Store and share files like Google Drive, except it's yours, with your name on it and no monthly per-person fees.", who: "RO Unlimited" },
+  { screen: "quotes", title: "Quotes customers accept online", text: "Build a professional quote in minutes. Customers can send you a video of the job first, then accept your quote with one tap.", who: "JHPS Florida" },
+  { screen: "payments", title: "Invoices that get paid", text: "Every bill has a pay button. Save cards on file, split jobs into deposits and payment plans, and see what's paid at a glance.", who: "JHPS Florida" },
+  { screen: "orders", title: "Online orders and a store", text: "Take food orders or sell products online, paid up front. Orders show up on your phone the second they come in.", who: "Den Chai, CrunchTime Bullies" },
+  { screen: "reviews", title: "Google review replies", text: "Every review gets a thoughtful, on-brand reply automatically. Your rating keeps climbing while you run the business.", who: "Den Chai" },
+] as const;
+
+export const extras = [
+  { title: "Customer accounts", text: "Customers log in to see their quotes, bills and job progress." },
+  { title: "Your team", text: "Add staff, choose who can see what, and track tasks." },
+  { title: "Edit your own website", text: "Change hours, menus, photos and announcements yourself." },
+  { title: "Alerts on your phone", text: "New order, lead, email or payment? Your phone tells you instantly." },
+  { title: "Android app", text: "Your business app on the home screen, with your logo on it." },
+  { title: "Connects to what you use", text: "Square, Stripe, Google, email, shipping and more." },
+];
+
+export const marquee = ["Den Chai", "RO Unlimited", "JHPS Florida", "CrunchTime Bullies", "Palm Art Studio", "Websites", "Business apps", "Online ordering", "Private Drives", "Email inboxes", "Quotes and invoices", "Online stores", "Android apps"];
