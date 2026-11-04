@@ -286,7 +286,7 @@ export function Pricing() {
               <small>{p.note || " "}</small>
               <span className="nxs-big nxs-num">{p.price.startsWith("$") ? <CountUp value={p.price} /> : p.price}</span>
               <p>{p.text}</p>
-              <Link href={CHECKUP_HREF} className={`nxs-btn ${p.featured ? "nxs-btn-glow" : "nxs-btn-ink"}`}>
+              <Link href={`${CHECKUP_HREF}?plan=${encodeURIComponent(p.name)}`} className={`nxs-btn ${p.featured ? "nxs-btn-glow" : "nxs-btn-ink"}`}>
                 {p.price === "Let's talk" ? "Talk to us" : "Free check-up"}
               </Link>
             </motion.div>
