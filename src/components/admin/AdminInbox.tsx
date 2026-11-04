@@ -118,7 +118,7 @@ function ActionSheet({ title, items, onClose }: { title?: string; items: SheetIt
       <div className="relative w-full sm:max-w-md bg-nv-deep border border-white/10 rounded-t-2xl sm:rounded-2xl pt-2 animate-nv-fade-up"
         style={{ paddingBottom: "calc(0.5rem + env(safe-area-inset-bottom))" }} onClick={(e) => e.stopPropagation()}>
         <div className="mx-auto mb-1 h-1 w-10 rounded-full bg-white/15" />
-        {title && <p className="px-5 py-2 text-xs font-medium text-nv-text-muted truncate">{title}</p>}
+        {title && <p className="px-5 py-2 text-xs font-medium text-nv-text-muted leading-relaxed line-clamp-3 break-words">{title}</p>}
         {items.map((it) => (
           <button key={it.label} onClick={() => { onClose(); it.onClick(); }}
             className={cn("w-full flex items-center gap-4 px-5 py-3.5 text-[15px] text-left hover:bg-white/5 active:bg-white/5", it.danger ? "text-nv-error" : "text-nv-text-primary")}>
@@ -225,6 +225,7 @@ export default function AdminInbox() {
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const selectMode = selected.size > 0;
   const [selMenu, setSelMenu] = useState(false);
+  const [confirmSheet, setConfirmSheet] = useState<{ title: string; label: string; onConfirm: () => void } | null>(null);
 
   // Compose
   const [composeMode, setComposeMode] = useState<ComposeMode>(null);
@@ -247,6 +248,9 @@ export default function AdminInbox() {
   const accountsQ = useCached<EmailAccount[]>("inbox:accounts", async (signal) =>
     (await fetchJson<{ accounts: EmailAccount[] }>("/api/admin/email-accounts", { cache: "no-store", signal })).accounts || []);
   const accounts = useMemo(() => accountsQ.data || [], [accountsQ.data]);
+  // blocked senders (kept server-side; the inbound webhook files them in Spam)
+  const rulesQ = useCached<{ blocked: string[] }>("inbox:rules", async (signal) => fetchJson<{ blocked: string[] }>("/api/email/rules", { cache: "no-store", signal }));
+  const blocked = rulesQ.data?.blocked || [];
   const accountByEmail = useMemo(() => new Map(accounts.map((a) => [a.email.toLowerCase(), a])), [accounts]);
   const [activeAccount, setActiveAccount] = useState<EmailAccount | null>(null);
   const [fromAccount, setFromAccount] = useState("");
@@ -463,6 +467,54 @@ export default function AdminInbox() {
   const toggleSelect = (id: string) => setSelected(prev => { const n = new Set(prev); if (n.has(id)) n.delete(id); else n.add(id); return n; });
   const bulk = (action: string) => { const ids = [...selected]; setSelected(new Set()); threadAction(action, ids); };
 
+  // ── Clean-up by sender: "user@domain" or "@domain" ──
+  const domainOf = (e: string) => "@" + ((e || "").split("@")[1] || "");
+  const fromMatches = (t: Thread, p: string) => { const o = otherParty(t).toLowerCase(); return p.startsWith("@") ? o.endsWith(p) : o === p; };
+  const countFrom = (p: string) => threads.filter(t => fromMatches(t, p)).length;
+  const selectFrom = (patterns: string[]) => {
+    const ps = patterns.map(x => x.toLowerCase());
+    setSelected(new Set(filtered.filter(t => ps.some(p => fromMatches(t, p))).map(t => t.thread_id)));
+  };
+  const senderAction = async (action: "trash_from" | "spam_from", pattern: string) => {
+    const p = pattern.toLowerCase();
+    setThreads(prev => prev.filter(t => !fromMatches(t, p)));
+    setSelected(new Set());
+    try {
+      const r = await fetch("/api/email/threads", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action, value: p, account: activeAccount?.email }) });
+      const j = await r.json().catch(() => ({}));
+      if (!r.ok) throw new Error(j.error || String(r.status));
+      const n = Number(j.updated || 0);
+      showToast(`${n} message${n === 1 ? "" : "s"} from ${p} moved to ${action === "trash_from" ? "Trash" : "Spam"}`);
+    } catch { showToast("Could not reach the server. The change was not saved."); }
+    fetchThreads();
+  };
+  const blockSender = async (pattern: string) => {
+    const p = pattern.toLowerCase();
+    setThreads(prev => prev.filter(t => !fromMatches(t, p)));
+    setSelected(new Set());
+    try {
+      const r = await fetch("/api/email/rules", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "block", pattern: p }) });
+      const j = await r.json().catch(() => ({}));
+      if (!r.ok) throw new Error(j.error || String(r.status));
+      showToast(`Blocked ${p}: ${j.moved || 0} moved to Spam, new mail skips the inbox`);
+      rulesQ.refresh();
+    } catch (e) { showToast((e as Error).message || "Could not block this sender"); }
+    fetchThreads();
+  };
+  const unblockSender = async (p: string) => {
+    await fetch("/api/email/rules", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "unblock", pattern: p }) }).catch(() => {});
+    rulesQ.refresh();
+    showToast(`Unblocked ${p}`);
+  };
+  const confirmTrashFrom = (p: string, after?: () => void) => setConfirmSheet({
+    title: `Move every message from ${p} to Trash? ${countFrom(p)} in this list now; older ones too.`,
+    label: `Trash all from ${p}`, onConfirm: () => { senderAction("trash_from", p); after?.(); },
+  });
+  const confirmBlock = (p: string, after?: () => void) => setConfirmSheet({
+    title: `Block ${p}? Everything from ${p.startsWith("@") ? "that domain" : "that address"} moves to Spam now, and new mail from it goes straight to Spam.`,
+    label: `Block ${p}`, onConfirm: () => { blockSender(p); after?.(); },
+  });
+
   // ── Compose ──
   const startCompose = async (mode: ComposeMode, msg?: Message) => {
     setComposeMode(mode);
@@ -579,6 +631,12 @@ export default function AdminInbox() {
     </div>
   );
   const safeTop = { paddingTop: "calc(0.5rem + env(safe-area-inset-top))" };
+  const confirmEl = confirmSheet && (
+    <ActionSheet title={confirmSheet.title} onClose={() => setConfirmSheet(null)} items={[
+      { icon: Check, label: confirmSheet.label, danger: true, onClick: confirmSheet.onConfirm },
+      { icon: X, label: "Cancel", onClick: () => {} },
+    ]} />
+  );
 
   // ═══════════════════════════════════════════
   // ACCOUNT SWITCHER
@@ -629,6 +687,18 @@ export default function AdminInbox() {
             </div>
           ))}
           {accounts.length === 0 && <div className="text-center text-nv-text-muted text-sm py-16">No mailboxes yet. Tap Add to set one up.</div>}
+
+          <div className="px-5 pt-6 pb-6">
+            <p className="text-sm font-semibold text-nv-text-primary">Blocked senders</p>
+            <p className="text-xs text-nv-text-muted mt-0.5 mb-2">Mail from these goes straight to Spam. Block one from a conversation's menu or from a selection.</p>
+            {blocked.length === 0 ? <p className="text-sm text-nv-text-muted py-3">Nothing blocked yet.</p> : blocked.map(bp => (
+              <div key={bp} className="flex items-center gap-3 py-2.5 border-b border-white/[0.04]">
+                <ShieldAlert size={16} className="text-nv-text-muted shrink-0" />
+                <span className="flex-1 text-sm text-nv-text-primary truncate">{bp}</span>
+                <button onClick={() => unblockSender(bp)} className="text-xs font-semibold text-nv-teal px-2 py-1 rounded-full hover:bg-white/5">Unblock</button>
+              </div>
+            ))}
+          </div>
         </div>
 
         {showAccountForm && (
@@ -672,7 +742,7 @@ export default function AdminInbox() {
             </div>
           </div>
         )}
-        {toastEl}
+        {confirmEl}{toastEl}
       </div>
       </Theme>
     );
@@ -781,7 +851,7 @@ export default function AdminInbox() {
             { icon: Trash2, label: "Discard message", onClick: discardDraft, danger: true },
           ]} />
         )}
-        {toastEl}
+        {confirmEl}{toastEl}
       </div>
       </Theme>
     );
@@ -949,6 +1019,12 @@ export default function AdminInbox() {
             ...(inTrash || inSpam ? [{ icon: ArchiveRestore, label: "Move to Inbox", onClick: () => afterLeave("restore") }] : []),
             ...(!inSpam ? [{ icon: ShieldAlert, label: inTrash ? "Move to Spam" : "Mark as spam", onClick: () => afterLeave("spam") }] : []),
             { icon: Forward, label: "Forward", onClick: () => lastMessage && startCompose("forward", lastMessage) },
+            ...(folder !== "sent" && otherParty(t) ? [
+              { icon: Search, label: `All mail from ${senderLabel(otherParty(t))}`, hint: String(countFrom(otherParty(t).toLowerCase())), onClick: () => { setSearch(otherParty(t)); back(); } },
+              { icon: Trash2, label: `Trash all from ${senderLabel(otherParty(t))}`, onClick: () => confirmTrashFrom(otherParty(t).toLowerCase(), back) },
+              { icon: ShieldAlert, label: `Block ${otherParty(t).toLowerCase()}`, onClick: () => confirmBlock(otherParty(t).toLowerCase(), back) },
+              ...(domainOf(otherParty(t)).length > 1 && !OWN_DOMAINS.has(domainOf(otherParty(t)).slice(1)) ? [{ icon: ShieldAlert, label: `Block everything from ${domainOf(otherParty(t))}`, onClick: () => confirmBlock(domainOf(otherParty(t)), back) }] : []),
+            ] : []),
             { icon: light ? Moon : Sun, label: light ? "Dark mode" : "Light mode", onClick: toggleTheme },
             ...(inTrash ? [{ icon: Trash2, label: "Delete forever", onClick: () => afterLeave("delete"), danger: true }] : [{ icon: Trash2, label: "Move to Trash", onClick: () => afterLeave("trash"), danger: true }]),
           ]} />
@@ -963,7 +1039,7 @@ export default function AdminInbox() {
             { icon: Copy, label: "Copy sender address", hint: msgMenu.from_email.length > 28 ? undefined : msgMenu.from_email, onClick: () => copy(msgMenu.from_email) },
           ]} />
         )}
-        {toastEl}
+        {confirmEl}{toastEl}
       </div>
       </Theme>
     );
@@ -1033,6 +1109,8 @@ export default function AdminInbox() {
   const anyUnreadSelected = filtered.some(t => selected.has(t.thread_id) && t.unread_count > 0);
   const anyUnstarredSelected = filtered.some(t => selected.has(t.thread_id) && !t.starred);
   const inTrash = folder === "trash", inSpam = folder === "spam";
+  const selSenders = folder === "sent" ? [] : [...new Set(filtered.filter(t => selected.has(t.thread_id)).map(t => otherParty(t).toLowerCase()).filter(Boolean))];
+  const selDomains = [...new Set(selSenders.map(domainOf).filter(d => d.length > 1))];
 
   return (
     <Theme light={light}>
@@ -1113,7 +1191,7 @@ export default function AdminInbox() {
           const name = senderLabel(other);
           const unread = thread.unread_count > 0;
           const isSel = selected.has(thread.thread_id);
-          const acct = !activeAccount ? accountByEmail.get((mailboxOf(thread) || "").toLowerCase()) : null;
+          const acct = accountByEmail.get((mailboxOf(thread) || "").toLowerCase());
           return (
             <SwipeRow key={thread.thread_id} disabled={selectMode} rightLabel={unread ? "Read" : "Unread"}
               onLeft={() => threadAction(inTrash ? "delete" : "trash", [thread.thread_id])}
@@ -1137,11 +1215,20 @@ export default function AdminInbox() {
                     {thread.message_count > 1 && <span className="text-xs text-nv-text-muted shrink-0">{thread.message_count}</span>}
                     {thread.has_attachments && <Paperclip size={13} className="text-nv-text-muted shrink-0" />}
                     <span className="flex-1" />
-                    {acct && <span className="text-[10px] font-bold shrink-0 rounded px-1 py-px" style={{ color: acct.color, backgroundColor: acct.color + "1f" }}>{acct.initials}</span>}
                     <span className={cn("text-xs shrink-0", unread ? "text-nv-teal font-semibold" : "text-nv-text-muted")}>{timeAgo(thread.latest_message)}</span>
                   </div>
                   <p className={cn("text-sm truncate mt-0.5", unread ? "font-semibold text-nv-text-primary" : "text-nv-text-secondary")}>{thread.subject || "(no subject)"}</p>
-                  <p className="text-[13px] text-nv-text-muted truncate mt-0.5">{cleanPreview(thread.latest_body_preview) || " "}</p>
+                  {!activeAccount && mailboxOf(thread) ? (
+                    <p className="flex items-center gap-2 mt-0.5 min-w-0">
+                      <span className="shrink-0 inline-flex items-center gap-1.5 text-[12px] font-medium" style={{ color: acct?.color || (light ? "#3f4d61" : "#8896A6") }}>
+                        <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: acct?.color || "#5A6A7E" }} />
+                        {folder === "sent" ? "from" : "to"} {mailboxOf(thread)}
+                      </span>
+                      <span className="text-[13px] text-nv-text-muted truncate">{cleanPreview(thread.latest_body_preview)}</span>
+                    </p>
+                  ) : (
+                    <p className="text-[13px] text-nv-text-muted truncate mt-0.5">{cleanPreview(thread.latest_body_preview) || "\u00a0"}</p>
+                  )}
                 </div>
 
                 <button onClick={e => { e.stopPropagation(); threadAction(thread.starred ? "unstar" : "star", [thread.thread_id]); }} aria-label={thread.starred ? "Unstar" : "Star"} className="shrink-0 p-2 -mr-1 mt-0.5">
@@ -1168,12 +1255,18 @@ export default function AdminInbox() {
       {selMenu && (
         <ActionSheet title={`${selected.size} selected`} onClose={() => setSelMenu(false)} items={[
           { icon: CheckCircle2, label: allShownSelected ? "Clear selection" : "Select all", onClick: () => setSelected(allShownSelected ? new Set() : new Set(filtered.slice(0, shown).map(t => t.thread_id))) },
+          ...(selSenders.length ? [
+            { icon: CheckCircle2, label: selSenders.length === 1 ? `Select all from ${selSenders[0]}` : `Select all from these ${selSenders.length} senders`, hint: String(filtered.filter(t => selSenders.some(p => fromMatches(t, p))).length), onClick: () => selectFrom(selSenders) },
+            ...(selDomains.length && selDomains.some(d => !OWN_DOMAINS.has(d.slice(1))) ? [{ icon: CheckCircle2, label: selDomains.length === 1 ? `Select all from ${selDomains[0]}` : `Select all from these ${selDomains.length} domains`, hint: String(filtered.filter(t => selDomains.some(p => fromMatches(t, p))).length), onClick: () => selectFrom(selDomains) }] : []),
+            ...(selSenders.length === 1 ? [{ icon: Search, label: `Show only ${selSenders[0]}`, onClick: () => setSearch(selSenders[0]) }] : []),
+            { icon: ShieldAlert, label: selSenders.length === 1 ? `Block ${selSenders[0]}` : `Block these ${selSenders.length} senders`, onClick: () => (selSenders.length === 1 ? confirmBlock(selSenders[0]) : setConfirmSheet({ title: `Block ${selSenders.length} senders? Their mail moves to Spam now and in future.`, label: `Block ${selSenders.length} senders`, onConfirm: () => selSenders.forEach(p => blockSender(p)) })) },
+          ] : []),
           ...(inTrash || inSpam ? [{ icon: ArchiveRestore, label: "Move to Inbox", onClick: () => bulk("restore") }] : []),
           ...(!inSpam ? [{ icon: ShieldAlert, label: "Mark as spam", onClick: () => bulk("spam") }] : []),
           ...(inTrash ? [{ icon: Trash2, label: "Delete forever", onClick: () => bulk("delete"), danger: true }] : [{ icon: Trash2, label: "Move to Trash", onClick: () => bulk("trash"), danger: true }]),
         ]} />
       )}
-      {toastEl}
+      {confirmEl}{toastEl}
     </div>
     </Theme>
   );

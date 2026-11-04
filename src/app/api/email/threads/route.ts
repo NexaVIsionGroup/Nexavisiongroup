@@ -185,6 +185,20 @@ export async function POST(req: NextRequest) {
 export async function PATCH(req: NextRequest) {
   const supabase = createAdminClient();
   const { thread_ids, action, value, account } = await req.json();
+
+  // Clean-up by sender: every received message from "user@domain" (or "@domain") → Trash / Spam
+  if (action === 'trash_from' || action === 'spam_from') {
+    const v = String(value || '').trim().toLowerCase();
+    if (!v.includes('@')) return NextResponse.json({ error: 'Missing sender' }, { status: 400 });
+    let q = supabase.from('email_messages').update({ folder: action === 'trash_from' ? 'trash' : 'spam' })
+      .eq('direction', 'inbound').neq('folder', 'trash');
+    q = v.startsWith('@') ? q.ilike('from_email', `%${v}`) : q.ilike('from_email', v);
+    if (account) q = q.eq('to_email', account);
+    const { data, error } = await q.select('id');
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ updated: data?.length || 0 });
+  }
+
   if (!thread_ids?.length || !action) return NextResponse.json({ error: 'Missing params' }, { status: 400 });
 
   const updateMap: Record<string, Record<string, unknown>> = {

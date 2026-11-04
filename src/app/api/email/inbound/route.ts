@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/server';
 import { logEmail } from '@/lib/email';
 import { notifyAdmin } from "@/lib/notify";
+import { isBlocked } from "@/lib/emailRules";
 import { ingestInboundAttachments } from "@/lib/emailAttachments";
 
 function parseEmail(raw: string): string {
@@ -90,6 +91,8 @@ export async function POST(req: NextRequest) {
       if (match) threadId = match.thread_id;
     }
 
+    // blocked senders (admin → conversation → Block) are filed in Spam and never raise an alert
+    const blockedSender = await isBlocked(from_email).catch(() => false);
     const logged = await logEmail({
       thread_id: threadId,
       direction: 'inbound',
@@ -99,6 +102,7 @@ export async function POST(req: NextRequest) {
       body_html: body_html ?? undefined,
       body_text: body_text ?? undefined,
       has_attachments: attachmentCount > 0,
+      ...(blockedSender ? { folder: 'spam' as const } : {}),
     });
 
     // Resend only keeps the files ~1 h → copy them into our bucket now (failures are logged, never block the email)
@@ -110,7 +114,7 @@ export async function POST(req: NextRequest) {
     // the site's own alert emails (contact form, requests…) come back here as inbound mail — they already
     // notified through notifyAdmin, so don't alert twice
     const selfNotice = /@nexavisiongroup\.com>?$/i.test(String(from_email || "").trim());
-    if (!selfNotice) await notifyAdmin({
+    if (!selfNotice && !blockedSender) await notifyAdmin({
       type: "email", title: `✉️ ${String(from || from_email).replace(/<.*>/, "").trim() || from_email}`,
       message: subjectStr || "(no subject)",
       url: logged?.thread_id ? `/admin/inbox?thread=${logged.thread_id}` : "/admin/inbox",
