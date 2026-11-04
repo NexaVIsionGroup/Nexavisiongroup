@@ -113,17 +113,19 @@ export const appWall = [
     { src: "/site/apps/ro-drive-v1.webp", label: "RO Unlimited · private Drive" },
     { src: "/site/apps/nexa-invoices-v1.webp", label: "NexaVision · invoices" },
     { src: "/site/apps/denchai-reviews-v1.webp", label: "Den Chai · review replies" },
+    { src: "/site/apps/jhps-admin-v1.webp", label: "JHPS Florida · admin" },
   ],
   [
     { src: "/site/apps/ro-v1.webp", label: "RO Unlimited · business app" },
     { src: "/site/apps/denchai-orders-v1.webp", label: "Den Chai · orders and sales" },
     { src: "/site/apps/crunch-v1.webp", label: "CrunchTime · store dashboard" },
     { src: "/site/apps/ro-estimates-v1.webp", label: "RO Unlimited · estimates" },
+    { src: "/site/apps/jhps-estimates-v1.webp", label: "JHPS Florida · estimates" },
   ],
   [
     { src: "/site/apps/ro-customers-v1.webp", label: "RO Unlimited · customers" },
     { src: "/site/apps/denchai-inbox-v1.webp", label: "Den Chai · email inbox" },
     { src: "/site/apps/nexa-v1.webp", label: "NexaVision · admin" },
-    { src: "/site/apps/denchai-v1.webp", label: "Den Chai · owner dashboard" },
+    { src: "/site/apps/jhps-invoices-v1.webp", label: "JHPS Florida · invoices" },
   ],
 ];
