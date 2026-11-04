@@ -10,7 +10,7 @@ export async function POST(req: NextRequest) {
   try {
     const supabase = createAdminClient();
     const body = await req.json();
-    const { thread_id, to_email, to_name, subject, reply_body, reply_html, lead_id, from_email, attachments } = body;
+    const { thread_id, to_email, to_name, subject, reply_body, reply_html, lead_id, from_email, attachments, cc_emails } = body;
     const accounts = await fetchEmailAccounts();
 
     if (!thread_id || !to_email || (!reply_body && !reply_html)) {
@@ -38,6 +38,7 @@ export async function POST(req: NextRequest) {
       subject: replySubject,
       html,
     };
+    if (Array.isArray(cc_emails) && cc_emails.length) params.cc = cc_emails.filter((e: unknown) => typeof e === 'string' && e.includes('@'));
     if (inReplyToHeader) {
       params.headers = { 'In-Reply-To': inReplyToHeader, 'References': inReplyToHeader };
     }
@@ -63,6 +64,7 @@ export async function POST(req: NextRequest) {
       resend_message_id: data?.id,
       folder: 'sent',
       has_attachments: !!attachments?.length,
+      cc_emails: Array.isArray(cc_emails) ? cc_emails : [],
     });
     if (logged?.id && attachments?.length) await storeOutboundAttachments(logged.id, attachments);
 

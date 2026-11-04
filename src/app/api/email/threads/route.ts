@@ -85,6 +85,7 @@ async function buildThreadQuery(
     message_count: number; unread_count: number; starred: boolean;
     has_attachments: boolean; lead_id: string | null; created_at: string;
     has_inbound: boolean;
+    counterpart: string; account: string;   // the other party / our mailbox (to_email & from_email above are legacy)
   };
   const threadMap = new Map<string, ThreadEntry>();
 
@@ -95,6 +96,8 @@ async function buildThreadQuery(
         subject: msg.subject,
         to_email: msg.direction === 'outbound' ? msg.to_email : msg.from_email,
         from_email: msg.direction === 'outbound' ? msg.from_email : msg.to_email,
+        counterpart: msg.direction === 'outbound' ? msg.to_email : msg.from_email,
+        account: msg.direction === 'outbound' ? msg.from_email : msg.to_email,
         latest_message: msg.created_at,
         latest_message_id: msg.id,
         latest_body_preview: '',
@@ -139,7 +142,7 @@ async function buildThreadQuery(
     }
     for (const t of threads) {
       const txt = byId.get(t.latest_message_id);
-      if (txt) t.latest_body_preview = txt.replace(/\s+/g, ' ').trim().substring(0, 120);
+      if (txt) t.latest_body_preview = txt.replace(/\[image:[^\]]*\]/gi, ' ').replace(/\s+/g, ' ').trim().substring(0, 120);
     }
   }
 
@@ -191,13 +194,18 @@ export async function PATCH(req: NextRequest) {
   };
   const update = action === 'move' && value ? { folder: value } : (updateMap[action] || {});
 
-  if (account) {
-    const { data: msgs } = await supabase
-      .from('email_messages').select('id, from_email, to_email').in('thread_id', thread_ids);
-    const ids = (msgs || []).filter(m => m.from_email === account || m.to_email === account).map(m => m.id);
-    if (ids.length) await supabase.from('email_messages').update(update).in('id', ids);
+  const { data: msgs } = await supabase
+    .from('email_messages').select('id, from_email, to_email, direction').in('thread_id', thread_ids);
+  const mine = (msgs || []).filter(m => !account || m.from_email === account || m.to_email === account);
+  if (action === 'restore') {
+    // out of Trash/Spam: received mail goes back to the Inbox, our own replies back to Sent
+    const inbound = mine.filter(m => m.direction !== 'outbound').map(m => m.id);
+    const outbound = mine.filter(m => m.direction === 'outbound').map(m => m.id);
+    if (inbound.length) await supabase.from('email_messages').update({ folder: 'inbox' }).in('id', inbound);
+    if (outbound.length) await supabase.from('email_messages').update({ folder: 'sent' }).in('id', outbound);
   } else {
-    await supabase.from('email_messages').update(update).in('thread_id', thread_ids);
+    const ids = mine.map(m => m.id);
+    if (ids.length) await supabase.from('email_messages').update(update).in('id', ids);
   }
   return NextResponse.json({ updated: thread_ids.length });
 }

@@ -424,3 +424,8 @@
 .nv-light .bg-nv-warning\/15 { background-color: rgba(161, 98, 7, .12) !important; }
 .nv-light .bg-nv-deep\/50 pre, .nv-light .bg-nv-deep\/50 .text-nv-text-secondary { color: #1f2a3a !important; }
 .nv-light .\[\&_a\]\:text-nv-teal a { color: #008f82 !important; }
+.nv-light .bg-nv-teal\/15 { background-color: rgba(0, 158, 143, .14) !important; }
+.nv-light .bg-nv-teal\/20 { background-color: rgba(0, 158, 143, .18) !important; }
+.nv-light .bg-nv-error\/20 { background-color: rgba(220, 38, 38, .14) !important; }
+.nv-light .bg-nv-void\/95 { background-color: rgba(243, 245, 249, .96) !important; }
+.nv-light .border-nv-teal\/40 { border-color: rgba(0, 143, 130, .5) !important; }
