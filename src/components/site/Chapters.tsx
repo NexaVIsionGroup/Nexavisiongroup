@@ -265,12 +265,16 @@ function CountUp({ value }: { value: string }) {
   return <span ref={ref}>{out}</span>;
 }
 
-export function Pricing() {
+export function Pricing({ heading = true }: { heading?: boolean }) {
   return (
     <section id="pricing" className="nxs-section nxs-light" style={{ scrollMarginTop: 60 }}>
       <div className="nxs-wrap">
-        <Rise text="Simple starting prices." className="nxs-display nxs-h2 nxs-grad" />
-        <p className="nxs-lede" style={{ marginTop: 22 }}>Every business is different, so you get your exact price in writing before we start. No surprises.</p>
+        {heading && (
+          <>
+            <Rise text="Simple starting prices." className="nxs-display nxs-h2 nxs-grad" />
+            <p className="nxs-lede" style={{ marginTop: 22 }}>Every business is different, so you get your exact price in writing before we start. No surprises.</p>
+          </>
+        )}
         <div className="nxs-prices">
           {pricing.map((p, i) => (
             <motion.div

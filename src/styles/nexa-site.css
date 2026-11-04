@@ -406,6 +406,43 @@ html:has(.nxs), body:has(.nxs) { overflow-x: clip; }
 .nxs-cu-done h2 { font-size: clamp(2rem, 4vw, 3rem); color: #fff; }
 .nxs-cu-done p { margin: 14px auto 28px; max-width: 30em; color: #c9d8d5; font-size: 19px; }
 
+/* ═══ Inner page heroes ═══ */
+.nxs-page-hero { position: relative; overflow: hidden; padding: 160px 0 clamp(70px, 8vw, 110px); }
+.nxs-page-hero-sm { padding: 140px 0 50px; }
+.nxs-page-h1 { font-size: clamp(2.8rem, 7vw, 6rem); margin-top: 18px; max-width: 14em; }
+
+/* ═══ About ═══ */
+.nxs-handle { margin-top: 36px; display: grid; gap: 12px; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); }
+.nxs-handle li { display: flex; align-items: center; gap: 14px; padding: 18px 20px; border-radius: 18px; background: #fff; box-shadow: 0 0 0 1px var(--hair-ink); font-weight: 700; font-size: 17.5px; transition: transform 0.35s var(--ease), box-shadow 0.35s; }
+.nxs-handle li:hover { transform: translateY(-3px); box-shadow: 0 0 0 1px rgba(15, 92, 85, 0.35), 0 20px 40px -24px rgba(15, 92, 85, 0.5); }
+.nxs-handle svg { color: var(--pine); flex-shrink: 0; }
+.nxs-how { margin-top: 40px; display: grid; gap: 0; border-top: 1px solid var(--hair-ink); }
+@media (min-width: 860px) { .nxs-how { grid-template-columns: 1fr 1fr; } .nxs-how > div:nth-child(odd) { border-right: 1px solid var(--hair-ink); padding-right: 36px; } .nxs-how > div:nth-child(even) { padding-left: 36px; } }
+.nxs-how > div { padding: 30px 0; border-bottom: 1px solid var(--hair-ink); }
+.nxs-how svg { color: var(--pine); }
+.nxs-how h3 { font-size: clamp(1.5rem, 2.6vw, 2rem); margin-top: 10px; }
+.nxs-how p { color: var(--soft); margin-top: 8px; font-size: 18px; }
+
+/* ═══ Pricing comparison ═══ */
+.nxs-cmp-wrap { margin-top: 36px; overflow-x: auto; border-radius: 22px; background: #fff; box-shadow: 0 0 0 1px var(--hair-ink); }
+.nxs-cmp { width: 100%; min-width: 640px; border-collapse: collapse; font-size: 17px; }
+.nxs-cmp th, .nxs-cmp td { padding: 16px 18px; border-bottom: 1px solid var(--hair-ink); }
+.nxs-cmp thead th { font-family: var(--font-nx-display), sans-serif; font-size: 17px; text-align: center; color: var(--ink); background: #f7faf9; position: sticky; top: 0; }
+.nxs-cmp thead th:nth-child(3) { background: var(--night); color: #fff; }
+.nxs-cmp tbody th { text-align: left; font-weight: 400; color: var(--ink); }
+.nxs-cmp td { text-align: center; }
+.nxs-cmp td:nth-child(3) { background: rgba(63, 245, 214, 0.06); }
+.nxs-cmp tbody tr:last-child th, .nxs-cmp tbody tr:last-child td { border-bottom: 0; }
+.nxs-cmp-yes { display: inline-grid; place-items: center; width: 30px; height: 30px; border-radius: 50%; background: var(--pine); color: #fff; }
+.nxs-cmp-no { color: #a8b6b3; }
+.nxs-cmp-pick { display: inline-block; padding: 4px 12px; border-radius: 999px; background: rgba(244, 183, 64, 0.18); color: #7a5306; font-weight: 700; font-size: 14px; }
+
+/* ═══ Legal ═══ */
+.nxs-legal { max-width: 52em; display: grid; gap: 30px; font-size: 18.5px; color: var(--soft); }
+.nxs-legal h2 { font-family: var(--font-nx-display), sans-serif; font-size: clamp(1.5rem, 2.6vw, 2rem); font-weight: 800; letter-spacing: -0.02em; color: var(--ink); margin-bottom: 10px; }
+.nxs-legal ul { list-style: disc; padding-left: 1.4em; display: grid; gap: 8px; }
+.nxs-legal a { color: var(--pine); text-decoration: underline; font-weight: 700; }
+
 /* ═══ FAQ ═══ */
 .nxs-faq { margin-top: 40px; border-top: 1px solid var(--hair-ink); }
 .nxs-faq-item { border-bottom: 1px solid var(--hair-ink); }
@@ -413,3 +450,6 @@ html:has(.nxs), body:has(.nxs) { overflow-x: clip; }
 .nxs-faq-item svg { flex-shrink: 0; color: var(--pine); transition: transform 0.4s var(--ease); }
 .nxs-faq-item[data-open="true"] svg { transform: rotate(45deg); }
 .nxs-faq-item p { padding: 0 4px 24px; max-width: 46em; color: var(--soft); font-size: 18px; }
+.nxs-cmp tbody th, .nxs-cmp thead th:first-child { position: sticky; left: 0; z-index: 1; background: #fff; box-shadow: 1px 0 0 var(--hair-ink); }
+.nxs-cmp thead th:first-child { background: #f7faf9; z-index: 2; }
+@media (max-width: 640px) { .nxs-cmp { min-width: 560px; font-size: 15.5px; } .nxs-cmp th, .nxs-cmp td { padding: 14px 12px; } .nxs-cmp tbody th { width: 46%; } }

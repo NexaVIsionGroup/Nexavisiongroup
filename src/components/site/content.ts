@@ -7,7 +7,7 @@ export const nav = [
   { label: "Business App", href: "/#app" },
   { label: "Our Work", href: "/#work" },
   { label: "Who We Help", href: "/#who" },
-  { label: "Pricing", href: "/#pricing" },
+  { label: "Pricing", href: "/pricing" },
   { label: "About", href: "/about" },
 ];
 

@@ -1,23 +1,19 @@
 import type { ReactNode } from "react";
+import { SiteShell } from "@/components/site/SiteShell";
 
-export function LegalPage({
-  title,
-  updated,
-  children,
-}: {
-  title: string;
-  updated: string;
-  children: ReactNode;
-}) {
+export function LegalPage({ title, updated, children }: { title: string; updated: string; children: ReactNode }) {
   return (
-    <main className="min-h-screen pt-32 pb-24">
-      <article className="nv-container max-w-3xl">
-        <h1 className="text-4xl md:text-5xl font-bold text-white mb-3">{title}</h1>
-        <p className="text-nv-text-muted mb-12">Last updated: {updated}</p>
-        <div className="space-y-8 text-lg leading-relaxed text-white/80 [&_h2]:text-2xl [&_h2]:font-semibold [&_h2]:text-white [&_h2]:mb-3 [&_ul]:list-disc [&_ul]:pl-6 [&_ul]:space-y-2 [&_a]:text-nv-teal [&_a]:underline">
-          {children}
+    <SiteShell>
+      <section className="nxs-dark nxs-page-hero nxs-page-hero-sm">
+        <div className="nxs-aurora" aria-hidden><i /><i /><i /></div>
+        <div className="nxs-wrap" style={{ position: "relative", zIndex: 1 }}>
+          <h1 className="nxs-display nxs-grad-glow" style={{ fontSize: "clamp(2.6rem, 6vw, 4.4rem)" }}>{title}</h1>
+          <p style={{ marginTop: 14, color: "#9fb4b0" }}>Last updated: {updated}</p>
         </div>
-      </article>
-    </main>
+      </section>
+      <section className="nxs-light nxs-section" style={{ paddingTop: 60 }}>
+        <article className="nxs-wrap nxs-legal">{children}</article>
+      </section>
+    </SiteShell>
   );
 }

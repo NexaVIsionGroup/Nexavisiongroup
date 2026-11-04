@@ -35,6 +35,13 @@ const nextConfig = {
   // already-sent links keep working via this redirect).
   async redirects() {
     return [
+      // 2026-11 site renovation: the old "revenue infrastructure" pages are retired.
+      { source: "/systems", destination: "/#app", permanent: true },
+      { source: "/lab", destination: "/#work", permanent: true },
+      { source: "/demos", destination: "/#work", permanent: true },
+      { source: "/demos/:path*", destination: "/#work", permanent: true },
+      { source: "/industries", destination: "/#who", permanent: true },
+      { source: "/industries/:path*", destination: "/#who", permanent: true },
       {
         source: "/goodmandetailing",
         destination: "/goodman",
