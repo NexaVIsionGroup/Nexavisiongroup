@@ -14,16 +14,29 @@ type State = { items: Alert[]; unread: number; badges: Record<string, number> };
 let shared: State = { items: [], unread: 0, badges: {} };
 const listeners = new Set<(s: State) => void>();
 
-async function refresh() {
-  try {
-    const r = await fetch("/api/admin/notifications", { cache: "no-store" });
-    if (!r.ok) return;
-    shared = await r.json();
-    listeners.forEach((l) => l(shared));
-    const nav = navigator as Navigator & { setAppBadge?: (n?: number) => Promise<void>; clearAppBadge?: () => Promise<void> };
-    if (shared.unread > 0) nav.setAppBadge?.(shared.unread).catch(() => {}); else nav.clearAppBadge?.().catch(() => {});
-  } catch { /* offline */ }
+let inflight: Promise<void> | null = null;
+let lastAt = 0;
+const MIN_GAP = 5000;        // every mounted bell/badge shares one poll; back-to-back mounts don't refetch
+
+async function refresh(force = false) {
+  if (inflight) return inflight;
+  if (!force && Date.now() - lastAt < MIN_GAP) return;
+  inflight = (async () => {
+    try {
+      const r = await fetch("/api/admin/notifications", { cache: "no-store" });
+      if (!r.ok) return;
+      shared = await r.json();
+      lastAt = Date.now();
+      listeners.forEach((l) => l(shared));
+      const nav = navigator as Navigator & { setAppBadge?: (n?: number) => Promise<void>; clearAppBadge?: () => Promise<void> };
+      if (shared.unread > 0) nav.setAppBadge?.(shared.unread).catch(() => {}); else nav.clearAppBadge?.().catch(() => {});
+    } catch { /* offline */ }
+    finally { inflight = null; }
+  })();
+  return inflight;
 }
+
+let lastReadPath = "";
 
 /** live alert state shared by the bell, the sidebar badges and the bottom nav */
 export function useAdminAlerts() {
@@ -41,8 +54,10 @@ export function useAdminAlerts() {
   useEffect(() => {
     if (!pathname || pathname === "/admin") return;
     const base = "/" + pathname.split("/").slice(1, 3).join("/");
+    if (base === lastReadPath) return;                      // several bells/badges on one page → one POST
+    lastReadPath = base;
     fetch("/api/admin/notifications", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "read_path", path: base }) })
-      .then(() => setTimeout(refresh, 400)).catch(() => {});
+      .then(() => setTimeout(() => refresh(true), 400)).catch(() => {});
   }, [pathname]);
   return s;
 }
@@ -126,13 +141,13 @@ export default function NotificationBell() {
   async function openAlert(a: Alert) {
     setOpen(false);
     if (!a.read) await post({ action: "read", id: a.id });
-    await refresh();
+    await refresh(true);
     if (a.action_url) router.push(a.action_url);
   }
 
   return (
     <div className="relative" ref={box}>
-      <button onClick={() => { setOpen(!open); refresh(); }} aria-label="Notifications"
+      <button onClick={() => { setOpen(!open); refresh(true); }} aria-label="Notifications"
         className="relative p-2 rounded-lg text-nv-text-muted hover:text-nv-teal hover:bg-white/5 transition-colors">
         {unread > 0 ? <BellRing size={21} className="text-nv-teal" /> : <Bell size={21} />}
         {unread > 0 && (
@@ -146,7 +161,7 @@ export default function NotificationBell() {
           <div className="flex items-center px-4 py-3 border-b border-white/5">
             <div className="text-[14px] font-semibold text-nv-text-primary">Notifications</div>
             {unread > 0 && (
-              <button onClick={async () => { await post({ action: "read_all" }); refresh(); }} className="ml-auto text-[12.5px] text-nv-teal flex items-center gap-1">
+              <button onClick={async () => { await post({ action: "read_all" }); refresh(true); }} className="ml-auto text-[12.5px] text-nv-teal flex items-center gap-1">
                 <Check size={13} /> Mark all read
               </button>
             )}

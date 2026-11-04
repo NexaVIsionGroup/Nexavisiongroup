@@ -57,20 +57,24 @@ function avatarColor(email: string): string {
   return colors[Math.abs(hash) % colors.length];
 }
 
+// Declared at module level on purpose: a component created inside AdminInbox's render would be a new type on
+// every render, making React unmount + remount the whole inbox each time state changes.
+const Theme = ({ light, children }: { light: boolean; children: React.ReactNode }) => (
+  <div className={cn("contents", light && "nv-light")}>{children}</div>
+);
+const ThemeButton = ({ light, onToggle, className }: { light: boolean; onToggle: () => void; className?: string }) => (
+  <button onClick={onToggle} aria-label={light ? "Switch to dark mode" : "Switch to light mode"} title={light ? "Dark mode" : "Light mode"}
+    className={cn("p-2 rounded-full text-nv-text-muted hover:text-nv-teal hover:bg-white/5 transition-colors", className)}>
+    {light ? <Moon size={20} /> : <Sun size={20} />}
+  </button>
+);
+
 export default function AdminInbox() {
   const router = useRouter();
   // ── Theme: light/dark for the mail client only (saved on the device) ──
   const [light, setLight] = useState(false);
   useEffect(() => { try { setLight(localStorage.getItem("nv_inbox_theme") === "light"); } catch { /* ignore */ } }, []);
   const toggleTheme = () => setLight((l) => { const n = !l; try { localStorage.setItem("nv_inbox_theme", n ? "light" : "dark"); } catch { /* ignore */ } return n; });
-  // every view is wrapped in this (display: contents → no layout change; `nv-light` re-colours the children)
-  const Theme = ({ children }: { children: React.ReactNode }) => <div className={cn("contents", light && "nv-light")}>{children}</div>;
-  const ThemeButton = ({ className }: { className?: string }) => (
-    <button onClick={toggleTheme} aria-label={light ? "Switch to dark mode" : "Switch to light mode"} title={light ? "Dark mode" : "Light mode"}
-      className={cn("p-2 rounded-full text-nv-text-muted hover:text-nv-teal hover:bg-white/5 transition-colors", className)}>
-      {light ? <Moon size={20} /> : <Sun size={20} />}
-    </button>
-  );
   const goDashboard = () => router.push("/admin");
 
   // ── State ──
@@ -347,7 +351,7 @@ export default function AdminInbox() {
   // ═══════════════════════════════════════════
   if (view === "accounts") {
     return (
-      <Theme>
+      <Theme light={light}>
       <div className="fixed inset-0 z-[60] bg-nv-void flex flex-col">
         {/* Header */}
         <div className="flex items-center gap-3 px-5 py-4 border-b border-white/5">
@@ -513,7 +517,7 @@ export default function AdminInbox() {
   // ═══════════════════════════════════════════
   if (view === "compose") {
     return (
-      <Theme>
+      <Theme light={light}>
       <div className="fixed inset-0 z-[60] bg-nv-void flex flex-col">
         <div className="flex items-center gap-2 px-4 py-3 border-b border-white/5">
           <button onClick={() => window.history.back()} className="p-1.5 rounded-full text-nv-text-muted hover:text-nv-text-primary hover:bg-white/5">
@@ -613,7 +617,7 @@ export default function AdminInbox() {
   // ═══════════════════════════════════════════
   if (view === "thread" && selectedThread) {
     return (
-      <Theme>
+      <Theme light={light}>
       <div className="fixed inset-0 z-[60] bg-nv-void flex flex-col">
         {/* Thread toolbar */}
         <div className="flex items-center gap-1 px-2 py-2 border-b border-white/5">
@@ -621,7 +625,7 @@ export default function AdminInbox() {
             <ChevronLeft size={24} />
           </button>
           <div className="flex-1" />
-          <ThemeButton />
+          <ThemeButton light={light} onToggle={toggleTheme} />
           <button onClick={() => threadAction("trash")} className="p-2 rounded-full text-nv-text-muted hover:text-nv-error hover:bg-white/5">
             <Trash2 size={20} />
           </button>
@@ -800,7 +804,7 @@ export default function AdminInbox() {
   // MAIN LIST VIEW
   // ═══════════════════════════════════════════
   return (
-    <Theme>
+    <Theme light={light}>
     <div className="h-full flex flex-col bg-nv-void relative">
       {sidebarOpen && <Sidebar />}
 
@@ -822,7 +826,7 @@ export default function AdminInbox() {
         </div>
 
         {/* Theme toggle lives in the drawer + thread toolbar on phones; the top bar is too narrow for it */}
-        <ThemeButton className="p-1.5 hidden sm:inline-flex" />
+        <ThemeButton light={light} onToggle={toggleTheme} className="p-1.5 hidden sm:inline-flex" />
         <NotificationBell />
 
         {/* Account avatar — opens account switcher */}
