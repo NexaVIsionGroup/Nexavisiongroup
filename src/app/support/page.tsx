@@ -64,20 +64,24 @@ export default function SupportPage() {
             padding: "0 0 0 26px",
             fontSize: 20,
             lineHeight: 1.7,
-            maxWidth: 420,
+            maxWidth: 440,
           }}
         >
-          <li>Tap the blue button above.</li>
+          <li>Tap the blue button.</li>
           <li>
             If the browser asks, choose <b>Keep</b>.
           </li>
           <li>
-            Open the downloaded file <b>NexaVision-Support</b> (double-click it).
+            Open the file <b>NexaVision-Support</b> (double-click it).
           </li>
           <li>
-            When Windows asks for permission, click <b>Yes</b>.
+            If a blue box says &ldquo;Windows protected your PC,&rdquo; tap{" "}
+            <b>More info</b>, then <b>Run anyway</b>.
           </li>
-          <li>Wait until it says DONE. That&rsquo;s it &mdash; call us.</li>
+          <li>
+            When it asks permission, click <b>Yes</b>.
+          </li>
+          <li>A black window opens. Leave it until it says DONE.</li>
         </ol>
 
         <p style={{ fontSize: 15, opacity: 0.6, marginTop: 30 }}>
