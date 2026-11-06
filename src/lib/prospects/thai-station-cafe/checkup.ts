@@ -253,6 +253,26 @@ export const thaiStation: Template = {
           },
           userLabel: "Google account email",
         }),
+        access({
+          id: "acc_google_public",
+          platform: "Your Google listing with the reviews",
+          what: "“Thai Station Cafe babylon”, the one with about 600 reviews",
+          priority: "key",
+          color: "#EA4335",
+          why: "Thanks for the Google login! We found two listings. The one under Fone@bangkokstreetfoodbyfone.com is a duplicate that Google has hidden. The real one your customers see (4.7 stars, about 600 reviews) is managed from a different Google account. It might be Khunfone1@gmail.com, or whoever set up your website. Please add us to that one.",
+          invite: {
+            role: "Owner",
+            url: "https://maps.app.goo.gl/zscCtQUpHkmDptRU8",
+            steps: [
+              "Sign in to Google with Khunfone1@gmail.com (or whichever account you think manages it).",
+              "Search “Thai Station Cafe babylon” on Google. If you see “You manage this Business Profile”, that's the right account.",
+              "Tap the ⋮ (three dots) on your business panel, then Business Profile settings, then People and access.",
+              `Tap Add, type ${US}, choose Owner, then Invite.`,
+              "Not sure which account it is, or don't see that option? Pick “Call me” and we'll sort it out together.",
+            ],
+          },
+          userLabel: "Google account email",
+        }),
       ],
     },
     {
