@@ -131,7 +131,8 @@ export function useSigning(p: PublicProposal, token: string, preview: boolean) {
         setBusy(false);
         return;
       }
-      window.location.assign(`/project/${token}`);
+      // Straight to the next step: the card form, or payment, if there is one.
+      window.location.assign(offerAutopay && autopay === true ? `/project/${token}/card` : due > 0 ? `/project/${token}/pay` : `/project/${token}`);
     } catch {
       setErr("Your connection dropped before we could save this. Check your connection and try again.");
       setBusy(false);

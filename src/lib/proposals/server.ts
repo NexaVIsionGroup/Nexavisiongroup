@@ -140,7 +140,7 @@ async function billingPost(payload: Record<string, unknown>) {
 }
 
 /** Creates the customer's automatic billing the first time, or returns what exists. Nothing charges until a card and a date are set. */
-export async function ensureSubscription(p: any) {
+export async function ensureSubscription(p: any, dueInvoice?: string | null) {
   const content: ProposalContent = normalizeContent(p.signed_snapshot?.content || p.content);
   const pkg = content.packages.find((x) => x.id === p.selected_package_id) || defaultPackage(content);
   const amount = pkg ? firstMonthly(pkg) : 0;
@@ -152,7 +152,7 @@ export async function ensureSubscription(p: any) {
     pkg.percent ? `Plus ${pkg.percent.rate}% of ${pkg.percent.of}` : "",
   ].filter(Boolean).join(". ");
   return billingPost({
-    action: "ensure", order_id: p.id, amount, plan_name: pkg.name, reference: p.number, plan_note, return_url: projectUrl(p.token),
+    action: "ensure", order_id: p.id, due_invoice: dueInvoice || undefined, amount, plan_name: pkg.name, reference: p.number, plan_note, return_url: projectUrl(p.token),
     customer: { name: p.client_name || p.client_company || p.signed_name, email: p.client_email, phone: p.client_phone || undefined, company: p.client_company || undefined },
   });
 }
@@ -208,8 +208,8 @@ export async function emailSignedCopy(p: any, pdf: Buffer | null) {
       from: FROM, to: p.client_email, replyTo: INBOX, attachments,
       subject: `Signed copy: ${p.title}`,
       html: shell("Thank you. You're all signed.",
-        `<p style="margin:0 0 12px">Your signed copy of <b>${esc(p.title)}</b> is ${pdf ? "attached" : "on your project page"}. Keep it for your records.</p>${due > 0 ? `<p style="margin:0 0 12px">The next step is your payment of <b>${money(total)}</b>.</p>` : autopay ? "" : `<p style="margin:0">We'll be in touch with next steps.</p>`}${autopay ? `<p style="margin:0">You chose automatic monthly billing. ${due > 0 ? `After your payment, <a href="${projectUrl(p.token)}/card">save your card here</a>.` : "Save your card with the button below."} Nothing is charged when you save it, and we'll email you the date and amount before the first charge.</p>` : ""}`,
-        due > 0 ? { label: "Make your payment", href: `${projectUrl(p.token)}/pay` } : autopay ? { label: "Save your card", href: `${projectUrl(p.token)}/card` } : { label: "Open your project page", href: projectUrl(p.token) }),
+        `<p style="margin:0 0 12px">Your signed copy of <b>${esc(p.title)}</b> is ${pdf ? "attached" : "on your project page"}. Keep it for your records.</p>${due > 0 ? `<p style="margin:0 0 12px">The next step is your payment of <b>${money(total)}</b>.</p>` : autopay ? "" : `<p style="margin:0">We'll be in touch with next steps.</p>`}${autopay ? `<p style="margin:0">You chose automatic monthly billing. If you haven't finished yet, the button below takes you to your card form. We'll email you the date and amount before your first monthly charge.</p>` : ""}`,
+        due > 0 ? { label: autopay ? "Pay and save your card" : "Make your payment", href: `${projectUrl(p.token)}/${autopay ? "card" : "pay"}` } : autopay ? { label: "Save your card", href: `${projectUrl(p.token)}/card` } : { label: "Open your project page", href: projectUrl(p.token) }),
     });
   }
   await resend.emails.send({

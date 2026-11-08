@@ -45,8 +45,8 @@ export function ProposalView({ proposal: p, token, preview = false, share = fals
             <p>{p.signed_name} signed this on {stamp(p.signed_at!)}. A signed copy went to {p.client_email || "your email"}.</p>
             {payError && <p className="nxp-error" role="alert">We couldn&apos;t open the payment page just now. Try again in a minute, or reply to your signed-copy email.</p>}
             <div className="nxp-actions">
-              {due > 0 && !p.paid_at && !preview && <a className="nxp-btn" href={`/project/${token}/pay`}>Pay {money(due + fee)}</a>}
-              {p.autopay_opt_in && !preview && <a className="nxp-btn nxp-btn-ghost" href={`/project/${token}/card`}>Save or update your card</a>}
+              {due > 0 && !p.paid_at && !preview && <a className="nxp-btn" href={`/project/${token}/${p.autopay_opt_in ? "card" : "pay"}`}>{p.autopay_opt_in ? `Pay ${money(due + fee)} and save your card` : `Pay ${money(due + fee)}`}</a>}
+              {p.autopay_opt_in && (!(due > 0) || p.paid_at) && !preview && <a className="nxp-btn nxp-btn-ghost" href={`/project/${token}/card`}>Save or update your card</a>}
               <a className="nxp-btn nxp-btn-ghost" href={`/api/project/${token}/pdf`}><Download size={18} aria-hidden /> Download signed copy</a>
             </div>
             {due > 0 && p.paid_at && <p className="nxp-paid"><Check size={18} aria-hidden /> Payment received on {longDate(p.paid_at)}. Thank you.</p>}
@@ -187,7 +187,7 @@ export function ProposalView({ proposal: p, token, preview = false, share = fals
               {s.err && <p className="nxp-error" role="alert">{s.err}</p>}
               <button className="nxp-btn nxp-btn-big" type="submit" disabled={s.busy}>
                 {s.busy ? <Loader2 size={20} className="animate-spin" aria-hidden /> : <Lock size={18} aria-hidden />}
-                {s.busy ? "Saving your signature" : due > 0 ? "Sign, then go to payment" : "Sign proposal"}
+                {s.busy ? "Saving your signature" : due > 0 ? "Sign and continue to payment" : s.autopay === true ? "Sign and continue to your card" : "Sign proposal"}
               </button>
             </form>
           </section>

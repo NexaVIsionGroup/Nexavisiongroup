@@ -54,8 +54,8 @@ export function RichProposal({ proposal: p, token, preview = false, share = fals
             <p>{p.signed_name} signed this on {stamp(p.signed_at!)}. A signed copy went to {p.client_email || "your email"}.</p>
             {payError && <p className="pr-error" role="alert">We couldn&apos;t open the payment page just now. Try again in a minute, or reply to your signed-copy email.</p>}
             <div className="pr-ctas">
-              {s.due > 0 && !p.paid_at && !preview && <a className="pr-btn pr-btn-gold" href={`/project/${token}/pay`}>Pay {money(s.due + s.fee)} <ArrowRight size={20} /></a>}
-              {p.autopay_opt_in && !preview && <a className="pr-btn pr-btn-ghost" href={`/project/${token}/card`}>Save or update your card</a>}
+              {s.due > 0 && !p.paid_at && !preview && <a className="pr-btn pr-btn-gold" href={`/project/${token}/${p.autopay_opt_in ? "card" : "pay"}`}>{p.autopay_opt_in ? `Pay ${money(s.due + s.fee)} and save your card` : `Pay ${money(s.due + s.fee)}`} <ArrowRight size={20} /></a>}
+              {p.autopay_opt_in && (!(s.due > 0) || p.paid_at) && !preview && <a className="pr-btn pr-btn-ghost" href={`/project/${token}/card`}>Save or update your card</a>}
               <a className="pr-btn pr-btn-ghost" href={`/api/project/${token}/pdf`}><Download size={18} aria-hidden /> Download signed copy</a>
             </div>
             {s.due > 0 && p.paid_at && <p className="pr-paid"><Check size={18} aria-hidden /> Payment received on {longDate(p.paid_at)}. Thank you.</p>}
@@ -237,7 +237,7 @@ export function RichProposal({ proposal: p, token, preview = false, share = fals
               <p>{c.payment.autopay?.text || "Your card is charged on the same day each month, so your service never pauses. Switch it off any time by emailing us."}</p>
               {s.signed ? (
                 <p className="pr-autopay-chosen">
-                  {p.autopay_opt_in ? <><Check size={18} aria-hidden /> You chose automatic monthly billing. Nothing is charged when you save your card, and we&apos;ll email you the date and amount before the first charge.</> : <>You chose to pay each monthly invoice yourself.</>}
+                  {p.autopay_opt_in ? <><Check size={18} aria-hidden /> You chose automatic monthly billing. We&apos;ll email you the date and amount before your first monthly charge.</> : <>You chose to pay each monthly invoice yourself.</>}
                 </p>
               ) : (
                 <div className="pr-choices" role="radiogroup" aria-label="Monthly billing">
@@ -297,7 +297,7 @@ export function RichProposal({ proposal: p, token, preview = false, share = fals
                 {s.err && <p className="pr-error" role="alert">{s.err}</p>}
                 <button className="pr-btn pr-btn-gold pr-btn-wide" type="submit" disabled={s.busy}>
                   {s.busy ? <Loader2 size={20} className="animate-spin" aria-hidden /> : <Lock size={18} aria-hidden />}
-                  {s.busy ? "Saving your signature" : s.due > 0 ? `Sign, then pay ${money(s.due + s.fee)}` : "Sign proposal"}
+                  {s.busy ? "Saving your signature" : s.due > 0 ? `Sign and continue to pay ${money(s.due + s.fee)}` : s.autopay === true ? "Sign and continue to your card" : "Sign proposal"}
                 </button>
                 <p className="pr-fine">Questions first? Email <a href="mailto:info@nexavisiongroup.com">info@nexavisiongroup.com</a> and we&apos;ll answer before you sign anything.</p>
               </form>
