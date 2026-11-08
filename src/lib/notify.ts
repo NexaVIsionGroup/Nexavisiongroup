@@ -8,7 +8,7 @@ import { createClient } from "@supabase/supabase-js";
 
 export type NotifyKind =
   | "email" | "questionnaire_submitted" | "contact" | "intake" | "verification"
-  | "phone_lead" | "phone_order" | "vm_signup" | "nexavideo_request" | "nexavideo_signup" | "test";
+  | "phone_lead" | "phone_order" | "vm_signup" | "nexavideo_request" | "nexavideo_signup" | "proposal" | "test";
 
 // reads must be live (Next 14 caches fetch GETs in route handlers otherwise)
 const noStore: typeof fetch = (input, init) => fetch(input, { ...init, cache: "no-store" });

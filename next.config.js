@@ -12,6 +12,7 @@ const nextConfig = {
   },
   // Performance optimizations
   reactStrictMode: true,
+  experimental: { serverComponentsExternalPackages: ["@react-pdf/renderer"] },
   poweredByHeader: false,
   compress: true,
 

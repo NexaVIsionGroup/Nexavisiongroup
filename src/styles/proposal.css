@@ -1,0 +1,106 @@
+/* Customer proposal / project page. Scoped under .nxp, same palette and fonts as the marketing site. */
+.nxp {
+  --p-bg: #f5f7f4; --p-surface: #ffffff; --p-ink: #10211f; --p-muted: #51625f; --p-line: #d5dedb;
+  --p-pine: #0f5c55; --p-pine-soft: #dcebe7; --p-sun: #f4b740; --p-sun-soft: #fbeecb; --p-dark: #0d1d1b; --p-red: #a4231b;
+  background: var(--p-bg); color: var(--p-ink);
+  font-family: var(--font-nx-body), "Segoe UI", sans-serif; font-size: 18px; line-height: 1.55;
+}
+.nxp-page { min-height: 100vh; }
+.nxp-wrap { width: 100%; max-width: 860px; margin: 0 auto; padding-left: max(18px, env(safe-area-inset-left, 0px)); padding-right: max(18px, env(safe-area-inset-right, 0px)); }
+.nxp h1, .nxp h2, .nxp h3 { font-family: var(--font-nx-display), "Trebuchet MS", sans-serif; text-wrap: balance; margin: 0; }
+.nxp p { margin: 0; }
+.nxp a { color: inherit; }
+
+.nxp-hero { position: relative; overflow: hidden; color: #fff; padding-block: 26px 58px;
+  background: radial-gradient(90% 120% at 90% -10%, rgba(15, 92, 85, .85), transparent 62%), radial-gradient(60% 90% at 0% 110%, rgba(244, 183, 64, .16), transparent 70%), var(--p-dark); }
+.nxp-hero-in { display: grid; gap: 12px; }
+.nxp-brand { margin-bottom: 30px; }
+.nxp-kind { font-weight: 700; font-size: 16px; color: var(--p-sun); }
+.nxp-hero h1 { font-size: clamp(36px, 7vw, 62px); font-weight: 800; line-height: 1.04; letter-spacing: -.02em; }
+.nxp-for { color: #c6d8d4; font-size: 18px; }
+.nxp-for b { color: #fff; }
+
+.nxp-main { display: grid; gap: 58px; padding-block: 44px 76px; }
+.nxp-main > section { display: grid; gap: 20px; min-width: 0; }
+.nxp-main h2 { font-size: clamp(27px, 4.2vw, 36px); font-weight: 700; line-height: 1.12; letter-spacing: -.01em; }
+.nxp-main h3 { font-size: 20px; font-weight: 700; line-height: 1.2; }
+.nxp-intro { font-size: 21px; line-height: 1.5; max-width: 66ch; }
+
+.nxp-note { display: flex; gap: 10px; align-items: flex-start; padding: 13px 15px; border-radius: 10px; font-size: 16px; }
+.nxp-note svg { flex: none; margin-top: 3px; }
+.nxp-note-sun { background: var(--p-sun-soft); border: 1px solid var(--p-sun); }
+
+.nxp-done { background: var(--p-pine-soft); border: 1px solid #b4d3cc; border-radius: 16px; padding: 24px; display: grid; gap: 14px; }
+.nxp-done h2 { display: flex; align-items: center; gap: 10px; font-size: 28px; color: var(--p-pine); }
+.nxp-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+.nxp-paid { display: flex; align-items: center; gap: 8px; font-weight: 700; color: var(--p-pine); }
+
+.nxp-findings { display: grid; gap: 14px; }
+.nxp-findings article { background: var(--p-surface); border-left: 4px solid var(--p-sun); border-radius: 0 12px 12px 0; padding: 17px 19px; display: grid; gap: 7px; min-width: 0; }
+.nxp-findings img { width: 100%; max-height: 380px; object-fit: cover; object-position: top; border-radius: 8px; border: 1px solid var(--p-line); margin-bottom: 6px; }
+
+.nxp-goals { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
+.nxp-goals li { display: flex; gap: 12px; align-items: flex-start; font-size: 19px; }
+.nxp-goals svg { color: var(--p-pine); flex: none; margin-top: 5px; }
+
+.nxp-work { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 330px), 1fr)); gap: 30px 34px; }
+.nxp-work article { display: grid; gap: 8px; align-content: start; border-top: 3px solid var(--p-pine); padding-top: 13px; min-width: 0; }
+.nxp-work ul { margin: 0; padding-left: 20px; display: grid; gap: 5px; }
+
+.nxp-time { list-style: none; margin: 0; padding: 0; }
+.nxp-time li { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 2px 16px; padding: 13px 0; border-bottom: 1px solid var(--p-line); }
+.nxp-time span { color: var(--p-muted); }
+
+.nxp-pkgs { display: grid; gap: 14px; }
+.nxp-pkg { display: grid; gap: 10px; width: 100%; min-width: 0; text-align: left; font: inherit; color: inherit; background: var(--p-surface); border: 2px solid var(--p-line); border-radius: 14px; padding: 20px; }
+button.nxp-pkg { cursor: pointer; transition: border-color .15s, box-shadow .15s; }
+button.nxp-pkg:hover { border-color: #8db7ae; }
+.nxp-pkg.is-on { border-color: var(--p-pine); box-shadow: 0 0 0 1px var(--p-pine); }
+.nxp-pkg-head { display: flex; flex-wrap: wrap; gap: 6px 12px; align-items: center; font-family: var(--font-nx-display), sans-serif; font-size: 22px; }
+.nxp-pkg-head em { font-style: normal; font-family: var(--font-nx-body), sans-serif; font-size: 14px; font-weight: 700; background: var(--p-sun); color: var(--p-dark); border-radius: 999px; padding: 2px 11px; }
+.nxp-price { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; font-variant-numeric: tabular-nums; }
+.nxp-price strong { font-family: var(--font-nx-display), sans-serif; font-size: 30px; line-height: 1.1; color: var(--p-pine); }
+.nxp-price small { font-size: 16px; font-weight: 500; }
+.nxp-price i { font-style: normal; color: var(--p-muted); }
+.nxp-pkg-text { color: var(--p-muted); }
+.nxp-inc { display: grid; gap: 6px; }
+.nxp-inc > span { display: flex; gap: 8px; align-items: flex-start; }
+.nxp-inc svg { flex: none; margin-top: 6px; color: var(--p-pine); }
+
+.nxp-due { margin: 0; display: grid; background: var(--p-surface); border-radius: 12px; padding: 5px 18px; font-variant-numeric: tabular-nums; }
+.nxp-due > div { display: flex; justify-content: space-between; gap: 16px; padding: 12px 0; border-bottom: 1px solid var(--p-line); }
+.nxp-due > div:last-child { border-bottom: 0; }
+.nxp-due dd { margin: 0; font-weight: 700; }
+.nxp-due .is-total { font-size: 20px; font-weight: 700; }
+
+.nxp-terms { display: grid; gap: 16px; font-size: 16.5px; }
+.nxp-terms > div { display: grid; gap: 3px; }
+.nxp-terms h3 { font-size: 17px !important; }
+
+.nxp-sign { background: var(--p-surface); border: 1px solid var(--p-line); border-radius: 16px; padding: 22px; display: grid; gap: 20px; }
+.nxp-fields { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr)); gap: 14px; }
+.nxp-fields label, .nxp-label { display: grid; gap: 6px; font-weight: 700; font-size: 16px; }
+.nxp-label { margin-bottom: 6px !important; }
+.nxp-fields input { font: inherit; font-weight: 400; color: var(--p-ink); background: #fff; border: 1.5px solid #8a9b97; border-radius: 9px; padding: 12px 13px; min-height: 50px; width: 100%; }
+.nxp-pad { display: block; width: 100%; height: 170px; background: #fff; border: 2px dashed #8a9b97; border-radius: 10px; touch-action: none; cursor: crosshair; }
+.nxp-clear { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; background: none; border: 0; font: inherit; font-size: 16px; font-weight: 700; color: var(--p-muted); cursor: pointer; padding: 0; }
+.nxp-agree { display: flex; gap: 12px; align-items: flex-start; font-size: 16.5px; cursor: pointer; }
+.nxp-agree input { width: 24px; height: 24px; flex: none; margin-top: 2px; accent-color: var(--p-pine); }
+.nxp-error { color: var(--p-red); font-weight: 700; }
+
+.nxp-btn { display: inline-flex; align-items: center; justify-content: center; gap: 9px; min-height: 52px; padding: 12px 24px; background: var(--p-pine); color: #fff !important; text-decoration: none; border: 2px solid var(--p-pine); border-radius: 11px; font: inherit; font-weight: 700; cursor: pointer; }
+.nxp-btn:disabled { opacity: .7; cursor: progress; }
+.nxp-btn-ghost { background: transparent; color: var(--p-pine) !important; }
+.nxp-btn-big { width: 100%; min-height: 60px; font-size: 19px; }
+.nxp button:focus-visible, .nxp a:focus-visible, .nxp input:focus-visible { outline: 3px solid var(--p-sun); outline-offset: 2px; }
+
+.nxp-signed { background: var(--p-surface); border: 1px solid var(--p-line); border-radius: 12px; padding: 18px; display: grid; gap: 6px; }
+.nxp-signed img { max-width: 320px; width: 100%; height: auto; }
+.nxp-fine { font-size: 14px; color: var(--p-muted); overflow-wrap: anywhere; }
+
+.nxp-foot { background: var(--p-dark); color: #d4e2df; padding-block: 28px; font-size: 16px; }
+.nxp-foot b { color: #fff; }
+.nxp-notice { display: grid; place-items: center; text-align: center; padding: 30px 20px; }
+.nxp-notice > div { display: grid; gap: 12px; max-width: 480px; }
+.nxp-notice h1 { font-size: 34px; }
+.nxp-notice .nxp-kind { color: var(--p-pine); }

@@ -1,0 +1,166 @@
+import { createHash, createHmac, randomBytes } from "crypto";
+import { Resend } from "resend";
+import { notifyAdmin, notifyDb } from "@/lib/notify";
+import { BUSINESS_NAME, normalizeContent, money, surchargeOn, type ProposalContent, type PublicProposal } from "./types";
+
+export const SITE = process.env.NEXT_PUBLIC_SITE_URL || "https://nexavisiongroup.com";
+export const FROM = `${BUSINESS_NAME} <info@nexavisiongroup.com>`;
+export const INBOX = "info@nexavisiongroup.com";
+
+// Must read live: Next 14 otherwise caches these reads, and a customer would see a stale status.
+export const db = () => notifyDb();
+export const newToken = () => randomBytes(18).toString("base64url");
+export function newNumber() {
+  const d = new Date();
+  return `NV-${String(d.getFullYear()).slice(2)}${String(d.getMonth() + 1).padStart(2, "0")}-${randomBytes(2).toString("hex").toUpperCase()}`;
+}
+export const projectUrl = (token: string) => `${SITE}/project/${token}`;
+
+/** Same input always gives the same text, whatever order the keys were saved in. */
+function stable(v: unknown): string {
+  if (Array.isArray(v)) return `[${v.map(stable).join(",")}]`;
+  if (v && typeof v === "object") {
+    const o = v as Record<string, unknown>;
+    return `{${Object.keys(o).sort().map((k) => `${JSON.stringify(k)}:${stable(o[k])}`).join(",")}}`;
+  }
+  return JSON.stringify(v ?? null);
+}
+export const fingerprint = (v: unknown) => createHash("sha256").update(stable(v)).digest("hex");
+
+export const clientIp = (req: Request) => req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || req.headers.get("x-real-ip") || "unknown";
+
+export async function logEvent(proposalId: string, event: string, req?: Request, meta: Record<string, unknown> = {}) {
+  await db().from("proposal_events").insert({
+    proposal_id: proposalId, event, meta,
+    ip: req ? clientIp(req) : null,
+    user_agent: req ? (req.headers.get("user-agent") || "").slice(0, 300) : null,
+  });
+}
+
+/** Only these fields ever reach the customer's browser. */
+export function toPublic(p: any): PublicProposal {
+  return {
+    number: p.number, title: p.title, status: p.status, division: p.division,
+    client_name: p.client_name, client_company: p.client_company, client_email: p.client_email,
+    content: normalizeContent(p.signed_snapshot?.content || p.content),
+    sent_at: p.sent_at, expires_at: p.expires_at, updated_at: p.updated_at,
+    signed_at: p.signed_at, signed_name: p.signed_name, signed_title: p.signed_title,
+    signature_data: p.signature_data, signed_hash: p.signed_hash,
+    selected_package_id: p.selected_package_id, due_amount: p.due_amount == null ? null : Number(p.due_amount), paid_at: p.paid_at,
+  };
+}
+
+export type LinkState = "ok" | "missing" | "paused" | "expired";
+export function linkState(p: any): LinkState {
+  if (!p || p.status === "draft") return "missing";
+  if (p.link_enabled === false) return "paused";
+  if (!p.signed_at && p.expires_at && new Date(p.expires_at) < new Date()) return "expired";
+  return "ok";
+}
+
+// ── Payment bridge: the same signed link the Nexa store uses ──
+function signed(message: string) {
+  const secret = process.env.NEXA_ORDER_SECRET;
+  const base = process.env.JHPS_BASE_URL;
+  if (!secret || !base) throw new Error("Payment link not configured");
+  const ts = String(Math.floor(Date.now() / 1000));
+  return { base, headers: { "X-Nexa-Timestamp": ts, "X-Nexa-Signature": "sha256=" + createHmac("sha256", secret).update(`${ts}.${message}`).digest("hex") } };
+}
+
+/** Creates the invoice for what's due at signing, or returns the one that already exists. */
+export async function ensureInvoice(p: any): Promise<string> {
+  if (p.pay_url) return p.pay_url;
+  const content: ProposalContent = normalizeContent(p.signed_snapshot?.content || p.content);
+  const due = Number(p.due_amount) || 0;
+  if (due <= 0) throw new Error("Nothing due");
+  const body = JSON.stringify({
+    kind: "service",
+    order_id: p.id,
+    customer: { name: p.client_name || p.client_company || p.signed_name, email: p.client_email, phone: p.client_phone || undefined, company: p.client_company || undefined },
+    items: [{ description: `${p.title}: payment due at signing (${p.number})`, quantity: 1, unit_price: due }],
+    surcharge: !!content.payment.surcharge,
+    notes: `Proposal ${p.number}`,
+    return_url: projectUrl(p.token),
+  });
+  const { base, headers } = signed(body);
+  const r = await fetch(`${base}/api/external/nexa-order`, {
+    method: "POST", headers: { "Content-Type": "application/json", ...headers }, body, cache: "no-store", signal: AbortSignal.timeout(20000),
+  });
+  const j = await r.json();
+  if (!r.ok || !j.pay_url) throw new Error(j.error || `Invoice failed (${r.status})`);
+  await db().from("proposals").update({ invoice_number: j.invoice_number, pay_url: j.pay_url }).eq("id", p.id);
+  await logEvent(p.id, "invoice_created", undefined, { invoice_number: j.invoice_number, total: j.total });
+  return j.pay_url;
+}
+
+/** Asks the payment system whether the invoice has been paid. Never throws. */
+export async function syncPaid(p: any): Promise<any> {
+  if (!p?.invoice_number || p.paid_at) return p;
+  try {
+    const { base, headers } = signed(p.id);
+    const r = await fetch(`${base}/api/external/nexa-order?order_id=${p.id}`, { headers, cache: "no-store", signal: AbortSignal.timeout(6000) });
+    if (!r.ok) return p;
+    const j = await r.json();
+    if (j.status !== "paid") return p;
+    const paid_at = j.paid_date ? new Date(j.paid_date).toISOString() : new Date().toISOString();
+    const { data } = await db().from("proposals").update({ paid_at }).eq("id", p.id).is("paid_at", null).select("id");
+    if (data?.length) {
+      await logEvent(p.id, "paid", undefined, { invoice_number: p.invoice_number, amount: j.amount_paid });
+      await notifyAdmin({ type: "proposal", title: `💰 Paid: ${p.client_company || p.client_name || p.title}`, message: `${money(Number(j.amount_paid) || 0)} on ${p.number}`, url: `/admin/proposals/${p.id}`, entityType: "proposal", entityId: p.id });
+    }
+    return { ...p, paid_at };
+  } catch {
+    return p;
+  }
+}
+
+// ── Email ──
+const shell = (heading: string, body: string, button?: { label: string; href: string }) => `
+<div style="background:#eef2f0;padding:28px 12px;font-family:Arial,Helvetica,sans-serif;color:#10211f">
+  <div style="max-width:560px;margin:0 auto;background:#ffffff;border-radius:14px;overflow:hidden">
+    <div style="background:#0d1d1b;color:#ffffff;padding:20px 26px;font-size:18px;font-weight:700">${BUSINESS_NAME}</div>
+    <div style="padding:26px;font-size:16px;line-height:1.55">
+      <h1 style="margin:0 0 14px;font-size:23px;line-height:1.2">${heading}</h1>
+      ${body}
+      ${button ? `<p style="margin:24px 0 8px"><a href="${button.href}" style="display:inline-block;background:#0f5c55;color:#ffffff;text-decoration:none;font-weight:700;padding:14px 24px;border-radius:9px">${button.label}</a></p>` : ""}
+    </div>
+    <div style="padding:16px 26px;border-top:1px solid #dfe6e3;color:#51625f;font-size:14px">${BUSINESS_NAME} · ${INBOX} · nexavisiongroup.com</div>
+  </div>
+</div>`;
+
+const esc = (s: unknown) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]!));
+
+export async function emailProposal(p: any) {
+  if (!p.client_email) throw new Error("This customer has no email address");
+  const first = esc((p.client_name || "").split(" ")[0] || "there");
+  const { error } = await new Resend(process.env.RESEND_API_KEY).emails.send({
+    from: FROM, to: p.client_email, replyTo: INBOX,
+    subject: `Your proposal from ${BUSINESS_NAME}: ${p.title}`,
+    html: shell(`Hi ${first}, your proposal is ready`,
+      `<p style="margin:0 0 12px">We put together <b>${esc(p.title)}</b> for ${esc(p.client_company || "your business")}. It covers what we found, your goals, what we'd do and what it costs.</p><p style="margin:0">Read it on your phone or computer, and sign right on the page when you're ready. Questions? Just reply to this email.</p>`,
+      { label: "Open your proposal", href: `${projectUrl(p.token)}?from=email` }),
+  });
+  if (error) throw new Error(error.message);
+}
+
+export async function emailSignedCopy(p: any, pdf: Buffer | null) {
+  const content = normalizeContent(p.signed_snapshot?.content || p.content);
+  const due = Number(p.due_amount) || 0;
+  const total = due + surchargeOn(content, due);
+  const attachments = pdf ? [{ filename: `${p.number}-signed.pdf`, content: pdf }] : undefined;
+  const resend = new Resend(process.env.RESEND_API_KEY);
+  if (p.client_email) {
+    await resend.emails.send({
+      from: FROM, to: p.client_email, replyTo: INBOX, attachments,
+      subject: `Signed copy: ${p.title}`,
+      html: shell("Thank you. You're all signed.",
+        `<p style="margin:0 0 12px">Your signed copy of <b>${esc(p.title)}</b> is ${pdf ? "attached" : "on your project page"}. Keep it for your records.</p>${due > 0 ? `<p style="margin:0">The next step is your payment of <b>${money(total)}</b>.</p>` : `<p style="margin:0">We'll be in touch with next steps.</p>`}`,
+        { label: due > 0 ? "Make your payment" : "Open your project page", href: due > 0 ? `${projectUrl(p.token)}/pay` : projectUrl(p.token) }),
+    });
+  }
+  await resend.emails.send({
+    from: FROM, to: INBOX, attachments,
+    subject: `Signed: ${p.client_company || p.client_name || p.title} (${p.number})`,
+    html: shell("A proposal was signed", `<p style="margin:0"><b>${esc(p.signed_name)}</b> signed <b>${esc(p.title)}</b>.</p>`, { label: "Open in admin", href: `${SITE}/admin/proposals/${p.id}` }),
+  });
+}

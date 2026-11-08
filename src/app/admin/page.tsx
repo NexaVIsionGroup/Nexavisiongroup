@@ -50,9 +50,10 @@ export default function AdminDashboard() {
         setUserName(user.email.split("@")[0]);
       }
 
-      // TODO: Fetch real stats from Supabase
-      // For now, show placeholder
-      setStats(defaultStats);
+      // TODO: Fetch the other real stats from Supabase
+      const proposals = await fetch("/api/admin/proposals", { cache: "no-store" }).then((r) => (r.ok ? r.json() : null)).catch(() => null);
+      const openProposals = (proposals?.proposals || []).filter((p: { status: string }) => p.status === "sent" || p.status === "viewed").length;
+      setStats({ ...defaultStats, openProposals });
       setLoading(false);
     };
 
