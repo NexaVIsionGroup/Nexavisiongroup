@@ -343,7 +343,6 @@ function Hero({ hero, business, kind, number }: { hero: NonNullable<PublicPropos
           {hero.lead && <p className="pr-lede">{hero.lead}</p>}
           <div className="pr-ctas" style={hero.lead ? undefined : { marginTop: 30 }}>
             <a href="#found" className="pr-btn pr-btn-gold">Start reading <ArrowDown size={20} /></a>
-            <a href="#price" className="pr-btn pr-btn-ghost">Skip to the price <ArrowRight size={20} /></a>
           </div>
         </motion.div>
       </motion.div>
@@ -461,9 +460,10 @@ function PlanBody({ x, showBadge }: { x: ProposalPackage; showBadge: boolean }) 
       <span className="pr-plan-prices">
         {setup > 0 && <span className="pr-plan-price"><small>{x.setupLabel || "Setup"} · once</small><strong>{money(setup)}</strong></span>}
         {ramp.map((r) => <span key={r.label} className="pr-plan-price"><small>{r.label}</small><strong>{money(r.monthly)}<i>/mo</i></strong></span>)}
-        {steady > 0 && <span className="pr-plan-price"><small>{ramp.length ? "After that" : "Monthly"}</small><strong>{money(steady)}<i>/mo</i></strong></span>}
+        {steady > 0 && <span className="pr-plan-price"><small>{x.monthlyLabel || (ramp.length ? "After that" : "Monthly")}</small><strong>{money(steady)}<i>/mo</i></strong></span>}
         {x.percent && Number(x.percent.rate) > 0 && <span className="pr-plan-price pr-plan-pct"><small>Plus</small><strong>{x.percent.rate}%</strong><span>of {x.percent.of}</span></span>}
       </span>
+      {x.rampNote && <span className="pr-plan-note">{x.rampNote}</span>}
       {x.includes.length > 0 && <span className="pr-plan-inc">{x.includes.map((it, k) => <span key={k}><Check size={17} aria-hidden />{it}</span>)}</span>}
     </>
   );

@@ -42,6 +42,10 @@ export type ProposalPackage = {
   percent?: { rate: number; of: string };
   /** label for the one-time price, default "Setup" */
   setupLabel?: string;
+  /** label for the steady monthly price tile, default "After that" (with a ramp) or "Monthly" */
+  monthlyLabel?: string;
+  /** plain-English rule for when the ramp ends, e.g. once measured momentum is clear */
+  rampNote?: string;
 };
 export type AutopayOffer = { offer: boolean; recommended?: boolean; title?: string; text?: string };
 export type PaymentTerms = {

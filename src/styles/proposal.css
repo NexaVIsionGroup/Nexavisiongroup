@@ -225,6 +225,7 @@ button.nxp-pkg:hover { border-color: #8db7ae; }
 .nxp-rich .pr-plan-price strong i { font-style: normal; font-size: 0.55em; color: var(--ink-2); }
 .nxp-rich .pr-plan-pct { background: linear-gradient(135deg, rgba(201, 138, 71, 0.18), rgba(201, 138, 71, 0.06)); }
 .nxp-rich .pr-plan-pct > span { font-size: 14px; color: var(--ink-2); line-height: 1.4; }
+.nxp-rich .pr-plan-note { display: block; margin: -4px 0 4px; padding: 14px 18px; border-left: 3px solid var(--copper); border-radius: 0 14px 14px 0; background: var(--paper-2); font-size: 15.5px; line-height: 1.55; color: var(--ink-2); }
 .nxp-rich .pr-plan-inc { display: grid; gap: 9px; }
 @media (min-width: 720px) { .nxp-rich .pr-plan-inc { grid-template-columns: 1fr 1fr; } }
 .nxp-rich .pr-plan-inc > span { display: flex; gap: 9px; align-items: flex-start; font-size: 16.5px; line-height: 1.45; }

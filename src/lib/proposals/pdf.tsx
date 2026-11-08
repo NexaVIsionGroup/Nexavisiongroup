@@ -89,7 +89,8 @@ export function renderProposalPdf(p: any): Promise<Buffer> {
           <View style={{ marginTop: 6 }}>
             {Number(pkg.price) > 0 && <View style={s.row}><Text>{pkg.setupLabel || "One-time"}</Text><Text>{money(pkg.price)}</Text></View>}
             {ramp.map((r) => <View key={r.label} style={s.row}><Text>Monthly, {r.label}</Text><Text>{money(r.monthly)}/mo</Text></View>)}
-            {Number(pkg.monthly) > 0 && <View style={s.row}><Text>{ramp.length ? "Monthly after that" : "Monthly"}</Text><Text>{money(pkg.monthly)}/mo</Text></View>}
+            {Number(pkg.monthly) > 0 && <View style={s.row}><Text>{pkg.monthlyLabel ? `Monthly, ${pkg.monthlyLabel.toLowerCase()}` : ramp.length ? "Monthly after that" : "Monthly"}</Text><Text>{money(pkg.monthly)}/mo</Text></View>}
+            {!!pkg.rampNote && <Text>{pkg.rampNote}</Text>}
             {!!pkg.percent && Number(pkg.percent.rate) > 0 && <View style={s.row}><Text>Plus {pkg.percent.rate}% of {pkg.percent.of}</Text><Text>{pkg.percent.rate}%</Text></View>}
             {due > 0 && <View style={s.row}><Text>Due at signing</Text><Text>{money(due)}</Text></View>}
             {fee > 0 && <View style={s.row}><Text>4% card fee on the amount due</Text><Text>{money(fee)}</Text></View>}

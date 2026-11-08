@@ -74,6 +74,8 @@ pkgs.forEach((p, i) => {
   need(list(p.includes) && p.includes.length > 0, `packages[${i}] needs includes`);
   if (p.ramp) need(list(p.ramp) && p.ramp.length > 0 && p.ramp.every((r) => text(r.label) && typeof r.monthly === "number" && r.monthly > 0), `packages[${i}].ramp steps need label and a monthly number above 0`);
   if (p.ramp) need(p.monthly > 0, `packages[${i}] has a ramp, so monthly (the price after the ramp) must be above 0`);
+  if (p.monthlyLabel !== undefined) need(text(p.monthlyLabel), `packages[${i}].monthlyLabel must be text`);
+  if (p.rampNote !== undefined) need(text(p.rampNote) && p.ramp?.length, `packages[${i}].rampNote needs text and a ramp to explain`);
   if (p.percent) need(typeof p.percent.rate === "number" && p.percent.rate > 0 && p.percent.rate < 100 && text(p.percent.of), `packages[${i}].percent needs rate (number) and of (what it's a share of)`);
 });
 need(new Set(pkgs.map((p) => p.id)).size === pkgs.length, "package ids must be different");
@@ -103,7 +105,8 @@ for (const p of pkgs) {
   const due = pay.mode === "percent" ? (base * pay.value) / 100 : pay.mode === "fixed" ? pay.value : 0;
   const ramp = (p.ramp || []).map((r) => `${usd(r.monthly)}/mo ${r.label}, then `).join("");
   const pct = p.percent ? ` + ${p.percent.rate}% of ${p.percent.of}` : "";
-  console.log(`  ${p.name}: ${usd(p.price)} one-time, ${ramp}${usd(p.monthly)}/mo${pct}, due at signing ${usd(due)}${pay.surcharge && due ? " + 4% card fee" : ""}`);
+  console.log(`  ${p.name}: ${usd(p.price)} one-time, ${ramp}${usd(p.monthly)}/mo${p.monthlyLabel ? ` (${p.monthlyLabel.toLowerCase()})` : ""}${pct}, due at signing ${usd(due)}${pay.surcharge && due ? " + 4% card fee" : ""}`);
+  if (p.rampNote) console.log(`    Ramp rule: ${p.rampNote}`);
 }
 if (pay.autopay?.offer) console.log(`  Automatic monthly billing offered at signing${pay.autopay.recommended ? " (recommended)" : ""}.`);
 const rich = !!(c.hero || c.facts || c.features || (c.findings || []).some((f) => f.stat || f.bars || f.compare));
