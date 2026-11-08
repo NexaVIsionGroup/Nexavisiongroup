@@ -1,9 +1,16 @@
+import { Fraunces } from "next/font/google";
 import { nxBody, nxDisplay } from "@/components/site/fonts";
+import { fontDisplay } from "@/lib/fonts";
 import { BUSINESS_NAME } from "@/lib/proposals/types";
 import "@/styles/nexa-site.css";
+import "@/styles/prospect.css";
 import "@/styles/proposal.css";
 
-export function ProposalShell({ children }: { children: React.ReactNode }) {
+// Chaptered proposals use the check-up's editorial serif for headlines.
+const serif = Fraunces({ subsets: ["latin"], style: ["normal", "italic"], variable: "--font-serif", display: "swap", preload: false });
+
+export function ProposalShell({ children, rich = false }: { children: React.ReactNode; rich?: boolean }) {
+  if (rich) return <div className={`pr nxp-rich ${serif.variable} ${fontDisplay.variable}`}>{children}</div>;
   return <div className={`nxs nxp ${nxDisplay.variable} ${nxBody.variable}`}>{children}</div>;
 }
 

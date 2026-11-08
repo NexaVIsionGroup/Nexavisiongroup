@@ -1,6 +1,6 @@
 import React from "react";
 import { Document, Page, Text, View, Image, StyleSheet, renderToBuffer } from "@react-pdf/renderer";
-import { BUSINESS_NAME, defaultPackage, dueAtSigning, money, normalizeContent, surchargeOn } from "./types";
+import { BUSINESS_NAME, CATEGORY, defaultPackage, dueAtSigning, money, normalizeContent, surchargeOn } from "./types";
 
 const INK = "#10211f", PINE = "#0f5c55", MUTED = "#51625f", LINE = "#d5dedb";
 const s = StyleSheet.create({
@@ -12,6 +12,9 @@ const s = StyleSheet.create({
   b: { fontFamily: "Helvetica-Bold" },
   item: { marginBottom: 6 },
   row: { flexDirection: "row", justifyContent: "space-between", paddingVertical: 4, borderBottomWidth: 1, borderBottomColor: LINE },
+  cols: { flexDirection: "row", paddingVertical: 4, borderBottomWidth: 1, borderBottomColor: LINE },
+  col: { flex: 1, paddingRight: 8 },
+  small: { fontSize: 9, color: MUTED },
   sigBox: { marginTop: 8, padding: 12, borderWidth: 1, borderColor: LINE, borderRadius: 4 },
   sig: { width: 190, height: 62, objectFit: "contain", marginBottom: 6 },
   audit: { fontSize: 8.5, color: MUTED, marginTop: 8 },
@@ -26,21 +29,46 @@ export function renderProposalPdf(p: any): Promise<Buffer> {
   const due = p.due_amount != null ? Number(p.due_amount) : dueAtSigning(c, pkg);
   const fee = surchargeOn(c, due);
   const who = p.client_company || p.client_name || "";
+  const autopay: boolean | null = typeof p.signed_snapshot?.autopay_opt_in === "boolean" ? p.signed_snapshot.autopay_opt_in : null;
+  const ramp = pkg?.ramp?.filter((r) => Number(r.monthly) > 0) || [];
 
   return renderToBuffer(
     <Document title={`${p.title} (${p.number})`} author={BUSINESS_NAME}>
       <Page size="LETTER" style={s.page}>
         <Text style={s.brand}>{BUSINESS_NAME}</Text>
-        <Text style={s.meta}>{p.signed_at ? "Signed agreement" : "Proposal"} {p.number}</Text>
+        <Text style={s.meta}>{CATEGORY}  ·  {p.signed_at ? "Signed agreement" : "Proposal"} {p.number}</Text>
         <Text style={s.title}>{p.title}</Text>
         {!!who && <Text>Prepared for {who}{p.client_company && p.client_name ? `, attention ${p.client_name}` : ""}</Text>}
         {!!c.intro && <Text style={{ marginTop: 8 }}>{c.intro}</Text>}
 
         {c.findings.length > 0 && <View><Text style={s.h2}>What we found</Text>{c.findings.map((f, i) => (
-          <View key={i} style={s.item} wrap={false}><Text style={s.b}>{f.title}</Text>{!!f.detail && <Text>{f.detail}</Text>}</View>
+          <View key={i} style={s.item} wrap={false}>
+            <Text style={s.b}>{f.stat ? `${f.stat} ${f.statLabel ? `(${f.statLabel}) ` : ""}— ` : ""}{f.title}</Text>
+            {!!f.detail && <Text>{f.detail}</Text>}
+            {f.body?.map((para, n) => <Text key={n}>{para}</Text>)}
+            {f.compare?.map((r, n) => <Text key={n} style={s.small}>{r.source}: {r.value}</Text>)}
+            {f.bars?.map((r, n) => <Text key={n} style={s.small}>{r.label}{r.note ? ` ${r.note}` : ""}: {money(r.value)}</Text>)}
+            {!!f.fix && <Text>What we&apos;d do: {f.fix}</Text>}
+            {!!f.source && <Text style={s.small}>{f.source}</Text>}
+          </View>
         ))}</View>}
 
+        {!!c.strengths?.length && <View><Text style={s.h2}>What&apos;s working</Text>{c.strengths.map((f, i) => (
+          <View key={i} style={s.item} wrap={false}><Text style={s.b}>{f.stat ? `${f.stat} — ` : ""}{f.title}</Text>{!!f.detail && <Text>{f.detail}</Text>}</View>
+        ))}</View>}
+
+        {!!c.comparison?.rows?.length && <View><Text style={s.h2}>{c.comparison.heading || "Today and after"}</Text>
+          <View style={s.cols}><Text style={[s.col, s.b]}> </Text><Text style={[s.col, s.b]}>Today</Text><Text style={[s.col, s.b]}>With {BUSINESS_NAME}</Text></View>
+          {c.comparison.rows.map((r, i) => (
+            <View key={i} style={s.cols} wrap={false}><Text style={[s.col, s.b]}>{r.label}</Text><Text style={s.col}>{r.today}</Text><Text style={s.col}>{r.after}</Text></View>
+          ))}
+        </View>}
+
         {c.goals.length > 0 && <View><Text style={s.h2}>Your goals</Text>{c.goals.map((g, i) => <Text key={i} style={s.item}>{"•"} {g}</Text>)}</View>}
+
+        {!!c.features?.length && <View><Text style={s.h2}>What we&apos;ll build</Text>{c.features.map((f, i) => (
+          <View key={i} style={s.item} wrap={false}><Text style={s.b}>{f.title}</Text><Text>{f.body}</Text></View>
+        ))}</View>}
 
         {c.work.length > 0 && <View><Text style={s.h2}>What we&apos;ll do</Text>{c.work.map((w, i) => (
           <View key={i} style={s.item} wrap={false}>
@@ -51,7 +79,7 @@ export function renderProposalPdf(p: any): Promise<Buffer> {
         ))}</View>}
 
         {c.timeline.length > 0 && <View><Text style={s.h2}>Timeline</Text>{c.timeline.map((t, i) => (
-          <View key={i} style={s.row}><Text>{t.label}</Text><Text>{t.when}</Text></View>
+          <View key={i} style={s.row}><Text>{t.label}{t.note ? ` — ${t.note}` : ""}</Text><Text>{t.when}</Text></View>
         ))}</View>}
 
         {pkg && <View wrap={false}><Text style={s.h2}>{p.signed_at ? "What was selected" : "Pricing"}</Text>
@@ -59,13 +87,16 @@ export function renderProposalPdf(p: any): Promise<Buffer> {
           {!!pkg.description && <Text>{pkg.description}</Text>}
           {pkg.includes.map((it, n) => <Text key={n}>{"•"} {it}</Text>)}
           <View style={{ marginTop: 6 }}>
-            {Number(pkg.price) > 0 && <View style={s.row}><Text>One-time</Text><Text>{money(pkg.price)}</Text></View>}
-            {Number(pkg.monthly) > 0 && <View style={s.row}><Text>Monthly</Text><Text>{money(pkg.monthly)}/mo</Text></View>}
+            {Number(pkg.price) > 0 && <View style={s.row}><Text>{pkg.setupLabel || "One-time"}</Text><Text>{money(pkg.price)}</Text></View>}
+            {ramp.map((r) => <View key={r.label} style={s.row}><Text>Monthly, {r.label}</Text><Text>{money(r.monthly)}/mo</Text></View>)}
+            {Number(pkg.monthly) > 0 && <View style={s.row}><Text>{ramp.length ? "Monthly after that" : "Monthly"}</Text><Text>{money(pkg.monthly)}/mo</Text></View>}
+            {!!pkg.percent && Number(pkg.percent.rate) > 0 && <View style={s.row}><Text>Plus {pkg.percent.rate}% of {pkg.percent.of}</Text><Text>{pkg.percent.rate}%</Text></View>}
             {due > 0 && <View style={s.row}><Text>Due at signing</Text><Text>{money(due)}</Text></View>}
             {fee > 0 && <View style={s.row}><Text>4% card fee on the amount due</Text><Text>{money(fee)}</Text></View>}
           </View>
         </View>}
         {!!c.payment.notes && <Text style={{ marginTop: 8 }}>{c.payment.notes}</Text>}
+        {autopay !== null && <Text style={{ marginTop: 6 }}><Text style={s.b}>Monthly billing: </Text>{autopay ? "automatic card billing each month, chosen at signing." : "invoiced each month, paid by the customer; automatic billing declined at signing."}</Text>}
 
         <Text style={s.h2}>Terms</Text>
         {c.terms.map((t, i) => <View key={i} style={s.item}><Text style={s.b}>{t.title}</Text><Text>{t.text}</Text></View>)}

@@ -48,6 +48,7 @@ export function toPublic(p: any): PublicProposal {
     signed_at: p.signed_at, signed_name: p.signed_name, signed_title: p.signed_title,
     signature_data: p.signature_data, signed_hash: p.signed_hash,
     selected_package_id: p.selected_package_id, due_amount: p.due_amount == null ? null : Number(p.due_amount), paid_at: p.paid_at,
+    autopay_opt_in: typeof p.signed_snapshot?.autopay_opt_in === "boolean" ? p.signed_snapshot.autopay_opt_in : null,
   };
 }
 

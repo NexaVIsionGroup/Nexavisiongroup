@@ -33,12 +33,16 @@ export async function POST(req: Request, { params }: { params: { token: string }
   const pkg = content.packages.length ? content.packages.find((x) => x.id === body.package_id) || null : null;
   if (content.packages.length && !pkg) return NextResponse.json({ error: "Choose a package first." }, { status: 400 });
   const due = dueAtSigning(content, pkg || defaultPackage(content));
+  // Automatic monthly billing is a choice only when the proposal offers it, and then it must be made.
+  const offerAutopay = !!content.payment.autopay?.offer;
+  if (offerAutopay && typeof body.autopay !== "boolean") return NextResponse.json({ error: "Choose how you'd like to pay your monthly invoices." }, { status: 400 });
+  const autopay_opt_in: boolean | null = offerAutopay ? body.autopay === true : null;
 
   const signed_at = new Date().toISOString();
   const snapshot = {
     number: p.number, title: p.title,
     client: { name: p.client_name, company: p.client_company, email: p.client_email, phone: p.client_phone },
-    content, selected_package_id: pkg?.id || null, due_amount: due,
+    content, selected_package_id: pkg?.id || null, due_amount: due, autopay_opt_in,
   };
   const { data: updated, error } = await supabase
     .from("proposals")
@@ -55,12 +59,13 @@ export async function POST(req: Request, { params }: { params: { token: string }
   if (error) return NextResponse.json({ error: "We could not save your signature. Please try again." }, { status: 500 });
   if (!updated) return NextResponse.json({ error: "This proposal has already been signed." }, { status: 409 });
 
-  await logEvent(p.id, "signed", req, { name, package: pkg?.name, due, hash: updated.signed_hash });
+  await logEvent(p.id, "signed", req, { name, package: pkg?.name, due, hash: updated.signed_hash, autopay: autopay_opt_in });
   if (p.customer_id) await supabase.from("customers").update({ customer_type: "active" }).eq("id", p.customer_id);
+  const autopayNote = autopay_opt_in === null ? "" : autopay_opt_in ? " Chose automatic monthly billing: set up their card on file." : " Declined automatic billing: invoice monthly.";
   await notifyAdmin({
     type: "proposal",
     title: `🎉 Signed: ${p.client_company || p.client_name || p.title}`,
-    message: `${name} signed ${p.number}${pkg ? ` (${pkg.name})` : ""}${due > 0 ? `. ${money(due)} due now.` : "."}`,
+    message: `${name} signed ${p.number}${pkg ? ` (${pkg.name})` : ""}${due > 0 ? `. ${money(due)} due now.` : "."}${autopayNote}`,
     url: `/admin/proposals/${p.id}`, entityType: "proposal", entityId: p.id,
   });
 

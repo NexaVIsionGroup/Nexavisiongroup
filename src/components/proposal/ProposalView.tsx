@@ -1,139 +1,21 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
-import { Check, Download, Eraser, Loader2, Lock, Target, TriangleAlert } from "lucide-react";
+import { Check, Download, Loader2, Lock, Target, TriangleAlert } from "lucide-react";
 import { Logo } from "@/components/site/Logo";
-import { BUSINESS_NAME, defaultPackage, dueAtSigning, money, surchargeOn, type PublicProposal } from "@/lib/proposals/types";
+import { BUSINESS_NAME, money, type PublicProposal } from "@/lib/proposals/types";
+import { SignaturePad, useOpenTracking, useSigning } from "./signing";
 
 const longDate = (d: string) => new Date(d).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
 const stamp = (d: string) => new Date(d).toLocaleString("en-US", { dateStyle: "long", timeStyle: "short" });
 
-function SignaturePad({ onChange }: { onChange: (png: string | null) => void }) {
-  const ref = useRef<HTMLCanvasElement>(null);
-  const drawing = useRef(false);
-  const inked = useRef(false);
-
-  useEffect(() => {
-    const c = ref.current!;
-    const dpr = Math.min(window.devicePixelRatio || 1, 2);
-    const r = c.getBoundingClientRect();
-    c.width = r.width * dpr;
-    c.height = r.height * dpr;
-    const ctx = c.getContext("2d")!;
-    ctx.scale(dpr, dpr);
-    ctx.strokeStyle = "#10211f";
-    ctx.lineWidth = 2.4;
-    ctx.lineCap = "round";
-    ctx.lineJoin = "round";
-  }, []);
-
-  const at = (e: React.PointerEvent) => {
-    const r = ref.current!.getBoundingClientRect();
-    return { x: e.clientX - r.left, y: e.clientY - r.top };
-  };
-
-  return (
-    <div>
-      <canvas
-        ref={ref}
-        className="nxp-pad"
-        aria-label="Signature box. Draw your signature here."
-        onPointerDown={(e) => {
-          e.preventDefault();
-          (e.target as HTMLElement).setPointerCapture(e.pointerId);
-          drawing.current = true;
-          const ctx = ref.current!.getContext("2d")!;
-          const { x, y } = at(e);
-          ctx.beginPath();
-          ctx.moveTo(x, y);
-        }}
-        onPointerMove={(e) => {
-          if (!drawing.current) return;
-          const ctx = ref.current!.getContext("2d")!;
-          const { x, y } = at(e);
-          ctx.lineTo(x, y);
-          ctx.stroke();
-          inked.current = true;
-        }}
-        onPointerUp={() => {
-          drawing.current = false;
-          if (inked.current) onChange(ref.current!.toDataURL("image/png"));
-        }}
-      />
-      <button
-        type="button"
-        className="nxp-clear"
-        onClick={() => {
-          const c = ref.current!;
-          c.getContext("2d")!.clearRect(0, 0, c.width, c.height);
-          inked.current = false;
-          onChange(null);
-        }}
-      >
-        <Eraser size={16} aria-hidden /> Clear signature
-      </button>
-    </div>
-  );
-}
-
+/** Plain, static proposal page. Proposals with rich sections render through RichProposal instead. */
 export function ProposalView({ proposal: p, token, preview = false, payError = false, from }: {
   proposal: PublicProposal; token: string; preview?: boolean; payError?: boolean; from?: string;
 }) {
   const c = p.content;
-  const signed = !!p.signed_at;
-  const [pkgId, setPkgId] = useState<string | null>(p.selected_package_id || defaultPackage(c)?.id || null);
-  const [name, setName] = useState(p.client_name || "");
-  const [title, setTitle] = useState("");
-  const [agreed, setAgreed] = useState(false);
-  const [sig, setSig] = useState<string | null>(null);
-  const [busy, setBusy] = useState(false);
-  const [err, setErr] = useState("");
-
-  const pkg = useMemo(() => c.packages.find((x) => x.id === pkgId) || null, [c.packages, pkgId]);
-  const due = signed ? Number(p.due_amount) || 0 : dueAtSigning(c, pkg);
-  const fee = surchargeOn(c, due);
-
-  // Counted from the browser so link previews and email scanners don't look like the customer.
-  useEffect(() => {
-    if (preview) return;
-    const url = `/api/project/${token}/event`;
-    fetch(url, { method: "POST", body: JSON.stringify({ type: "open", from }), keepalive: true }).catch(() => {});
-    const began = Date.now();
-    const leave = () => {
-      const seconds = Math.round((Date.now() - began) / 1000);
-      if (seconds > 2) navigator.sendBeacon?.(url, JSON.stringify({ type: "time", seconds }));
-    };
-    window.addEventListener("pagehide", leave);
-    return () => window.removeEventListener("pagehide", leave);
-  }, [preview, token, from]);
-
-  async function sign(e: React.FormEvent) {
-    e.preventDefault();
-    setErr("");
-    if (preview) return setErr("This is your preview, so signing is turned off.");
-    if (c.packages.length && !pkg) return setErr("Choose a package first.");
-    if (name.trim().length < 2) return setErr("Type your full name.");
-    if (!sig) return setErr("Draw your signature in the box.");
-    if (!agreed) return setErr("Check the box to agree to the terms.");
-    setBusy(true);
-    try {
-      const r = await fetch(`/api/project/${token}/sign`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, title, agreed, signature_data: sig, package_id: pkg?.id, version: p.updated_at }),
-      });
-      const j = await r.json().catch(() => ({}));
-      if (!r.ok) {
-        setErr(j.error || "We could not save your signature. Please try again.");
-        setBusy(false);
-        return;
-      }
-      window.location.assign(`/project/${token}`);
-    } catch {
-      setErr("Your connection dropped before we could save this. Check your connection and try again.");
-      setBusy(false);
-    }
-  }
+  const s = useSigning(p, token, preview);
+  useOpenTracking(preview, token, from);
+  const { signed, pkg, pkgId, due, fee } = s;
 
   const who = p.client_company || p.client_name;
   const selected = signed ? pkg : null;
@@ -239,7 +121,7 @@ export function ProposalView({ proposal: p, token, preview = false, payError = f
                 );
                 return signed || c.packages.length === 1
                   ? <div key={x.id} className="nxp-pkg is-on">{body}</div>
-                  : <button key={x.id} type="button" role="radio" aria-checked={on} className={`nxp-pkg${on ? " is-on" : ""}`} onClick={() => setPkgId(x.id)}>{body}</button>;
+                  : <button key={x.id} type="button" role="radio" aria-checked={on} className={`nxp-pkg${on ? " is-on" : ""}`} onClick={() => s.setPkgId(x.id)}>{body}</button>;
               })}
             </div>
           </section>
@@ -279,23 +161,31 @@ export function ProposalView({ proposal: p, token, preview = false, payError = f
         ) : (
           <section>
             <h2>Agree and sign</h2>
-            <form className="nxp-sign" onSubmit={sign} noValidate>
+            <form className="nxp-sign" onSubmit={s.sign} noValidate>
               <div className="nxp-fields">
-                <label>Your full name<input id="sign-name" value={name} onChange={(e) => setName(e.target.value)} autoComplete="name" required /></label>
-                <label>Your title (optional)<input id="sign-title" value={title} onChange={(e) => setTitle(e.target.value)} autoComplete="organization-title" /></label>
+                <label>Your full name<input id="sign-name" value={s.name} onChange={(e) => s.setName(e.target.value)} autoComplete="name" required /></label>
+                <label>Your title (optional)<input id="sign-title" value={s.title} onChange={(e) => s.setTitle(e.target.value)} autoComplete="organization-title" /></label>
               </div>
               <div>
                 <p className="nxp-label">Draw your signature</p>
-                <SignaturePad onChange={setSig} />
+                <SignaturePad onChange={s.setSig} />
               </div>
+              {s.offerAutopay && (
+                <fieldset className="nxp-autopay">
+                  <legend>{c.payment.autopay?.title || "Automatic monthly billing"}</legend>
+                  {c.payment.autopay?.text && <p>{c.payment.autopay.text}</p>}
+                  <label><input type="radio" name="autopay" checked={s.autopay === true} onChange={() => s.setAutopay(true)} /> Yes, bill my card automatically each month{c.payment.autopay?.recommended ? " (recommended)" : ""}</label>
+                  <label><input type="radio" name="autopay" checked={s.autopay === false} onChange={() => s.setAutopay(false)} /> I&apos;ll pay each monthly invoice myself</label>
+                </fieldset>
+              )}
               <label className="nxp-agree">
-                <input id="sign-agree" type="checkbox" checked={agreed} onChange={(e) => setAgreed(e.target.checked)} />
+                <input id="sign-agree" type="checkbox" checked={s.agreed} onChange={(e) => s.setAgreed(e.target.checked)} />
                 <span>I have read this proposal and its terms, I can sign for {p.client_company || "this business"}, and I agree to sign electronically with {BUSINESS_NAME}.</span>
               </label>
-              {err && <p className="nxp-error" role="alert">{err}</p>}
-              <button className="nxp-btn nxp-btn-big" type="submit" disabled={busy}>
-                {busy ? <Loader2 size={20} className="animate-spin" aria-hidden /> : <Lock size={18} aria-hidden />}
-                {busy ? "Saving your signature" : due > 0 ? "Sign, then go to payment" : "Sign proposal"}
+              {s.err && <p className="nxp-error" role="alert">{s.err}</p>}
+              <button className="nxp-btn nxp-btn-big" type="submit" disabled={s.busy}>
+                {s.busy ? <Loader2 size={20} className="animate-spin" aria-hidden /> : <Lock size={18} aria-hidden />}
+                {s.busy ? "Saving your signature" : due > 0 ? "Sign, then go to payment" : "Sign proposal"}
               </button>
             </form>
           </section>

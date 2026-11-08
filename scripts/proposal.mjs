@@ -41,6 +41,26 @@ need(list(c.findings) && c.findings.length > 0, "content.findings needs at least
   if (f.image) need(/^(https:\/\/|\/)/.test(f.image), `findings[${i}].image must start with https:// or /`);
   if (f.image?.startsWith("/")) need(fs.existsSync(path.join("public", f.image)), `findings[${i}].image is not in public${f.image}`);
 });
+const img = (v, where) => {
+  if (!v) return;
+  need(/^(https:\/\/|\/)/.test(v), `${where} must start with https:// or /`);
+  if (v.startsWith("/")) need(fs.existsSync(path.join("public", v)), `${where} is not in public${v}`);
+};
+(c.findings || []).forEach((f, i) => {
+  if (f.body) need(list(f.body) && f.body.every(text), `findings[${i}].body must be a list of paragraphs`);
+  if (f.compare) need(list(f.compare) && f.compare.every((r) => text(r.source) && text(r.value)), `findings[${i}].compare rows need source and value`);
+  if (f.bars) need(list(f.bars) && f.bars.every((r) => text(r.label) && typeof r.value === "number"), `findings[${i}].bars rows need label and a number value`);
+  if (f.tone) need(["warn", "money", "info", "good"].includes(f.tone), `findings[${i}].tone must be warn, money, info or good`);
+});
+// ── optional rich sections (animated, chaptered layout) ──
+if (c.hero) { img(c.hero.image, "hero.image"); img(c.hero.seamImage, "hero.seamImage"); }
+if (c.facts) need(list(c.facts) && c.facts.length > 0 && c.facts.every((f) => text(f.value) && text(f.label)), "every fact needs value and label");
+if (c.strengths) need(list(c.strengths) && c.strengths.every((f) => text(f.title) && text(f.detail)), "every strength needs title and detail");
+if (c.features) {
+  need(list(c.features) && c.features.length > 0 && c.features.every((f) => text(f.title) && text(f.body)), "every feature needs title and body");
+  (c.features || []).forEach((f, i) => img(f.image, `features[${i}].image`));
+}
+if (c.comparison) need(list(c.comparison.rows) && c.comparison.rows.length > 0 && c.comparison.rows.every((r) => text(r.label) && text(r.today) && text(r.after)), "every comparison row needs label, today and after");
 need(list(c.goals) && c.goals.length > 0 && c.goals.every(text), "content.goals needs at least one goal");
 need(list(c.work) && c.work.length > 0, "content.work needs at least one service");
 (c.work || []).forEach((w, i) => need(text(w.area) && list(w.items) && w.items.length > 0, `work[${i}] needs area and items`));
@@ -52,6 +72,9 @@ pkgs.forEach((p, i) => {
   need(typeof p.price === "number" && p.price >= 0 && typeof p.monthly === "number" && p.monthly >= 0, `packages[${i}] price and monthly must be numbers (0 if none)`);
   need(p.price > 0 || p.monthly > 0, `packages[${i}] has no price`);
   need(list(p.includes) && p.includes.length > 0, `packages[${i}] needs includes`);
+  if (p.ramp) need(list(p.ramp) && p.ramp.length > 0 && p.ramp.every((r) => text(r.label) && typeof r.monthly === "number" && r.monthly > 0), `packages[${i}].ramp steps need label and a monthly number above 0`);
+  if (p.ramp) need(p.monthly > 0, `packages[${i}] has a ramp, so monthly (the price after the ramp) must be above 0`);
+  if (p.percent) need(typeof p.percent.rate === "number" && p.percent.rate > 0 && p.percent.rate < 100 && text(p.percent.of), `packages[${i}].percent needs rate (number) and of (what it's a share of)`);
 });
 need(new Set(pkgs.map((p) => p.id)).size === pkgs.length, "package ids must be different");
 need(pkgs.filter((p) => p.recommended).length <= 1, "only one package can be recommended");
@@ -59,6 +82,7 @@ const pay = c.payment || { mode: "none", value: 0, surcharge: false, notes: "" }
 need(["none", "percent", "fixed"].includes(pay.mode), "payment.mode must be none, percent or fixed");
 if (pay.mode !== "none") need(typeof pay.value === "number" && pay.value > 0, "payment.value must be a number above 0");
 if (pay.mode === "percent") need(pay.value <= 100, "payment.value is a percent, so 100 or less");
+if (pay.autopay) need(typeof pay.autopay.offer === "boolean", "payment.autopay.offer must be true or false");
 if (c.terms) need(list(c.terms) && c.terms.every((t) => text(t.title) && text(t.text)), "every term needs title and text");
 
 // Words that must never reach a customer.
@@ -68,7 +92,7 @@ for (const [re, why] of [[/jhps|jhpsfl/i, "the JHPS name"], [/\bLLC\b/, '"LLC" (
 }
 if (problems.length) die(`Fix these and run again:\n - ${problems.join("\n - ")}`);
 
-const content = { ...c, timeline: c.timeline || [], payment: { mode: pay.mode, value: pay.value || 0, surcharge: !!pay.surcharge, notes: pay.notes || "" } };
+const content = { ...c, timeline: c.timeline || [], payment: { mode: pay.mode, value: pay.value || 0, surcharge: !!pay.surcharge, notes: pay.notes || "", ...(pay.autopay ? { autopay: pay.autopay } : {}) } };
 if (!c.terms) delete content.terms; // the app fills in the standard terms
 
 // ── Summary ──
@@ -77,8 +101,13 @@ console.log(`OK: ${b.title} for ${b.client_company || b.client_name}`);
 for (const p of pkgs) {
   const base = p.price > 0 ? p.price : p.monthly;
   const due = pay.mode === "percent" ? (base * pay.value) / 100 : pay.mode === "fixed" ? pay.value : 0;
-  console.log(`  ${p.name}: ${usd(p.price)} one-time, ${usd(p.monthly)}/mo, due at signing ${usd(due)}${pay.surcharge && due ? " + 4% card fee" : ""}`);
+  const ramp = (p.ramp || []).map((r) => `${usd(r.monthly)}/mo ${r.label}, then `).join("");
+  const pct = p.percent ? ` + ${p.percent.rate}% of ${p.percent.of}` : "";
+  console.log(`  ${p.name}: ${usd(p.price)} one-time, ${ramp}${usd(p.monthly)}/mo${pct}, due at signing ${usd(due)}${pay.surcharge && due ? " + 4% card fee" : ""}`);
 }
+if (pay.autopay?.offer) console.log(`  Automatic monthly billing offered at signing${pay.autopay.recommended ? " (recommended)" : ""}.`);
+const rich = !!(c.hero || c.facts || c.features || (c.findings || []).some((f) => f.stat || f.bars || f.compare));
+console.log(`  Layout: ${rich ? "chaptered (animated)" : "plain"}`);
 if (check) { console.log("Check only. Nothing saved."); process.exit(0); }
 
 // ── Save ──

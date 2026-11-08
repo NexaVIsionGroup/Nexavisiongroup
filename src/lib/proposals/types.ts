@@ -1,19 +1,49 @@
 // Shared by the admin editor, the customer page and the server. No server-only imports here.
 
-export type Finding = { title: string; detail: string; image?: string };
+export type CompareRow = { source: string; value: string; odd?: boolean };
+export type BarRow = { label: string; value: number; note?: string };
+export type Finding = {
+  title: string;
+  detail: string;
+  image?: string;
+  // ── optional "rich" fields, used by the animated chaptered layout ──
+  /** big number or word on the card, e.g. "$63.5K" or "765" */
+  stat?: string;
+  statLabel?: string;
+  tone?: "warn" | "money" | "info" | "good";
+  /** extra paragraphs after `detail` */
+  body?: string[];
+  /** what we'd do about it */
+  fix?: string;
+  /** side-by-side values that should agree but don't (shown when there's no image) */
+  compare?: CompareRow[];
+  /** animated dollar bars (shown when there's no image or compare) */
+  bars?: BarRow[];
+  caption?: string;
+  /** how we know, and what is an estimate */
+  source?: string;
+};
 export type WorkArea = { area: string; detail?: string; items: string[] };
-export type Milestone = { label: string; when: string };
+export type Milestone = { label: string; when: string; note?: string };
+export type RampStep = { label: string; monthly: number };
 export type ProposalPackage = {
   id: string;
   name: string;
   description?: string;
   /** one-time price in dollars */
   price: number;
-  /** monthly price in dollars */
+  /** monthly price in dollars (the steady-state price once any `ramp` ends) */
   monthly: number;
   includes: string[];
   recommended?: boolean;
+  /** monthly price steps that come before `monthly`, e.g. months 1–3 */
+  ramp?: RampStep[];
+  /** a share on top, e.g. 3.5% of orders through the site we build */
+  percent?: { rate: number; of: string };
+  /** label for the one-time price, default "Setup" */
+  setupLabel?: string;
 };
+export type AutopayOffer = { offer: boolean; recommended?: boolean; title?: string; text?: string };
 export type PaymentTerms = {
   /** "none" skips the payment step entirely. */
   mode: "none" | "fixed" | "percent";
@@ -22,8 +52,13 @@ export type PaymentTerms = {
   surcharge: boolean;
   /** Plain-English note about later payments */
   notes?: string;
+  /** optional "set up automatic monthly billing" choice the customer makes at signing */
+  autopay?: AutopayOffer;
 };
 export type Term = { title: string; text: string };
+export type Feature = { icon?: string; image?: string; title: string; body: string };
+export type HeroBlock = { image?: string; seamImage?: string; eyebrow?: string; headline?: string; accent?: string; lead?: string; place?: string };
+export type Comparison = { heading?: string; rows: { label: string; today: string; after: string }[] };
 export type ProposalContent = {
   intro: string;
   findings: Finding[];
@@ -33,6 +68,17 @@ export type ProposalContent = {
   packages: ProposalPackage[];
   payment: PaymentTerms;
   terms: Term[];
+  // ── optional "rich" sections ──
+  hero?: HeroBlock;
+  /** strip of quick facts under the hero */
+  facts?: { value: string; label: string }[];
+  /** what's going well, same shape as findings, rendered as good news */
+  strengths?: Finding[];
+  /** what we'll build, as image cards */
+  features?: Feature[];
+  /** today vs. with us, in plain statements */
+  comparison?: Comparison;
+  closing?: { headline?: string; lead?: string };
 };
 
 export const BUSINESS_NAME = "NexaVision Group";
@@ -75,7 +121,7 @@ export const blankContent = (): ProposalContent => ({
 /** Fills gaps so old or partial rows never crash a page. */
 export function normalizeContent(c: Partial<ProposalContent> | null | undefined): ProposalContent {
   const b = blankContent();
-  return {
+  const out: ProposalContent = {
     intro: c?.intro ?? b.intro,
     findings: c?.findings ?? [],
     goals: c?.goals ?? [],
@@ -85,7 +131,22 @@ export function normalizeContent(c: Partial<ProposalContent> | null | undefined)
     payment: { ...b.payment, ...(c?.payment || {}) },
     terms: c?.terms?.length ? c.terms : b.terms,
   };
+  // Rich sections ride along only when present, so plain proposals stay exactly as they were.
+  if (c?.hero) out.hero = c.hero;
+  if (c?.facts?.length) out.facts = c.facts;
+  if (c?.strengths?.length) out.strengths = c.strengths;
+  if (c?.features?.length) out.features = c.features;
+  if (c?.comparison?.rows?.length) out.comparison = c.comparison;
+  if (c?.closing) out.closing = c.closing;
+  return out;
 }
+
+/** True when the proposal carries the animated, chaptered layout. */
+export const isRich = (c: ProposalContent) =>
+  !!(c.hero || c.facts?.length || c.features?.length || c.findings.some((f) => f.stat || f.bars || f.compare));
+
+/** Monthly price for the first billing period (the first ramp step, or the steady price). */
+export const firstMonthly = (p: ProposalPackage) => (p.ramp?.length ? Number(p.ramp[0].monthly) || 0 : Number(p.monthly) || 0);
 
 export const money = (n: number) =>
   Number(n || 0).toLocaleString("en-US", { style: "currency", currency: "USD", minimumFractionDigits: Number.isInteger(Number(n)) ? 0 : 2 });
@@ -129,4 +190,6 @@ export type PublicProposal = {
   selected_package_id: string | null;
   due_amount: number | null;
   paid_at: string | null;
+  /** the customer's automatic-billing choice at signing; null when it wasn't offered or not signed yet */
+  autopay_opt_in: boolean | null;
 };

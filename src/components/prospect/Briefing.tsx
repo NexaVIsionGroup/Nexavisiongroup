@@ -202,7 +202,7 @@ function Finding({ f }: { f: BriefFinding }) {
   );
 }
 
-function PhoneShot({ src, alt, caption }: { src: string; alt: string; caption?: string }) {
+export function PhoneShot({ src, alt, caption }: { src: string; alt: string; caption?: string }) {
   const [ref, seen] = useSeen<HTMLDivElement>();
   const screen = useRef<HTMLDivElement>(null);
   const [travel, setTravel] = useState(0);
@@ -232,7 +232,7 @@ function PhoneShot({ src, alt, caption }: { src: string; alt: string; caption?: 
   );
 }
 
-function Compare({ rows }: { rows: NonNullable<BriefFinding["compare"]> }) {
+export function Compare({ rows }: { rows: { source: string; value: string; odd?: boolean }[] }) {
   return (
     <div className="pr-compare">
       {rows.map((r, i) => (
