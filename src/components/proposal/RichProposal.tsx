@@ -328,7 +328,7 @@ function Hero({ hero, business, kind, number }: { hero: NonNullable<PublicPropos
       )}
       <div className="pr-hero-glow" />
       <div className="pr-mark">
-        <span><strong>NexaVision</strong> Group<i>·</i>{hero.eyebrow || CATEGORY}</span>
+        <span><strong>NexaVision</strong> Group<span className="pr-mark-eyebrow"><i>·</i>{hero.eyebrow || CATEGORY}</span></span>
         <span className="hidden sm:inline">{business}{hero.place && <><i>·</i>{hero.place}</>}</span>
       </div>
       <motion.div className="pr-wrap" style={{ y, opacity: fade }}>
