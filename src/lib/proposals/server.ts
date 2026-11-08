@@ -27,7 +27,8 @@ function stable(v: unknown): string {
 }
 export const fingerprint = (v: unknown) => createHash("sha256").update(stable(v)).digest("hex");
 
-export const clientIp = (req: Request) => req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || req.headers.get("x-real-ip") || "unknown";
+// Cloudflare sits in front of the site, so its header holds the visitor's real address.
+export const clientIp = (req: Request) => req.headers.get("cf-connecting-ip") || req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || req.headers.get("x-real-ip") || "unknown";
 
 export async function logEvent(proposalId: string, event: string, req?: Request, meta: Record<string, unknown> = {}) {
   await db().from("proposal_events").insert({

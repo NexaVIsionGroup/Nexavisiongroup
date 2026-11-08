@@ -8,7 +8,13 @@ export const maxDuration = 30;
 export async function GET(_req: Request, { params }: { params: { token: string } }) {
   const { data: p } = await db().from("proposals").select("*").eq("token", params.token).maybeSingle();
   if (linkState(p) !== "ok") return NextResponse.json({ error: "Not available" }, { status: 404 });
-  const pdf = await renderProposalPdf(p);
+  let pdf: Buffer;
+  try {
+    pdf = await renderProposalPdf(p);
+  } catch (e) {
+    console.error("[proposal pdf]", e);
+    return NextResponse.json({ error: "We could not make the PDF. Try again in a minute.", detail: e instanceof Error ? e.message.slice(0, 300) : "" }, { status: 500 });
+  }
   return new NextResponse(new Uint8Array(pdf), {
     headers: {
       "Content-Type": "application/pdf",
