@@ -46,6 +46,7 @@ export function ProposalView({ proposal: p, token, preview = false, share = fals
             {payError && <p className="nxp-error" role="alert">We couldn&apos;t open the payment page just now. Try again in a minute, or reply to your signed-copy email.</p>}
             <div className="nxp-actions">
               {due > 0 && !p.paid_at && !preview && <a className="nxp-btn" href={`/project/${token}/pay`}>Pay {money(due + fee)}</a>}
+              {p.autopay_opt_in && !preview && <a className="nxp-btn nxp-btn-ghost" href={`/project/${token}/card`}>Save or update your card</a>}
               <a className="nxp-btn nxp-btn-ghost" href={`/api/project/${token}/pdf`}><Download size={18} aria-hidden /> Download signed copy</a>
             </div>
             {due > 0 && p.paid_at && <p className="nxp-paid"><Check size={18} aria-hidden /> Payment received on {longDate(p.paid_at)}. Thank you.</p>}

@@ -1,7 +1,7 @@
 import { createHash, createHmac, randomBytes, timingSafeEqual } from "crypto";
 import { Resend } from "resend";
 import { notifyAdmin, notifyDb } from "@/lib/notify";
-import { BUSINESS_NAME, normalizeContent, money, surchargeOn, type ProposalContent, type PublicProposal } from "./types";
+import { BUSINESS_NAME, defaultPackage, firstMonthly, normalizeContent, money, surchargeOn, type ProposalContent, type PublicProposal } from "./types";
 
 export const SITE = process.env.NEXT_PUBLIC_SITE_URL || "https://nexavisiongroup.com";
 export const FROM = `${BUSINESS_NAME} <info@nexavisiongroup.com>`;
@@ -127,6 +127,46 @@ export async function syncPaid(p: any): Promise<any> {
   }
 }
 
+// ── Automatic monthly billing: the same signed link, to the billing engine ──
+async function billingPost(payload: Record<string, unknown>) {
+  const body = JSON.stringify(payload);
+  const { base, headers } = signed(body);
+  const r = await fetch(`${base}/api/external/nexa-subscription`, {
+    method: "POST", headers: { "Content-Type": "application/json", ...headers }, body, cache: "no-store", signal: AbortSignal.timeout(20000),
+  });
+  const j = await r.json();
+  if (!r.ok) throw new Error(j.error || `Billing failed (${r.status})`);
+  return j;
+}
+
+/** Creates the customer's automatic billing the first time, or returns what exists. Nothing charges until a card and a date are set. */
+export async function ensureSubscription(p: any) {
+  const content: ProposalContent = normalizeContent(p.signed_snapshot?.content || p.content);
+  const pkg = content.packages.find((x) => x.id === p.selected_package_id) || defaultPackage(content);
+  const amount = pkg ? firstMonthly(pkg) : 0;
+  if (!pkg || amount <= 0) throw new Error("This proposal has no monthly price to bill.");
+  if (!p.client_email) throw new Error("Add the customer's email first.");
+  const plan_note = [
+    pkg.ramp?.length ? pkg.ramp.map((r) => `${r.label}: ${money(r.monthly)}/mo`).join(", ") : "",
+    pkg.ramp?.length ? `${pkg.monthlyLabel || "After that"}: ${money(pkg.monthly)}/mo` : "",
+    pkg.percent ? `Plus ${pkg.percent.rate}% of ${pkg.percent.of}` : "",
+  ].filter(Boolean).join(". ");
+  return billingPost({
+    action: "ensure", order_id: p.id, amount, plan_name: pkg.name, reference: p.number, plan_note, return_url: projectUrl(p.token),
+    customer: { name: p.client_name || p.client_company || p.signed_name, email: p.client_email, phone: p.client_phone || undefined, company: p.client_company || undefined },
+  });
+}
+
+export const billingAction = (proposalId: string, action: string, fields: Record<string, unknown> = {}) => billingPost({ ...fields, action, order_id: proposalId });
+
+export async function billingStatus(proposalId: string) {
+  const { base, headers } = signed(proposalId);
+  const r = await fetch(`${base}/api/external/nexa-subscription?order_id=${proposalId}`, { headers, cache: "no-store", signal: AbortSignal.timeout(10000) });
+  const j = await r.json();
+  if (!r.ok) throw new Error(j.error || `Billing failed (${r.status})`);
+  return j;
+}
+
 // ── Email ──
 const shell = (heading: string, body: string, button?: { label: string; href: string }) => `
 <div style="background:#eef2f0;padding:28px 12px;font-family:Arial,Helvetica,sans-serif;color:#10211f">
@@ -160,6 +200,7 @@ export async function emailSignedCopy(p: any, pdf: Buffer | null) {
   const content = normalizeContent(p.signed_snapshot?.content || p.content);
   const due = Number(p.due_amount) || 0;
   const total = due + surchargeOn(content, due);
+  const autopay = p.signed_snapshot?.autopay_opt_in === true;
   const attachments = pdf ? [{ filename: `${p.number}-signed.pdf`, content: pdf }] : undefined;
   const resend = new Resend(process.env.RESEND_API_KEY);
   if (p.client_email) {
@@ -167,8 +208,8 @@ export async function emailSignedCopy(p: any, pdf: Buffer | null) {
       from: FROM, to: p.client_email, replyTo: INBOX, attachments,
       subject: `Signed copy: ${p.title}`,
       html: shell("Thank you. You're all signed.",
-        `<p style="margin:0 0 12px">Your signed copy of <b>${esc(p.title)}</b> is ${pdf ? "attached" : "on your project page"}. Keep it for your records.</p>${due > 0 ? `<p style="margin:0">The next step is your payment of <b>${money(total)}</b>.</p>` : `<p style="margin:0">We'll be in touch with next steps.</p>`}`,
-        { label: due > 0 ? "Make your payment" : "Open your project page", href: due > 0 ? `${projectUrl(p.token)}/pay` : projectUrl(p.token) }),
+        `<p style="margin:0 0 12px">Your signed copy of <b>${esc(p.title)}</b> is ${pdf ? "attached" : "on your project page"}. Keep it for your records.</p>${due > 0 ? `<p style="margin:0 0 12px">The next step is your payment of <b>${money(total)}</b>.</p>` : autopay ? "" : `<p style="margin:0">We'll be in touch with next steps.</p>`}${autopay ? `<p style="margin:0">You chose automatic monthly billing. ${due > 0 ? `After your payment, <a href="${projectUrl(p.token)}/card">save your card here</a>.` : "Save your card with the button below."} Nothing is charged when you save it, and we'll email you the date and amount before the first charge.</p>` : ""}`,
+        due > 0 ? { label: "Make your payment", href: `${projectUrl(p.token)}/pay` } : autopay ? { label: "Save your card", href: `${projectUrl(p.token)}/card` } : { label: "Open your project page", href: projectUrl(p.token) }),
     });
   }
   await resend.emails.send({

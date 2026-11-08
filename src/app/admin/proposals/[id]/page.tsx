@@ -6,6 +6,7 @@ import { Check, Copy, Download, ExternalLink, Eye, Loader2, Lock, Mail, Pause, P
 import AppShell from "@/components/admin/AppShell";
 import { DIVISIONS, WORK_CATALOG, dueAtSigning, defaultPackage, money, surchargeOn, type ProposalContent } from "@/lib/proposals/types";
 import { field, label, StatusChip, statusOf, when } from "../shared";
+import BillingPanel from "./BillingPanel";
 
 const lines = (s: string) => s.split("\n");
 const clean = (a: string[]) => a.map((x) => x.trim()).filter(Boolean);
@@ -14,6 +15,8 @@ const EVENT: Record<string, string> = {
   emailed: "Emailed to the customer", link_published: "Link turned on", opened: "Customer opened it", signed: "Signed",
   signed_copy_emailed: "Signed copy emailed", signed_copy_failed: "Signed copy email failed", invoice_created: "Invoice created",
   pay_clicked: "Customer went to payment", pay_failed: "Payment page failed to open", paid: "Paid",
+  card_link_opened: "Customer opened the card page", card_link_failed: "Card page failed to open", billing_update: "Billing changed", billing_approve: "Charge over the limit approved",
+  billing_pause: "Billing paused", billing_resume: "Billing turned back on", billing_cancel: "Billing cancelled", billing_resolve: "Held charge resolved", billing_usage_reported: "Usage amount reported",
 };
 
 function Section({ title, children, note }: { title: string; note?: string; children: React.ReactNode }) {
@@ -156,6 +159,8 @@ export default function ProposalEditor({ params }: { params: { id: string } }) {
             </div>
           </Section>
         )}
+
+        {locked && <BillingPanel id={p.id} />}
 
         <fieldset disabled={locked} className="grid gap-4 disabled:opacity-70">
           <Section title="Customer">
