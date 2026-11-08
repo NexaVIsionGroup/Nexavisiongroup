@@ -12,9 +12,11 @@ const DIVISIONS = ["Restaurants", "Contractors & Home Services", "Automotive", "
 const SITE = "https://nexavisiongroup.com";
 
 const args = process.argv.slice(2);
-const file = args.find((a) => !a.startsWith("--") && a !== args[args.indexOf("--id") + 1]);
+const idAt = args.indexOf("--id");
+const file = args.find((a, i) => !a.startsWith("--") && (idAt < 0 || i !== idAt + 1));
 const check = args.includes("--check");
-const id = args.includes("--id") ? args[args.indexOf("--id") + 1] : null;
+const id = idAt >= 0 ? args[idAt + 1] : null;
+if (idAt >= 0 && !/^[0-9a-f-]{36}$/i.test(id || "")) { console.error("ERROR: --id needs the proposal's id."); process.exit(1); }
 const die = (m) => { console.error(`ERROR: ${m}`); process.exit(1); };
 if (!file) die("Pass the path to a proposal JSON file.");
 
