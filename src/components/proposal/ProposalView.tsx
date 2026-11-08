@@ -9,8 +9,8 @@ const longDate = (d: string) => new Date(d).toLocaleDateString("en-US", { month:
 const stamp = (d: string) => new Date(d).toLocaleString("en-US", { dateStyle: "long", timeStyle: "short" });
 
 /** Plain, static proposal page. Proposals with rich sections render through RichProposal instead. */
-export function ProposalView({ proposal: p, token, preview = false, payError = false, from }: {
-  proposal: PublicProposal; token: string; preview?: boolean; payError?: boolean; from?: string;
+export function ProposalView({ proposal: p, token, preview = false, share = false, payError = false, from }: {
+  proposal: PublicProposal; token: string; preview?: boolean; share?: boolean; payError?: boolean; from?: string;
 }) {
   const c = p.content;
   const s = useSigning(p, token, preview);
@@ -36,7 +36,7 @@ export function ProposalView({ proposal: p, token, preview = false, payError = f
       </header>
 
       <main className="nxp-wrap nxp-main">
-        {preview && <p className="nxp-note nxp-note-sun"><TriangleAlert size={18} aria-hidden />You&apos;re previewing this as the customer will see it. Views here aren&apos;t counted, and signing is off.</p>}
+        {preview && <p className="nxp-note nxp-note-sun"><TriangleAlert size={18} aria-hidden />{share ? "This is a preview copy for review. Signing is turned off here; the link to sign arrives by email." : "You're previewing this as the customer will see it. Views here aren't counted, and signing is off."}</p>}
 
         {signed && (
           <section className="nxp-done" aria-label="Signing status">

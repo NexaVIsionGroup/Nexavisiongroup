@@ -3,7 +3,7 @@
 //   node scripts/proposal.mjs path/to/proposal.json              create a draft
 //   node scripts/proposal.mjs path/to/proposal.json --id <uuid>  update an unsigned proposal
 // Run from the repo root. Full instructions: memory file nexa-proposal-writer.md
-import { randomBytes } from "node:crypto";
+import { createHmac, randomBytes } from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 import { createClient } from "@supabase/supabase-js";
@@ -152,4 +152,6 @@ console.log(`Saved ${row.number} (${row.status})`);
 console.log(`  id:      ${row.id}`);
 console.log(`  Review:  ${SITE}/admin/proposals/${row.id}`);
 console.log(`  Preview: ${SITE}/admin/proposals/${row.id}/preview`);
+const pk = createHmac("sha256", env.PROPOSAL_PREVIEW_SECRET || env.SUPABASE_SERVICE_ROLE_KEY).update(`preview:${row.token}`).digest("base64url").slice(0, 22);
+console.log(`  Share preview (no login, read-only, not counted): ${SITE}/preview/${row.token}?k=${pk}`);
 console.log(`  Customer link, works once sent: ${SITE}/project/${row.token}`);

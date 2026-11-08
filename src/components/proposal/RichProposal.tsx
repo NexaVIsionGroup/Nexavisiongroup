@@ -24,8 +24,8 @@ const ICONS: Record<string, React.ElementType> = {
 const longDate = (d: string) => new Date(d).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
 const stamp = (d: string) => new Date(d).toLocaleString("en-US", { dateStyle: "long", timeStyle: "short" });
 
-export function RichProposal({ proposal: p, token, preview = false, payError = false, from }: {
-  proposal: PublicProposal; token: string; preview?: boolean; payError?: boolean; from?: string;
+export function RichProposal({ proposal: p, token, preview = false, share = false, payError = false, from }: {
+  proposal: PublicProposal; token: string; preview?: boolean; share?: boolean; payError?: boolean; from?: string;
 }) {
   const c = p.content;
   const s = useSigning(p, token, preview);
@@ -45,7 +45,7 @@ export function RichProposal({ proposal: p, token, preview = false, payError = f
 
       <div className="pr-wrap">
         {preview && (
-          <p className="pr-preview-note"><TriangleAlert size={18} aria-hidden /> You&apos;re previewing this as the customer will see it. Views here aren&apos;t counted, and signing is off.</p>
+          <p className="pr-preview-note"><TriangleAlert size={18} aria-hidden /> {share ? "This is a preview copy for review. Signing is turned off here; the link to sign arrives by email." : "You're previewing this as the customer will see it. Views here aren't counted, and signing is off."}</p>
         )}
         {s.signed && (
           <section className="pr-done" aria-label="Signing status">

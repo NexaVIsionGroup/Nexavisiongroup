@@ -1,4 +1,4 @@
-import { createHash, createHmac, randomBytes } from "crypto";
+import { createHash, createHmac, randomBytes, timingSafeEqual } from "crypto";
 import { Resend } from "resend";
 import { notifyAdmin, notifyDb } from "@/lib/notify";
 import { BUSINESS_NAME, normalizeContent, money, surchargeOn, type ProposalContent, type PublicProposal } from "./types";
@@ -15,6 +15,17 @@ export function newNumber() {
   return `NV-${String(d.getFullYear()).slice(2)}${String(d.getMonth() + 1).padStart(2, "0")}-${randomBytes(2).toString("hex").toUpperCase()}`;
 }
 export const projectUrl = (token: string) => `${SITE}/project/${token}`;
+
+// A shareable read-only preview: works for drafts, needs no login, never counts as the
+// customer's view and can't be signed. The key is a signature of the token, so the
+// preview link can be shared without exposing the real customer link.
+const previewSecret = () => process.env.PROPOSAL_PREVIEW_SECRET || process.env.SUPABASE_SERVICE_ROLE_KEY || "";
+export const previewKey = (token: string) => createHmac("sha256", previewSecret()).update(`preview:${token}`).digest("base64url").slice(0, 22);
+export const previewUrl = (token: string) => `${SITE}/preview/${token}?k=${previewKey(token)}`;
+export function previewKeyOk(token: string, key: unknown) {
+  const want = previewKey(token);
+  return typeof key === "string" && key.length === want.length && timingSafeEqual(Buffer.from(key), Buffer.from(want));
+}
 
 /** Same input always gives the same text, whatever order the keys were saved in. */
 function stable(v: unknown): string {
