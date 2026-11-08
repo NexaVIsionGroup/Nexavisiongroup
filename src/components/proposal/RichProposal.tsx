@@ -21,8 +21,9 @@ import { SignaturePad, useOpenTracking, useSigning } from "./signing";
 const ICONS: Record<string, React.ElementType> = {
   ShoppingBag, Bike, MapPin, Gift, Smartphone, TrendingUp, Sparkles, Search, BadgeDollarSign, Utensils, Clock, Star, ShieldCheck, Target,
 };
-const longDate = (d: string) => new Date(d).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
-const stamp = (d: string) => new Date(d).toLocaleString("en-US", { dateStyle: "long", timeStyle: "short" });
+// Fixed time zone so the server and the customer's browser print the same date (no hydration mismatch, no "December 16" for a December 15 expiry).
+const longDate = (d: string) => new Date(d).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric", timeZone: "America/New_York" });
+const stamp = (d: string) => new Date(d).toLocaleString("en-US", { dateStyle: "long", timeStyle: "short", timeZone: "America/New_York" }) + " ET";
 
 export function RichProposal({ proposal: p, token, preview = false, share = false, payError = false, from }: {
   proposal: PublicProposal; token: string; preview?: boolean; share?: boolean; payError?: boolean; from?: string;

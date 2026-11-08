@@ -5,8 +5,9 @@ import { Logo } from "@/components/site/Logo";
 import { BUSINESS_NAME, money, type PublicProposal } from "@/lib/proposals/types";
 import { SignaturePad, useOpenTracking, useSigning } from "./signing";
 
-const longDate = (d: string) => new Date(d).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
-const stamp = (d: string) => new Date(d).toLocaleString("en-US", { dateStyle: "long", timeStyle: "short" });
+// Fixed time zone so the server and the customer's browser print the same date (no hydration mismatch).
+const longDate = (d: string) => new Date(d).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric", timeZone: "America/New_York" });
+const stamp = (d: string) => new Date(d).toLocaleString("en-US", { dateStyle: "long", timeStyle: "short", timeZone: "America/New_York" }) + " ET";
 
 /** Plain, static proposal page. Proposals with rich sections render through RichProposal instead. */
 export function ProposalView({ proposal: p, token, preview = false, share = false, payError = false, from }: {
