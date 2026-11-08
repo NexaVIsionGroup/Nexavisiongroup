@@ -12,6 +12,8 @@ const nextConfig = {
   },
   // Performance optimizations
   reactStrictMode: true,
+  // Next treats pdfkit as external, and its standard fonts are loaded by a path the tracer can't see.
+  experimental: { outputFileTracingIncludes: { "/api/project/**/*": ["./node_modules/pdfkit/js/**/*", "./node_modules/@react-pdf/pdfkit/**/*"] } },
   poweredByHeader: false,
   compress: true,
 
