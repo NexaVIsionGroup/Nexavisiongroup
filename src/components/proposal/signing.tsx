@@ -137,7 +137,7 @@ export function useSigning(p: PublicProposal, token: string, preview: boolean) {
       const r = await fetch(`/api/project/${token}/sign`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, title, agreed, signature_data: sig, package_id: pkg?.id, version: p.updated_at, autopay: offerAutopay ? autopay === true : undefined }),
+        body: JSON.stringify({ name, title, agreed, signature_data: sig, package_id: pkg?.id, version: p.version, autopay: offerAutopay ? autopay === true : undefined }),
       });
       const j = await r.json().catch(() => ({}));
       if (!r.ok) {

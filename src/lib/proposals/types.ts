@@ -206,6 +206,8 @@ export type PublicProposal = {
   sent_at: string | null;
   expires_at: string | null;
   updated_at: string;
+  /** fingerprint of the signable content; sent back when signing */
+  version: string;
   signed_at: string | null;
   signed_name: string | null;
   signed_title: string | null;

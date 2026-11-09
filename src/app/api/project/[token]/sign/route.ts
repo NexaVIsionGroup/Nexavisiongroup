@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { clientIp, db, emailSignedCopy, fingerprint, linkState, logEvent } from "@/lib/proposals/server";
+import { clientIp, contentVersion, db, emailSignedCopy, fingerprint, linkState, logEvent } from "@/lib/proposals/server";
 import { renderProposalPdf } from "@/lib/proposals/pdf";
 import { notifyAdmin } from "@/lib/notify";
 import { defaultPackage, dueAtSigning, money, normalizeContent } from "@/lib/proposals/types";
@@ -27,7 +27,7 @@ export async function POST(req: Request, { params }: { params: { token: string }
   if (p.signed_at) return NextResponse.json({ error: "This proposal has already been signed." }, { status: 409 });
   if (p.status === "declined") return NextResponse.json({ error: "This proposal is closed. Please contact us." }, { status: 409 });
   // They must sign the version they actually read.
-  if (body.version !== p.updated_at) return NextResponse.json({ error: "We updated this proposal after you opened it. Reload the page to see the latest version.", reload: true }, { status: 409 });
+  if (body.version !== p.updated_at && body.version !== contentVersion(p.content)) return NextResponse.json({ error: "We updated this proposal after you opened it. Reload the page to see the latest version.", reload: true }, { status: 409 });
 
   const content = normalizeContent(p.content);
   const pkg = content.packages.length ? content.packages.find((x) => x.id === body.package_id) || null : null;

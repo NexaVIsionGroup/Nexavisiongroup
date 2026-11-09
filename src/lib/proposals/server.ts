@@ -40,6 +40,14 @@ function stable(v: unknown): string {
   return JSON.stringify(v ?? null);
 }
 export const fingerprint = (v: unknown) => createHash("sha256").update(stable(v)).digest("hex");
+/**
+ * What a signature is checked against: the proposal content without the presentation-only parts (the one-screen
+ * summary and where the short link lands), so editing those never blocks a customer who has the page open.
+ */
+export function contentVersion(content: unknown) {
+  const { summary: _s, entry: _e, ...rest } = normalizeContent(content as Partial<ProposalContent>);
+  return fingerprint(rest).slice(0, 24);
+}
 
 // Cloudflare sits in front of the site, so its header holds the visitor's real address.
 export const clientIp = (req: Request) => req.headers.get("cf-connecting-ip") || req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || req.headers.get("x-real-ip") || "unknown";
@@ -58,7 +66,7 @@ export function toPublic(p: any): PublicProposal {
     number: p.number, title: p.title, status: p.status, division: p.division,
     client_name: p.client_name, client_company: p.client_company, client_email: p.client_email,
     content: normalizeContent(p.signed_snapshot?.content || p.content),
-    sent_at: p.sent_at, expires_at: p.expires_at, updated_at: p.updated_at,
+    sent_at: p.sent_at, expires_at: p.expires_at, updated_at: p.updated_at, version: contentVersion(p.signed_snapshot?.content || p.content),
     signed_at: p.signed_at, signed_name: p.signed_name, signed_title: p.signed_title,
     signature_data: p.signature_data, signed_hash: p.signed_hash,
     selected_package_id: p.selected_package_id, due_amount: p.due_amount == null ? null : Number(p.due_amount), paid_at: p.paid_at,
