@@ -5,11 +5,11 @@ import "@/styles/globals.css";
 
 export const metadata: Metadata = {
   title: {
-    default: "NexaVision Group | Websites and Business Apps",
+    default: "NexaVision Group | Empowering Your Digital Ecosystem",
     template: "%s | NexaVision Group",
   },
   description:
-    "We build your website and your own business app: inbox, file Drive, quotes, invoices, payments and more.",
+    "We're your outsourced tech and marketing department. We build it, we run it, you run your business.",
   metadataBase: new URL("https://nexavisiongroup.com"),
   openGraph: {
     type: "website",

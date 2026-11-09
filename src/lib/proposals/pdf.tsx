@@ -1,6 +1,6 @@
 import React from "react";
 import { Document, Page, Text, View, Image, StyleSheet, renderToBuffer } from "@react-pdf/renderer";
-import { BUSINESS_NAME, CATEGORY, defaultPackage, dueAtSigning, money, normalizeContent, surchargeOn } from "./types";
+import { BUSINESS_NAME, MOTTO, defaultPackage, dueAtSigning, money, normalizeContent, surchargeOn } from "./types";
 
 const INK = "#10211f", PINE = "#0f5c55", MUTED = "#51625f", LINE = "#d5dedb";
 const s = StyleSheet.create({
@@ -36,7 +36,7 @@ export function renderProposalPdf(p: any): Promise<Buffer> {
     <Document title={`${p.title} (${p.number})`} author={BUSINESS_NAME}>
       <Page size="LETTER" style={s.page}>
         <Text style={s.brand}>{BUSINESS_NAME}</Text>
-        <Text style={s.meta}>{CATEGORY}  ·  {p.signed_at ? "Signed agreement" : "Proposal"} {p.number}</Text>
+        <Text style={s.meta}>{MOTTO}  ·  {p.signed_at ? "Signed agreement" : "Proposal"} {p.number}</Text>
         <Text style={s.title}>{p.title}</Text>
         {!!who && <Text>Prepared for {who}{p.client_company && p.client_name ? `, attention ${p.client_name}` : ""}</Text>}
         {!!c.intro && <Text style={{ marginTop: 8 }}>{c.intro}</Text>}

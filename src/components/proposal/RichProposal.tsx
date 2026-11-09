@@ -14,7 +14,7 @@ import {
 import { CountUp, EASE, Money, Rise, Words } from "@/components/prospect/motion";
 import { Compare, PhoneShot } from "@/components/prospect/Briefing";
 import {
-  BUSINESS_NAME, CATEGORY, money, type BarRow, type Feature, type Finding, type ProposalPackage, type PublicProposal,
+  BUSINESS_NAME, CATCHPHRASE, MOTTO, money, type BarRow, type Feature, type Finding, type ProposalPackage, type PublicProposal,
 } from "@/lib/proposals/types";
 import { SignaturePad, useOpenTracking, useSigning } from "./signing";
 
@@ -77,7 +77,7 @@ export function RichProposal({ proposal: p, token, preview = false, share = fals
           <Rise className="pr-letter">
             <p className="pr-chapter"><b>✦</b> A note {first ? `for ${first}` : "from us"}</p>
             {c.intro.split(/\n\s*\n/).map((para, i) => <p key={i}>{para}</p>)}
-            <p className="pr-letter-sign">{BUSINESS_NAME} <i>·</i> {CATEGORY}</p>
+            <p className="pr-letter-sign">{BUSINESS_NAME} <i>·</i> {CATCHPHRASE}</p>
           </Rise>
         )}
       </div>
@@ -307,7 +307,7 @@ export function RichProposal({ proposal: p, token, preview = false, share = fals
       </section>
 
       <footer className="pr-foot">
-        <b>{BUSINESS_NAME}</b> <i>·</i> {CATEGORY} <i>·</i> {kind} {p.number} <i>·</i> <a href="mailto:info@nexavisiongroup.com">info@nexavisiongroup.com</a>
+        <b>{BUSINESS_NAME}</b> <i>·</i> {MOTTO} <i>·</i> {kind} {p.number} <i>·</i> <a href="mailto:info@nexavisiongroup.com">info@nexavisiongroup.com</a>
       </footer>
     </>
   );
@@ -330,7 +330,7 @@ function Hero({ hero, business, kind, number }: { hero: NonNullable<PublicPropos
       )}
       <div className="pr-hero-glow" />
       <div className="pr-mark">
-        <span><strong>NexaVision</strong> Group<span className="pr-mark-eyebrow"><i>·</i>{hero.eyebrow || CATEGORY}</span></span>
+        <span><strong>NexaVision</strong> Group<span className="pr-mark-eyebrow"><i>·</i>{hero.eyebrow || MOTTO}</span></span>
         <span className="hidden sm:inline">{business}{hero.place && <><i>·</i>{hero.place}</>}</span>
       </div>
       <motion.div className="pr-wrap" style={{ y, opacity: fade }}>

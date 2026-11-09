@@ -5,9 +5,9 @@ import { Junction } from "@/components/site/Junction";
 import { FrontDoor, AppStory, AppWall, Work, WhoAndHow, Pricing, Closer } from "@/components/site/Chapters";
 
 export const metadata: Metadata = {
-  title: { absolute: "NexaVision Group | Websites and Business Apps for Your Business" },
+  title: { absolute: "NexaVision Group | Empowering Your Digital Ecosystem" },
   description:
-    "We build your website and your own business app: email inbox, private file Drive, quotes, invoices, payments, online ordering and more. Get a free check-up.",
+    "We're your outsourced tech and marketing department. We build it, we run it, you run your business: websites, business apps, Google, ads, email, online ordering and design.",
 };
 
 export default function Page() {

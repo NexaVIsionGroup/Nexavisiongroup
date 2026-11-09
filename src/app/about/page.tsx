@@ -40,10 +40,10 @@ export default function AboutPage() {
         <div className="nxs-aurora" aria-hidden><i /><i /><i /></div>
         <div className="nxs-grain" aria-hidden />
         <div className="nxs-wrap" style={{ position: "relative", zIndex: 1 }}>
-          <p className="nxs-kicker"><span className="nxs-live" />About NexaVision Group</p>
+          <p className="nxs-kicker"><span className="nxs-live" />Empowering Your Digital Ecosystem.</p>
           <Rise as="h1" immediate text="From a café's online menu to a company's entire operation." className="nxs-display nxs-page-h1 nxs-grad-glow" delay={0.1} />
           <p className="nxs-hero-sub">
-            We build websites and complete business platforms. One week it&rsquo;s a restaurant&rsquo;s online ordering. The next it&rsquo;s a construction company&rsquo;s full operations system with estimates, employees, vendors, its own file storage and its own Android app.
+            We&rsquo;re your outsourced tech and marketing department. We build it, we run it, and you run your business. One week it&rsquo;s a restaurant&rsquo;s online ordering. The next it&rsquo;s a construction company&rsquo;s full operations system with estimates, employees, vendors, its own file storage and its own Android app.
           </p>
         </div>
       </section>

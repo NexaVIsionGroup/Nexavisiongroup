@@ -87,6 +87,10 @@ export type ProposalContent = {
 
 export const BUSINESS_NAME = "NexaVision Group";
 export const CATEGORY = "Managed Digital Operations";
+// The brand line. Keep this wording exact everywhere.
+export const MOTTO = "Empowering Your Digital Ecosystem.";
+export const CATCHPHRASE = "We build it. We run it. You run your business.";
+export const ONE_LINER = "We're your outsourced tech and marketing department.";
 
 export const DIVISIONS = ["Restaurants", "Contractors & Home Services", "Automotive", "Other"] as const;
 

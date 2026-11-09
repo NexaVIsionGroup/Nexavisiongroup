@@ -7,7 +7,7 @@ import { ShoppingBag, FileSignature, FolderOpen, CreditCard, Star, Inbox, Packag
 import Scramble from "@/components/nexaphone/Scramble";
 import { Rise } from "./Rise";
 import { Phone } from "./Screens";
-import { heroAlerts, marquee, CHECKUP_HREF } from "./content";
+import { heroAlerts, marquee, CHECKUP_HREF, MOTTO, ONE_LINER } from "./content";
 
 const ICONS: Record<string, typeof Inbox> = { Orders: ShoppingBag, Quotes: FileSignature, Drive: FolderOpen, Payments: CreditCard, Reviews: Star, Inbox, Store: Package };
 const TONE: Record<string, React.CSSProperties> = {
@@ -103,14 +103,14 @@ export function Hero() {
         <div>
           <motion.p className="nxs-kicker" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.6 }}>
             <span className="nxs-live" />
-            <Scramble text="Websites and business apps" speed={34} />
+            <Scramble text={MOTTO} speed={34} />
           </motion.p>
           <h1 className="nxs-display nxs-h1">
-            <Rise as="span" immediate text="More than a website." className="nxs-line" delay={0.15} />
-            <Rise as="span" immediate text="Your own business app." className="nxs-line nxs-grad-glow" delay={0.45} />
+            <Rise as="span" immediate text="We build it. We run it." className="nxs-line" delay={0.15} />
+            <Rise as="span" immediate text="You run your business." className="nxs-line nxs-grad-glow" delay={0.45} />
           </h1>
           <motion.p className="nxs-hero-sub" initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.9, delay: 0.9, ease: EASE }}>
-            We build your website and the private app behind it, so your emails, files, quotes, payments and customers live in one place on your phone. Built for you, run by us.
+            {ONE_LINER} Your website and your own business app, plus Google, ads, email, DoorDash, Uber, logos and design, all handled by one team.
           </motion.p>
           <motion.div className="nxs-hero-ctas" initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.9, delay: 1.05, ease: EASE }}>
             <Link href={CHECKUP_HREF} className="nxs-btn nxs-btn-glow">Get a free check-up</Link>

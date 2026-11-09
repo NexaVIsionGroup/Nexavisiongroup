@@ -1,7 +1,7 @@
 import { createHash, createHmac, randomBytes, timingSafeEqual } from "crypto";
 import { Resend } from "resend";
 import { notifyAdmin, notifyDb } from "@/lib/notify";
-import { BUSINESS_NAME, defaultPackage, firstMonthly, normalizeContent, money, surchargeOn, type ProposalContent, type PublicProposal } from "./types";
+import { BUSINESS_NAME, CATCHPHRASE, MOTTO, defaultPackage, firstMonthly, normalizeContent, money, surchargeOn, type ProposalContent, type PublicProposal } from "./types";
 
 export const SITE = process.env.NEXT_PUBLIC_SITE_URL || "https://nexavisiongroup.com";
 export const FROM = `${BUSINESS_NAME} <info@nexavisiongroup.com>`;
@@ -177,7 +177,7 @@ const shell = (heading: string, body: string, button?: { label: string; href: st
       ${body}
       ${button ? `<p style="margin:24px 0 8px"><a href="${button.href}" style="display:inline-block;background:#0f5c55;color:#ffffff;text-decoration:none;font-weight:700;padding:14px 24px;border-radius:9px">${button.label}</a></p>` : ""}
     </div>
-    <div style="padding:16px 26px;border-top:1px solid #dfe6e3;color:#51625f;font-size:14px">${BUSINESS_NAME} · ${INBOX} · nexavisiongroup.com</div>
+    <div style="padding:16px 26px;border-top:1px solid #dfe6e3;color:#51625f;font-size:14px"><b>${MOTTO}</b> ${CATCHPHRASE}<br>${BUSINESS_NAME} · ${INBOX} · nexavisiongroup.com</div>
   </div>
 </div>`;
 

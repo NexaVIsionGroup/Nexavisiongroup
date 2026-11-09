@@ -2,7 +2,7 @@
 
 import { Check, Download, Loader2, Lock, Target, TriangleAlert } from "lucide-react";
 import { Logo } from "@/components/site/Logo";
-import { BUSINESS_NAME, money, type PublicProposal } from "@/lib/proposals/types";
+import { BUSINESS_NAME, CATCHPHRASE, MOTTO, money, type PublicProposal } from "@/lib/proposals/types";
 import { SignaturePad, useOpenTracking, useSigning } from "./signing";
 
 // Fixed time zone so the server and the customer's browser print the same date (no hydration mismatch).
@@ -196,7 +196,8 @@ export function ProposalView({ proposal: p, token, preview = false, share = fals
 
       <footer className="nxp-foot">
         <div className="nxp-wrap">
-          <p><b>{BUSINESS_NAME}</b></p>
+          <p><b>{BUSINESS_NAME}</b>. {MOTTO}</p>
+          <p>{CATCHPHRASE}</p>
           <p>Questions? Email <a href="mailto:info@nexavisiongroup.com">info@nexavisiongroup.com</a></p>
         </div>
       </footer>

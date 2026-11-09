@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { nav, CHECKUP_HREF } from "./content";
+import { nav, CHECKUP_HREF, MOTTO, CATCHPHRASE, ONE_LINER } from "./content";
 import { Logo } from "./Logo";
 
 export function SiteFooter() {
@@ -10,8 +10,9 @@ export function SiteFooter() {
           <div>
             <Logo uid="foot" />
             <p style={{ marginTop: 16, maxWidth: 26 + "em", color: "#b7c8c4" }}>
-              Websites and business apps, built for you and run by us. From a café&rsquo;s online menu to a company&rsquo;s entire operation.
+              <strong style={{ color: "#fff" }}>{MOTTO}</strong><br />{CATCHPHRASE}
             </p>
+            <p style={{ marginTop: 10, maxWidth: 26 + "em", color: "#b7c8c4" }}>{ONE_LINER}</p>
           </div>
           <nav aria-label="Footer">
             <p className="nxs-footer-h">Pages</p>
