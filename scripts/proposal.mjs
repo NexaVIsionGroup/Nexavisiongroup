@@ -67,6 +67,8 @@ if (c.summary) {
   need(list(s.today) && s.today.length > 0 && s.today.length <= 4 && s.today.every((f) => text(f.value) && text(f.label)), "summary.today needs 1 to 4 items with value and label");
   need(list(s.changes) && s.changes.length > 0 && s.changes.length <= 6 && s.changes.every(text), "summary.changes needs 1 to 6 lines (keep it one screen)");
 }
+if (c.entry !== undefined) need(["full", "short", "sign"].includes(c.entry), "content.entry must be full, short or sign");
+if (c.entry === "short") need(!!c.summary, "content.entry is short, so content.summary is required");
 need(list(c.goals) && c.goals.length > 0 && c.goals.every(text), "content.goals needs at least one goal");
 need(list(c.work) && c.work.length > 0, "content.work needs at least one service");
 (c.work || []).forEach((w, i) => need(text(w.area) && list(w.items) && w.items.length > 0, `work[${i}] needs area and items`));
@@ -164,4 +166,5 @@ console.log(`  Preview: ${SITE}/admin/proposals/${row.id}/preview`);
 const pk = createHmac("sha256", env.PROPOSAL_PREVIEW_SECRET || env.SUPABASE_SERVICE_ROLE_KEY).update(`preview:${row.token}`).digest("base64url").slice(0, 22);
 console.log(`  Share preview (no login, read-only, not counted): ${SITE}/preview/${row.token}?k=${pk}`);
 console.log(`  Customer link, works once sent: ${SITE}/project/${row.token}`);
+console.log(`  Short link (send this; it opens the ${c.entry === "sign" ? "agreement" : c.entry === "short" ? "summary" : "proposal"} before signing and the project page after): ${SITE}/go/${row.token.slice(0, 6)}`);
 if (c.summary) console.log(`  One-screen summary (send this to someone who won't read the whole page): ${SITE}/project/${row.token}/short`);

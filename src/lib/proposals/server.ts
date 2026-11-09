@@ -15,6 +15,9 @@ export function newNumber() {
   return `NV-${String(d.getFullYear()).slice(2)}${String(d.getMonth() + 1).padStart(2, "0")}-${randomBytes(2).toString("hex").toUpperCase()}`;
 }
 export const projectUrl = (token: string) => `${SITE}/project/${token}`;
+/** Short, permanent customer link: nexavisiongroup.com/go/<first 6 of the token>. /go/[code] sends it to the right stage. */
+export const shortCode = (token: string) => token.slice(0, 6);
+export const shortUrl = (token: string) => `${SITE}/go/${shortCode(token)}`;
 
 // A shareable read-only preview: works for drafts, needs no login, never counts as the
 // customer's view and can't be signed. The key is a signature of the token, so the

@@ -85,6 +85,8 @@ export type ProposalContent = {
   closing?: { headline?: string; lead?: string };
   /** one-screen version at /project/<token>/short for people who won't read the whole page; price comes from the package */
   summary?: Summary;
+  /** where the short link (/go/<code>) lands before signing: the full proposal (default), the one-screen summary, or the agreement page */
+  entry?: "full" | "short" | "sign";
 };
 export type Summary = {
   headline: string;
@@ -159,6 +161,7 @@ export function normalizeContent(c: Partial<ProposalContent> | null | undefined)
   if (c?.comparison?.rows?.length) out.comparison = c.comparison;
   if (c?.closing) out.closing = c.closing;
   if (c?.summary?.headline) out.summary = c.summary;
+  if (c?.entry && c.entry !== "full") out.entry = c.entry;
   return out;
 }
 

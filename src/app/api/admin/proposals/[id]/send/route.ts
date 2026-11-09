@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { db, emailProposal, logEvent, projectUrl } from "@/lib/proposals/server";
+import { db, emailProposal, logEvent, shortUrl } from "@/lib/proposals/server";
 
 export const dynamic = "force-dynamic";
 
@@ -23,5 +23,5 @@ export async function POST(req: Request, { params }: { params: { id: string } })
   if (p.status === "draft") patch.status = "sent";
   if (Object.keys(patch).length) await supabase.from("proposals").update(patch).eq("id", p.id);
   await logEvent(p.id, b.email ? "emailed" : "link_published", undefined, b.email ? { to: p.client_email } : {});
-  return NextResponse.json({ ok: true, url: projectUrl(p.token), status: (patch.status as string) || p.status });
+  return NextResponse.json({ ok: true, url: shortUrl(p.token), status: (patch.status as string) || p.status });
 }

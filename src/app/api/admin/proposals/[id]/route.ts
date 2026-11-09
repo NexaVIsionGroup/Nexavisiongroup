@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { db, previewUrl, projectUrl, syncPaid } from "@/lib/proposals/server";
+import { db, previewUrl, projectUrl, shortUrl, syncPaid } from "@/lib/proposals/server";
 import { normalizeContent } from "@/lib/proposals/types";
 
 export const dynamic = "force-dynamic";
@@ -13,7 +13,7 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
   if (!row) return NextResponse.json({ error: "Not found" }, { status: 404 });
   const p = await syncPaid(row);
   const { data: events } = await supabase.from("proposal_events").select("id,event,meta,ip,user_agent,created_at").eq("proposal_id", p.id).order("created_at", { ascending: false }).limit(100);
-  return NextResponse.json({ proposal: { ...p, content: normalizeContent(p.content), url: projectUrl(p.token), preview_url: previewUrl(p.token) }, events: events || [] });
+  return NextResponse.json({ proposal: { ...p, content: normalizeContent(p.content), url: projectUrl(p.token), short_url: shortUrl(p.token), preview_url: previewUrl(p.token) }, events: events || [] });
 }
 
 export async function PATCH(req: Request, { params }: { params: { id: string } }) {
