@@ -108,7 +108,8 @@
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); }
 .nxs-hero-grid { position: relative; z-index: 1; display: grid; gap: 56px; align-items: center; flex: 1; padding-bottom: 60px; }
 @media (min-width: 1024px) { .nxs-hero-grid { grid-template-columns: 1.08fr 0.92fr; gap: 40px; } }
-.nxs-h1 { font-size: clamp(3.1rem, 8.4vw, 7rem); margin: 22px 0 0; }
+.nxs-h1 { font-size: clamp(2.9rem, 6.2vw, 5.2rem); margin: 22px 0 0; }
+.nxs-h1 .nxs-grad-glow, .nxs-h1 .nxs-grad-glow .nxs-word-in { filter: none; }
 .nxs-h1 .nxs-line { display: block; }
 .nxs-hero-sub { margin-top: 28px; font-size: clamp(19px, 1.7vw, 23px); color: #c9d8d5; max-width: 33em; }
 .nxs-hero-ctas { margin-top: 36px; display: flex; flex-wrap: wrap; gap: 14px; }

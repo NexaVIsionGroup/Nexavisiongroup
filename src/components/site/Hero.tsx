@@ -106,7 +106,8 @@ export function Hero() {
             <Scramble text={MOTTO} speed={34} />
           </motion.p>
           <h1 className="nxs-display nxs-h1">
-            <Rise as="span" immediate text="We build it. We run it." className="nxs-line" delay={0.15} />
+            <Rise as="span" immediate text="We build it." className="nxs-line" delay={0.15} />
+            <Rise as="span" immediate text="We run it." className="nxs-line" delay={0.3} />
             <Rise as="span" immediate text="You run your business." className="nxs-line nxs-grad-glow" delay={0.45} />
           </h1>
           <motion.p className="nxs-hero-sub" initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.9, delay: 0.9, ease: EASE }}>
