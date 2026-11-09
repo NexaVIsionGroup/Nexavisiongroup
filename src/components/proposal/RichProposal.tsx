@@ -25,8 +25,10 @@ const ICONS: Record<string, React.ElementType> = {
 const longDate = (d: string) => new Date(d).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric", timeZone: "America/New_York" });
 const stamp = (d: string) => new Date(d).toLocaleString("en-US", { dateStyle: "long", timeStyle: "short", timeZone: "America/New_York" }) + " ET";
 
-export function RichProposal({ proposal: p, token, preview = false, share = false, payError = false, from }: {
+export function RichProposal({ proposal: p, token, preview = false, share = false, payError = false, from, contract = false, fullHref }: {
   proposal: PublicProposal; token: string; preview?: boolean; share?: boolean; payError?: boolean; from?: string;
+  /** agreement-only page (/project/<token>/sign): plan, payment, terms and signature, no story chapters */
+  contract?: boolean; fullHref?: string;
 }) {
   const c = p.content;
   const s = useSigning(p, token, preview);
@@ -42,7 +44,21 @@ export function RichProposal({ proposal: p, token, preview = false, share = fals
 
   return (
     <>
-      <Hero hero={hero} business={business} kind={kind} number={p.number} />
+      {contract ? (
+        <header className="pr-contract-head">
+          <div className="pr-wrap">
+            <p className="pr-contract-brand"><strong>NexaVision</strong> Group <i>·</i> {MOTTO}</p>
+            <p className="pr-chapter"><b>✦</b> {s.signed ? "Signed agreement" : "Service agreement"} {p.number}</p>
+            <h1>{s.signed ? `Your agreement with ${BUSINESS_NAME}.` : `${business} and ${BUSINESS_NAME}.`}</h1>
+            <p className="pr-lede">
+              {s.signed ? "Everything you agreed to, in one place." : "Your plan, the price, how billing works and the terms. Read it through, then sign at the bottom."}
+              {fullHref && <> The full proposal, with everything we found and what we&apos;ll build, is <a href={fullHref}>here</a> and is part of this agreement.</>}
+            </p>
+          </div>
+        </header>
+      ) : (
+        <Hero hero={hero} business={business} kind={kind} number={p.number} />
+      )}
 
       <div className="pr-wrap">
         {preview && (
@@ -62,7 +78,7 @@ export function RichProposal({ proposal: p, token, preview = false, share = fals
           </section>
         )}
 
-        {!!c.facts?.length && (
+        {!contract && !!c.facts?.length && (
           <div className="pr-facts">
             {c.facts.map((f, i) => (
               <Rise key={f.label} delay={i * 0.08} className="pr-fact">
@@ -73,7 +89,7 @@ export function RichProposal({ proposal: p, token, preview = false, share = fals
           </div>
         )}
 
-        {!!c.intro && (
+        {!contract && !!c.intro && (
           <Rise className="pr-letter">
             <p className="pr-chapter"><b>✦</b> A note {first ? `for ${first}` : "from us"}</p>
             {c.intro.split(/\n\s*\n/).map((para, i) => <p key={i}>{para}</p>)}
@@ -82,6 +98,7 @@ export function RichProposal({ proposal: p, token, preview = false, share = fals
         )}
       </div>
 
+      {!contract && <>
       {c.findings.length > 0 && (
         <section className="pr-section" id="found">
           <div className="pr-wrap">
@@ -196,6 +213,7 @@ export function RichProposal({ proposal: p, token, preview = false, share = fals
           </div>
         </section>
       )}
+      </>}
 
       {/* ── paper section: price, payment, terms, signature ── */}
       <section className="pr-section pr-light pr-paper" id="price">

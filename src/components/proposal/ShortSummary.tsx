@@ -58,7 +58,7 @@ export function ShortSummary({ proposal: p, token, previewKey }: { proposal: Pub
         {s.proof && <blockquote className="nxp-short-proof">{s.proof}</blockquote>}
 
         <div className="nxp-short-cta">
-          {!p.signed_at && <a className="pr-btn pr-btn-gold" href={`${full}#sign`}>Sign and get started <ArrowRight size={20} /></a>}
+          {!p.signed_at && <a className="pr-btn pr-btn-gold" href={preview ? `/project/${token}/sign?k=${previewKey}` : `/project/${token}/sign`}>Sign and get started <ArrowRight size={20} /></a>}
           <a className="pr-btn pr-btn-ghost" href={full}>{p.signed_at ? "Open your agreement" : "Read the full proposal"}</a>
         </div>
         <p className="nxp-short-foot">{BUSINESS_NAME} · {CATCHPHRASE} · <a href="mailto:info@nexavisiongroup.com">info@nexavisiongroup.com</a></p>

@@ -313,3 +313,12 @@ button.nxp-pkg:hover { border-color: #8db7ae; }
 .nxp-rich .nxp-short-foot { margin-top: 30px; font-size: 13px; color: rgba(244, 236, 223, 0.55); text-align: center; }
 .nxp-rich .nxp-short-foot a { color: var(--gold); }
 @media (min-width: 640px) { .nxp-rich .nxp-short-tiles { grid-template-columns: repeat(4, 1fr); } .nxp-rich .nxp-short-in { padding-top: 44px; } }
+
+/* ── Agreement-only page (/project/<token>/sign) ── */
+.nxp-rich .pr-contract-head { background: var(--night); color: var(--cream); padding: 34px 0 40px; }
+.nxp-rich .pr-contract-brand { font-size: 13px; letter-spacing: 0.2em; text-transform: uppercase; margin: 0 0 34px; }
+.nxp-rich .pr-contract-brand strong { font-weight: 700; }
+.nxp-rich .pr-contract-brand i { font-style: normal; color: var(--copper); margin: 0 6px; }
+.nxp-rich .pr-contract-head h1 { font: 400 clamp(2rem, 7vw, 3.2rem)/1.1 var(--serif); letter-spacing: -0.02em; margin: 12px 0 14px; }
+.nxp-rich .pr-contract-head .pr-lede { color: rgba(244, 236, 223, 0.82); }
+.nxp-rich .pr-contract-head a { color: var(--gold); text-decoration: underline; text-underline-offset: 3px; }
