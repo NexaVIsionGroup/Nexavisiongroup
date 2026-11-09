@@ -1,5 +1,8 @@
 import React from "react";
-import { Document, Page, Text, View, Image, StyleSheet, renderToBuffer } from "@react-pdf/renderer";
+import { Document, Page, Text, View, Image, StyleSheet, Font, renderToBuffer } from "@react-pdf/renderer";
+
+// Never split words with hyphens.
+Font.registerHyphenationCallback((word) => [word]);
 import { BUSINESS_NAME, MOTTO, defaultPackage, dueAtSigning, money, normalizeContent, surchargeOn } from "./types";
 
 const INK = "#10211f", PINE = "#0f5c55", MUTED = "#51625f", LINE = "#d5dedb";
@@ -133,7 +136,7 @@ const a = StyleSheet.create({
   head: { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start", paddingBottom: 14, borderBottomWidth: 2, borderBottomColor: A_COPPER },
   brand: { fontFamily: "Helvetica-Bold", fontSize: 15, letterSpacing: 1.5 },
   motto: { fontSize: 9, color: A_MUTED, marginTop: 3 },
-  docType: { fontFamily: "Times-Bold", fontSize: 18, textAlign: "right" },
+  docType: { fontFamily: "Times-Bold", fontSize: 18, lineHeight: 1.2, textAlign: "right", marginBottom: 4 },
   docMeta: { fontSize: 9, color: A_MUTED, textAlign: "right", marginTop: 2 },
   draft: { marginTop: 12, padding: 8, backgroundColor: A_SOFT, borderLeftWidth: 3, borderLeftColor: A_COPPER, fontSize: 9, color: A_MUTED },
   parties: { flexDirection: "row", marginTop: 16 },
@@ -221,8 +224,8 @@ export function renderAgreementPdf(p: any, opts: { link?: string } = {}): Promis
           {!!pkg.percent && Number(pkg.percent.rate) > 0 && <View style={a.tRow}><Text style={a.cItem}>Plus {pkg.percent.rate}% of {pkg.percent.of}</Text><Text style={a.cAmt}>{pkg.percent.rate}%</Text></View>}
           {fee > 0 && <View style={a.tRow}><Text style={a.cItem}>4% card fee on the amount due at signing</Text><Text style={a.cAmt}>{money(fee)}</Text></View>}
           {due > 0 && <View style={a.tTotal}><Text style={a.cItem}>Due at signing</Text><Text style={a.cAmt}>{money(due + fee)}</Text></View>}
-          {!!pkg.rampNote && <Text style={[a.small, { marginTop: 6 }]}>{pkg.rampNote}</Text>}
         </View>}
+        {!!pkg?.rampNote && <Text style={[a.small, { marginTop: 6 }]}>{pkg.rampNote}</Text>}
 
         {!!c.payment.schedule?.length && <View wrap={false}>
           <Text style={a.h2}>{sec("Payment schedule")}</Text>
