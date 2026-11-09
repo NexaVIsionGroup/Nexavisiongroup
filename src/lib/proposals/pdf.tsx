@@ -96,6 +96,12 @@ export function renderProposalPdf(p: any): Promise<Buffer> {
             {fee > 0 && <View style={s.row}><Text>4% card fee on the amount due</Text><Text>{money(fee)}</Text></View>}
           </View>
         </View>}
+        {!!c.payment.schedule?.length && (
+          <View style={{ marginTop: 8 }}>
+            <Text style={s.b}>When you pay</Text>
+            {c.payment.schedule.map((x, i) => <View key={i} style={s.row}><Text>{x.when}{x.note ? ` (${x.note})` : ""}</Text><Text>{money(x.amount)}</Text></View>)}
+          </View>
+        )}
         {!!c.payment.notes && <Text style={{ marginTop: 8 }}>{c.payment.notes}</Text>}
         {autopay !== null && <Text style={{ marginTop: 6 }}><Text style={s.b}>Monthly billing: </Text>{autopay ? "automatic card billing each month, chosen at signing." : "invoiced each month, paid by the customer; automatic billing declined at signing."}</Text>}
 

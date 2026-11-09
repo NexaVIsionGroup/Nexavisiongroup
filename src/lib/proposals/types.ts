@@ -58,6 +58,8 @@ export type PaymentTerms = {
   notes?: string;
   /** optional "set up automatic monthly billing" choice the customer makes at signing */
   autopay?: AutopayOffer;
+  /** optional at-a-glance list of when each charge happens, shown under the amount due */
+  schedule?: { when: string; amount: number; note?: string }[];
 };
 export type Term = { title: string; text: string };
 export type Feature = { icon?: string; image?: string; title: string; body: string };

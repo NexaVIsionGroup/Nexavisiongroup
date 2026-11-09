@@ -245,6 +245,13 @@ export function RichProposal({ proposal: p, token, preview = false, share = fals
                   {s.fee > 0 && <div className="is-total"><dt>Total at signing</dt><dd>{money(s.due + s.fee)}</dd></div>}
                 </dl>
               )}
+              {!!c.payment.schedule?.length && (
+                <ol className="pr-schedule" aria-label="When you pay">
+                  {c.payment.schedule.map((x, i) => (
+                    <li key={i}><span className="pr-schedule-dot" aria-hidden /><div><b>{x.when}</b>{x.note && <small>{x.note}</small>}</div><strong>{money(x.amount)}</strong></li>
+                  ))}
+                </ol>
+              )}
               {c.payment.notes && <p>{c.payment.notes}</p>}
             </Rise>
           )}

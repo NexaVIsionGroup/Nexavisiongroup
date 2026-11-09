@@ -93,6 +93,7 @@ need(["none", "percent", "fixed"].includes(pay.mode), "payment.mode must be none
 if (pay.mode !== "none") need(typeof pay.value === "number" && pay.value > 0, "payment.value must be a number above 0");
 if (pay.mode === "percent") need(pay.value <= 100, "payment.value is a percent, so 100 or less");
 if (pay.autopay) need(typeof pay.autopay.offer === "boolean", "payment.autopay.offer must be true or false");
+if (pay.schedule) need(list(pay.schedule) && pay.schedule.length > 0 && pay.schedule.length <= 5 && pay.schedule.every((x) => text(x.when) && typeof x.amount === "number" && x.amount >= 0), "payment.schedule needs 1 to 5 steps with when and amount (number)");
 if (c.terms) need(list(c.terms) && c.terms.every((t) => text(t.title) && text(t.text)), "every term needs title and text");
 
 // Words that must never reach a customer.
@@ -102,7 +103,7 @@ for (const [re, why] of [[/jhps|jhpsfl/i, "the JHPS name"], [/\bLLC\b/, '"LLC" (
 }
 if (problems.length) die(`Fix these and run again:\n - ${problems.join("\n - ")}`);
 
-const content = { ...c, timeline: c.timeline || [], payment: { mode: pay.mode, value: pay.value || 0, surcharge: !!pay.surcharge, notes: pay.notes || "", ...(pay.autopay ? { autopay: pay.autopay } : {}) } };
+const content = { ...c, timeline: c.timeline || [], payment: { mode: pay.mode, value: pay.value || 0, surcharge: !!pay.surcharge, notes: pay.notes || "", ...(pay.autopay ? { autopay: pay.autopay } : {}), ...(pay.schedule ? { schedule: pay.schedule } : {}) } };
 if (!c.terms) delete content.terms; // the app fills in the standard terms
 
 // ── Summary ──
