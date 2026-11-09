@@ -282,3 +282,34 @@ button.nxp-pkg:hover { border-color: #8db7ae; }
 .nxp-rich .pr-foot b { color: var(--cream); font-weight: 600; }
 .nxp-rich .pr-foot i { font-style: normal; color: var(--copper); padding: 0 8px; }
 .nxp-rich .animate-spin { animation: pr-spin 1s linear infinite; }
+
+/* ── One-screen summary (/project/<token>/short) ── */
+.nxp-rich .nxp-short { position: relative; min-height: 100vh; background: var(--night); color: var(--cream); font-family: var(--sans); overflow: hidden; }
+.nxp-rich .nxp-short-bg { position: absolute; inset: 0 0 auto 0; height: 420px; background-size: cover; background-position: center; opacity: 0.32; mask-image: linear-gradient(180deg, #000 0%, transparent 100%); -webkit-mask-image: linear-gradient(180deg, #000 0%, transparent 100%); }
+.nxp-rich .nxp-short-in { position: relative; max-width: 640px; margin: 0 auto; padding: 28px 16px 48px; }
+.nxp-rich .nxp-short-brand { font-size: 13px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--cream); margin: 0 0 40px; }
+.nxp-rich .nxp-short-brand strong { font-weight: 700; }
+.nxp-rich .nxp-short-brand span { color: rgba(244, 236, 223, 0.6); letter-spacing: 0.04em; text-transform: none; }
+.nxp-rich .nxp-short-for { color: var(--gold); font-size: 15px; margin: 0 0 10px; }
+.nxp-rich .nxp-short h1 { font: 400 clamp(2.1rem, 8vw, 3rem)/1.08 var(--serif); letter-spacing: -0.02em; margin: 0 0 14px; }
+.nxp-rich .nxp-short-lead { font-size: 18px; line-height: 1.55; color: rgba(244, 236, 223, 0.82); margin: 0 0 8px; }
+.nxp-rich .nxp-short h2 { font: 600 13px/1 var(--sans); letter-spacing: 0.2em; text-transform: uppercase; color: var(--copper); margin: 34px 0 14px; }
+.nxp-rich .nxp-short-today { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; }
+.nxp-rich .nxp-short-today div, .nxp-rich .nxp-short-tiles div { display: flex; flex-direction: column; gap: 6px; padding: 16px; border-radius: 16px; background: rgba(255, 255, 255, 0.04); box-shadow: inset 0 0 0 1px rgba(244, 236, 223, 0.12); }
+.nxp-rich .nxp-short-today b { font: 400 34px/1 var(--serif); color: #f3a37a; }
+.nxp-rich .nxp-short-today span, .nxp-rich .nxp-short-tiles span { font-size: 15px; line-height: 1.4; color: rgba(244, 236, 223, 0.78); }
+.nxp-rich .nxp-short-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
+.nxp-rich .nxp-short-list li { display: flex; gap: 12px; align-items: flex-start; font-size: 17px; line-height: 1.45; }
+.nxp-rich .nxp-short-list svg { flex: none; margin-top: 2px; color: var(--gold); }
+.nxp-rich .nxp-short-price { margin-top: 34px; padding: 4px 18px 20px; border-radius: 22px; background: var(--paper); color: var(--ink); }
+.nxp-rich .nxp-short-price h2 { color: var(--copper-deep); margin-top: 20px; }
+.nxp-rich .nxp-short-tiles { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+.nxp-rich .nxp-short-tiles div { background: #fff; box-shadow: inset 0 0 0 1px rgba(29, 21, 14, 0.08); }
+.nxp-rich .nxp-short-tiles b { font: 400 28px/1 var(--serif); color: var(--ink); }
+.nxp-rich .nxp-short-tiles span { color: var(--ink-2); }
+.nxp-rich .nxp-short-proof { margin: 30px 0 0; padding: 16px 18px; border-left: 3px solid var(--copper); background: rgba(255, 255, 255, 0.04); border-radius: 0 14px 14px 0; font: italic 400 19px/1.5 var(--serif); color: var(--cream); }
+.nxp-rich .nxp-short-cta { display: grid; gap: 12px; margin-top: 30px; }
+.nxp-rich .nxp-short-cta .pr-btn { width: 100%; }
+.nxp-rich .nxp-short-foot { margin-top: 30px; font-size: 13px; color: rgba(244, 236, 223, 0.55); text-align: center; }
+.nxp-rich .nxp-short-foot a { color: var(--gold); }
+@media (min-width: 640px) { .nxp-rich .nxp-short-tiles { grid-template-columns: repeat(4, 1fr); } .nxp-rich .nxp-short-in { padding-top: 44px; } }

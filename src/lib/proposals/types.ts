@@ -83,6 +83,18 @@ export type ProposalContent = {
   /** today vs. with us, in plain statements */
   comparison?: Comparison;
   closing?: { headline?: string; lead?: string };
+  /** one-screen version at /project/<token>/short for people who won't read the whole page; price comes from the package */
+  summary?: Summary;
+};
+export type Summary = {
+  headline: string;
+  lead?: string;
+  /** what it costs them today, as big numbers */
+  today: { value: string; label: string }[];
+  /** what changes with us, one line each */
+  changes: string[];
+  /** one proof line, e.g. a similar customer's result */
+  proof?: string;
 };
 
 export const BUSINESS_NAME = "NexaVision Group";
@@ -146,6 +158,7 @@ export function normalizeContent(c: Partial<ProposalContent> | null | undefined)
   if (c?.features?.length) out.features = c.features;
   if (c?.comparison?.rows?.length) out.comparison = c.comparison;
   if (c?.closing) out.closing = c.closing;
+  if (c?.summary?.headline) out.summary = c.summary;
   return out;
 }
 
