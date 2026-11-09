@@ -82,13 +82,27 @@ export function useOpenTracking(preview: boolean, token: string, from?: string) 
     if (preview) return;
     const url = `/api/project/${token}/event`;
     fetch(url, { method: "POST", body: JSON.stringify({ type: "open", from }), keepalive: true }).catch(() => {});
-    const began = Date.now();
-    const leave = () => {
-      const seconds = Math.round((Date.now() - began) / 1000);
-      if (seconds > 2) navigator.sendBeacon?.(url, JSON.stringify({ type: "time", seconds }));
+    // Phones rarely fire pagehide (switching apps or locking the screen leaves the tab alive), so report time
+    // while the page is on screen: every 30 seconds, and whenever it's hidden. Only time on screen counts.
+    let since = document.visibilityState === "visible" ? Date.now() : 0;
+    const flush = () => {
+      if (!since) return;
+      const seconds = Math.round((Date.now() - since) / 1000);
+      since = document.visibilityState === "visible" ? Date.now() : 0;
+      if (seconds >= 1) navigator.sendBeacon?.(url, JSON.stringify({ type: "time", seconds }));
     };
-    window.addEventListener("pagehide", leave);
-    return () => window.removeEventListener("pagehide", leave);
+    const onVisibility = () => {
+      if (document.visibilityState === "hidden") flush();
+      else if (!since) since = Date.now();
+    };
+    const tick = window.setInterval(() => { if (document.visibilityState === "visible") flush(); }, 30000);
+    document.addEventListener("visibilitychange", onVisibility);
+    window.addEventListener("pagehide", flush);
+    return () => {
+      window.clearInterval(tick);
+      document.removeEventListener("visibilitychange", onVisibility);
+      window.removeEventListener("pagehide", flush);
+    };
   }, [preview, token, from]);
 }
 
