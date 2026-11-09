@@ -18,7 +18,7 @@ export function ShortSummary({ proposal: p, token, previewKey }: { proposal: Pub
   if (pkg) {
     if (pkg.price > 0) price.push({ value: money(pkg.price), label: `${(pkg.setupLabel || "Setup").toLowerCase()}, one time` });
     const first = pkg.ramp?.[0];
-    if (first) price.push({ value: `${money(first.monthly)}/mo`, label: pkg.rampNote ? "until your numbers clearly grow" : first.label.toLowerCase() });
+    if (first) price.push({ value: `${money(first.monthly)}/mo`, label: pkg.rampNote ? "until your numbers grow" :first.label.toLowerCase() });
     if (pkg.monthly > 0) price.push({ value: `${money(pkg.monthly)}/mo`, label: (pkg.monthlyLabel || (first ? "after that" : "monthly")).toLowerCase() });
     if (pkg.percent) price.push({ value: `+${pkg.percent.rate}%`, label: pkg.percent.of.split(".")[0] });
   }
