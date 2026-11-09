@@ -212,7 +212,7 @@ export async function emailSignedCopy(p: any, pdf: Buffer | null) {
   const due = Number(p.due_amount) || 0;
   const total = due + surchargeOn(content, due);
   const autopay = p.signed_snapshot?.autopay_opt_in === true;
-  const attachments = pdf ? [{ filename: `${p.number}-signed.pdf`, content: pdf }] : undefined;
+  const attachments = pdf ? [{ filename: `Service-Agreement-${p.number}-signed.pdf`, content: pdf }] : undefined;
   const resend = new Resend(process.env.RESEND_API_KEY);
   if (p.client_email) {
     await resend.emails.send({

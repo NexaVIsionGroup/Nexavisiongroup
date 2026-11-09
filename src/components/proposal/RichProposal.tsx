@@ -25,10 +25,12 @@ const ICONS: Record<string, React.ElementType> = {
 const longDate = (d: string) => new Date(d).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric", timeZone: "America/New_York" });
 const stamp = (d: string) => new Date(d).toLocaleString("en-US", { dateStyle: "long", timeStyle: "short", timeZone: "America/New_York" }) + " ET";
 
-export function RichProposal({ proposal: p, token, preview = false, share = false, payError = false, from, contract = false, fullHref }: {
+export function RichProposal({ proposal: p, token, preview = false, share = false, payError = false, from, contract = false, fullHref, pdfHref }: {
   proposal: PublicProposal; token: string; preview?: boolean; share?: boolean; payError?: boolean; from?: string;
   /** agreement-only page (/project/<token>/sign): plan, payment, terms and signature, no story chapters */
   contract?: boolean; fullHref?: string;
+  /** "View as PDF" link; preview pages pass one carrying the preview key */
+  pdfHref?: string;
 }) {
   const c = p.content;
   const s = useSigning(p, token, preview);
@@ -37,6 +39,7 @@ export function RichProposal({ proposal: p, token, preview = false, share = fals
   const first = (p.client_name || "").trim().split(/\s+/)[0] || "";
   const kind = s.signed ? "Signed agreement" : "Proposal";
   const hero = c.hero || {};
+  const pdf = pdfHref || `/api/project/${token}/pdf?view=1`;
 
   // chapters number themselves, whatever sections this proposal has
   let n = 0;
@@ -54,6 +57,7 @@ export function RichProposal({ proposal: p, token, preview = false, share = fals
               {s.signed ? "Everything you agreed to, in one place." : "Your plan, the price, how billing works and the terms. Read it through, then sign at the bottom."}
               {fullHref && <> The full proposal, with everything we found and what we&apos;ll build, is <a href={fullHref}>here</a> and is part of this agreement.</>}
             </p>
+            <a className="pr-btn pr-btn-ghost pr-contract-pdf" href={pdf} target="_blank" rel="noopener"><Download size={18} aria-hidden /> {s.signed ? "Signed agreement (PDF)" : "View as PDF"}</a>
           </div>
         </header>
       ) : (
@@ -221,7 +225,7 @@ export function RichProposal({ proposal: p, token, preview = false, share = fals
           <div className="pr-section-head">
             <p className="pr-chapter"><b>{num()}</b> {s.signed ? "What you chose" : "The price"}</p>
             <Words text={s.signed ? "Your agreement." : c.packages.length > 1 ? "Choose the plan that fits." : "One plan. Everything included."} className="pr-h2" />
-            {!s.signed && p.expires_at && <Rise delay={0.1}><p className="pr-lede">This price is good through {longDate(p.expires_at)}.</p></Rise>}
+            {!s.signed && p.expires_at && <Rise delay={0.1}><p className="pr-lede">This price is good through {longDate(p.expires_at)}. <a className="pr-pdf-link" href={pdf} target="_blank" rel="noopener">View the agreement as a PDF</a></p></Rise>}
           </div>
 
           <div className="pr-plans" role={!s.signed && c.packages.length > 1 ? "radiogroup" : undefined} aria-label="Plans">

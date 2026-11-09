@@ -29,5 +29,5 @@ export default async function SharedPreview({ params, searchParams }: Props) {
   const p = toPublic(row);
   const rich = isRich(p.content);
   const View = rich ? RichProposal : ProposalView;
-  return <ProposalShell rich={rich}><View proposal={p} token={row.token} preview share /></ProposalShell>;
+  return <ProposalShell rich={rich}><View proposal={p} token={row.token} preview share {...(rich ? { pdfHref: `/api/project/${row.token}/pdf?view=1&k=${searchParams.k}` } : {})} /></ProposalShell>;
 }

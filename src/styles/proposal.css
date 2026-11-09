@@ -332,3 +332,5 @@ button.nxp-pkg:hover { border-color: #8db7ae; }
 .nxp-rich .pr-schedule b { display: block; font-weight: 600; font-size: 17px; line-height: 1.35; }
 .nxp-rich .pr-schedule small { display: block; margin-top: 2px; font-size: 15px; color: var(--ink-2); line-height: 1.4; }
 .nxp-rich .pr-schedule strong { font: 400 24px/1.1 var(--serif); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.nxp-rich .pr-contract-pdf { margin-top: 18px; min-height: 48px; font-size: 16px; }
+.nxp-rich .pr-pdf-link { color: var(--copper-deep); text-decoration: underline; text-underline-offset: 3px; white-space: nowrap; }

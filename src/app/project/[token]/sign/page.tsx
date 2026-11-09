@@ -33,7 +33,7 @@ export default async function SignPage({ params, searchParams }: Props) {
   const fullHref = preview ? `/preview/${params.token}?k=${searchParams.k}` : `/project/${params.token}`;
   return (
     <ProposalShell rich>
-      <RichProposal proposal={p} token={params.token} preview={preview} share={preview} contract fullHref={fullHref} from="sign" payError={searchParams.pay_error === "1"} />
+      <RichProposal proposal={p} token={params.token} preview={preview} share={preview} contract fullHref={fullHref} pdfHref={`/api/project/${params.token}/pdf?view=1${preview ? `&k=${searchParams.k}` : ""}`} from="sign" payError={searchParams.pay_error === "1"} />
     </ProposalShell>
   );
 }

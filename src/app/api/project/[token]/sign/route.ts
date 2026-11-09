@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { clientIp, contentVersion, db, emailSignedCopy, fingerprint, linkState, logEvent } from "@/lib/proposals/server";
-import { renderProposalPdf } from "@/lib/proposals/pdf";
+import { renderAgreementPdf } from "@/lib/proposals/pdf";
 import { notifyAdmin } from "@/lib/notify";
 import { defaultPackage, dueAtSigning, money, normalizeContent } from "@/lib/proposals/types";
 
@@ -71,7 +71,7 @@ export async function POST(req: Request, { params }: { params: { token: string }
 
   // The signature is already saved, so an email or PDF problem must not undo it.
   try {
-    const pdf = await renderProposalPdf(updated).catch((e) => { console.error("[proposal pdf]", e); return null; });
+    const pdf = await renderAgreementPdf(updated).catch((e) => { console.error("[proposal pdf]", e); return null; });
     await emailSignedCopy(updated, pdf);
     await logEvent(p.id, "signed_copy_emailed", undefined, { pdf: !!pdf });
   } catch (e) {
