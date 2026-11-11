@@ -46,7 +46,7 @@ function parcels(phones: number) {
 
 const money2 = (n: number) => Math.round(n * 100) / 100;
 
-async function shippoRates(to: { zip: string; state: string; city?: string; street?: string }, phones: number): Promise<ShipOption[] | null> {
+async function shippoParcel(to: { zip: string; state: string; city?: string; street?: string }, parcel: Record<string, string>): Promise<ShipOption[] | null> {
   const key = process.env.SHIPPO_API_KEY;
   const fromRaw = process.env.NEXA_SHIP_FROM;
   if (!key || !fromRaw) return null;
@@ -64,7 +64,7 @@ async function shippoRates(to: { zip: string; state: string; city?: string; stre
       body: JSON.stringify({
         address_from: { ...from, country: "US" },
         address_to: { name: "Customer", street1: to.street || "", city: to.city || "", state: to.state, zip: to.zip, country: "US" },
-        parcels: parcels(phones),
+        parcels: [parcel],
         async: false,
       }),
       signal: AbortSignal.timeout(12000),
@@ -95,6 +95,15 @@ async function shippoRates(to: { zip: string; state: string; city?: string; stre
     console.error("shippo", e);
     return null;
   }
+}
+
+// One price for the whole order: quote each box (USPS rates one parcel per shipment) and add them up.
+async function shippoRates(to: { zip: string; state: string; city?: string; street?: string }, phones: number): Promise<ShipOption[] | null> {
+  const boxes = await Promise.all(parcels(phones).map((p) => shippoParcel(to, p)));
+  if (boxes.some((b) => !b || !b.length)) return null;
+  const first = boxes[0]![0];
+  const amount = money2(boxes.reduce((sum, b) => sum + b![0].amount, 0));
+  return [{ ...first, id: boxes.length > 1 ? `${first.id}_x${boxes.length}` : first.id, amount }];
 }
 
 function fallbackRates(phones: number): ShipOption[] {
