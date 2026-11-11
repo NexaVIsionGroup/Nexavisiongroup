@@ -1,5 +1,6 @@
 "use client";
 
+import { LEAD_TIME, LEAD_WHY } from "@/lib/nexaphone/leadtime";
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
@@ -20,7 +21,6 @@ type Ship =
   | { status: "error"; message: string }
   | { status: "ready"; options: ShipOption[]; token: string; key: string };
 
-const eta = (d: number | null) => (d == null ? "" : d <= 1 ? "Next business day" : `${d} business days`);
 const EASE = [0.22, 1, 0.36, 1] as [number, number, number, number];
 
 function Field({
@@ -111,7 +111,7 @@ export default function Checkout() {
   const submit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!chosen) {
-      setErr("Enter your ZIP and state, then pick a shipping option.");
+      setErr("Enter your ZIP and state to get your shipping price.");
       return;
     }
     const f = new FormData(e.currentTarget);
@@ -175,7 +175,8 @@ export default function Checkout() {
             <>
               <p className="np-lede">
                 We&apos;re reserving your phones now. Within one business day you&apos;ll get a secure payment link by
-                email, with shipping and tax included. Nothing is charged until you pay that link.
+                email, with shipping and tax included. Nothing is charged until you pay that link. Your phone ships in{" "}
+                {LEAD_TIME}: {LEAD_WHY.charAt(0).toLowerCase() + LEAD_WHY.slice(1)}
               </p>
               <Link href="/nexaphone" className="np-btn np-btn-ghost" style={{ marginTop: 28 }}>
                 Back to Nexa Pro
@@ -231,7 +232,7 @@ export default function Checkout() {
                 <b className="np-num">{money(subtotal)}</b>
               </div>
               <div className="np-sum-row">
-                <span>Shipping{chosen ? `, ${chosen.carrier} ${chosen.service}` : ""}</span>
+                <span>Shipping</span>
                 <b className="np-num">{chosen ? money(shipping) : "Enter address"}</b>
               </div>
               <div className="np-sum-row">
@@ -276,12 +277,12 @@ export default function Checkout() {
                 <legend>Shipping</legend>
                 {ship.status === "idle" && (
                   <p className="np-ship-note">
-                    <Truck size={18} /> Enter your ZIP and state to see live carrier rates.
+                    <Truck size={18} /> Enter your ZIP and state to see your shipping price.
                   </p>
                 )}
                 {ship.status === "loading" && (
                   <p className="np-ship-note">
-                    <Loader2 size={18} className="np-db-spin" /> Checking carrier rates for your address…
+                    <Loader2 size={18} className="np-db-spin" /> Getting your shipping price…
                   </p>
                 )}
                 {ship.status === "error" && (
@@ -292,19 +293,20 @@ export default function Checkout() {
                     </button>
                   </p>
                 )}
-                {ship.status === "ready" &&
-                  ship.options.map((o) => (
-                    <label key={o.id} className="np-ship-opt" data-on={pick === o.id}>
-                      <input type="radio" name="ship" value={o.id} checked={pick === o.id} onChange={() => setPick(o.id)} />
-                      <span className="np-ship-name">
-                        <b>
-                          {o.carrier} {o.service}
-                        </b>
-                        <small>{eta(o.days)}</small>
-                      </span>
-                      <b className="np-num">{money(o.amount)}</b>
-                    </label>
-                  ))}
+                {ship.status === "ready" && chosen && (
+                  <div className="np-ship-opt" data-on="true">
+                    <span className="np-ship-name">
+                      <b>Shipping</b>
+                      <small>Tracked, from our shop to you once your phone is ready</small>
+                    </span>
+                    <b className="np-num">{money(chosen.amount)}</b>
+                  </div>
+                )}
+                <p className="np-ship-note">
+                  <span>
+                    <b>Ships in {LEAD_TIME}.</b> {LEAD_WHY}
+                  </span>
+                </p>
               </fieldset>
               <fieldset>
                 <legend>Anything we should know?</legend>
@@ -326,11 +328,11 @@ export default function Checkout() {
               </AnimatePresence>
 
               <button className="np-btn np-btn-lock np-shine np-submit" disabled={busy || !chosen}>
-                {busy ? "Placing order…" : chosen ? `Continue to payment, ${money(total)}` : "Pick shipping to continue"}
+                {busy ? "Placing order…" : chosen ? `Continue to payment, ${money(total)}` : "Enter your address to continue"}
               </button>
               <motion.p className="np-footnote" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3, ease: EASE }}>
-                Next step is secure payment{chosen ? ` for ${money(total)}, shipping and tax included` : ""}. Every phone is
-                covered by our shop warranty, and we confirm stock before anything ships.
+                Next step is secure payment{chosen ? ` for ${money(total)}, shipping and tax included` : ""}. Your phone
+                ships in {LEAD_TIME}, and every phone is covered by our shop warranty.
               </motion.p>
             </form>
           </div>

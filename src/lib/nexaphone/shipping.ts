@@ -3,7 +3,7 @@ import { createHmac, timingSafeEqual } from "crypto";
 
 // Nexa Pro shipping quotes.
 //
-// Live carrier rates come from Shippo (USPS / UPS / FedEx) when SHIPPO_API_KEY and
+// Live carrier rates come from Shippo when SHIPPO_API_KEY and
 // NEXA_SHIP_FROM are set on Vercel. Until then — or if Shippo is down — the
 // FALLBACK table below is used so checkout never blocks.
 //
@@ -19,11 +19,14 @@ export type Quote = { options: ShipOption[]; token: string; live: boolean };
 const TTL_MS = 45 * 60_000;
 
 // Placeholder flat rates (owner to confirm): first phone, each extra phone.
+// Used only if Shippo can't be reached.
 const FALLBACK: { id: string; carrier: string; service: string; days: number; first: number; extra: number }[] = [
-  { id: "ground", carrier: "UPS", service: "Ground", days: 5, first: 14, extra: 4 },
-  { id: "2day", carrier: "UPS", service: "2nd Day Air", days: 2, first: 29, extra: 6 },
-  { id: "overnight", carrier: "UPS", service: "Next Day Air", days: 1, first: 59, extra: 10 },
+  { id: "standard", carrier: "USPS", service: "Priority Mail", days: 3, first: 12, extra: 4 },
 ];
+
+// Buyers don't pick a speed: there is ONE shipping price, for the service we ship with once the
+// phone is ready. Shippo servicelevel tokens, first match wins; otherwise the cheapest rate.
+const PREFERRED = ["usps_priority", "usps_ground_advantage"];
 
 // A retail phone box with padding: ~7x4x3in, 1.3 lb. Up to 5 phones share a 10x8x6 carton.
 function parcels(phones: number) {
@@ -83,12 +86,11 @@ async function shippoRates(to: { zip: string; state: string; city?: string; stre
       }))
       .filter((x) => x.amount > 0);
     if (!all.length) return null;
-    // Offer three clear choices: cheapest, fastest-for-reasonable-money, overnight.
-    const byPrice = [...all].sort((a, b) => a.amount - b.amount);
-    const cheapest = byPrice[0];
-    const twoDay = byPrice.find((x) => x.days !== null && x.days <= 2 && x !== cheapest);
-    const overnight = byPrice.find((x) => x.days === 1 && x !== cheapest && x !== twoDay);
-    return [cheapest, twoDay, overnight].filter(Boolean) as ShipOption[];
+    for (const tok of PREFERRED) {
+      const hit = all.find((x) => x.id === tok);
+      if (hit) return [hit];
+    }
+    return [[...all].sort((a, b) => a.amount - b.amount)[0]];
   } catch (e) {
     console.error("shippo", e);
     return null;

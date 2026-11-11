@@ -1,5 +1,6 @@
 "use client";
 
+import { LEAD_SHORT, LEAD_TIME } from "@/lib/nexaphone/leadtime";
 import Image from "next/image";
 import { t } from "./theme";
 import Link from "next/link";
@@ -34,7 +35,7 @@ const GALLERY: Record<string, string[]> = {
   turbo: ["g-tunnel", "g-board", "g-rugged", "g-welder"],
 };
 const CODES: Record<string, string> = { n10: "NX-10", n11: "NX-11", n12: "NX-12", n13: "NX-13", n15: "NX-15", nfold: "NX-F1", nrm10: "NX-T10", nrm11: "NX-T11" };
-const STOCK = { in: "In stock", low: "Low stock", out: "Sold out" };
+const STOCK = { in: LEAD_SHORT, low: LEAD_SHORT, out: "Sold out" };
 const JUMPS = [
   { id: "overview", label: "Overview" },
   { id: "performance-proof", label: "Performance" },
@@ -333,7 +334,7 @@ export default function DevicePage({ slug }: { slug: string }) {
           <div className="np-buybox-trust">
             <span>Shop warranty included</span>
             <span>Like new, tested in our shop</span>
-            <span>{t("Busted out and set up before it ships", "Set up before it ships")}</span>
+            <span>{t("Busted out and set up before it ships", "Set up before it ships")}, {LEAD_TIME}</span>
           </div>
 
           <details className="np-more">

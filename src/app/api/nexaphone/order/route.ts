@@ -200,7 +200,7 @@ export async function POST(req: Request) {
           `<h2 style="margin:0 0 10px">Your order is in, ${esc(customer.name.split(" ")[0])}.</h2>${
             payLink
               ? `<p style="color:#cfd9df;line-height:1.6">We're reserving your phones for order <b>${number}</b>. If you haven't paid yet, use your secure payment link:</p><p><a href="${payLink}" style="display:inline-block;background:#56e0e8;color:#0d1419;padding:14px 26px;border-radius:999px;font-weight:700;text-decoration:none">Pay securely</a></p>`
-              : `<p style="color:#cfd9df;line-height:1.6">We're reserving your phones now. Within one business day you'll get a secure payment link for order <b>${number}</b>, with tax calculated for your address. Nothing is charged until you pay that link.</p>`
+              : `<p style="color:#cfd9df;line-height:1.6">We're reserving your phones now. Within one business day you'll get a secure payment link for order <b>${number}</b>, with tax calculated for your address. Nothing is charged until you pay that link.</p><p style="color:#cfd9df;line-height:1.6">Each phone is made to order: we order it from our supplier, set it up in our shop, then ship it to you with tracking. Plan on <b>2–3 weeks</b> from order to shipping.</p>`
           }${table}<p style="color:#8fa3b0;margin-top:20px">Shipping to:<br>${addr}</p><p style="color:#8fa3b0">Questions? Reply to this email.</p>`
         ),
       }),

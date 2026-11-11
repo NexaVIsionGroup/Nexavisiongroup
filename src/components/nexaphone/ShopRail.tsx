@@ -1,5 +1,6 @@
 "use client";
 
+import { LEAD_SHORT } from "@/lib/nexaphone/leadtime";
 import Link from "next/link";
 import { t } from "./theme";
 import { useMemo, useRef, useState } from "react";
@@ -28,7 +29,7 @@ const PICKS: { id: string; label: string; pick: (all: Product[]) => Product[] }[
   { id: "fold", label: "Foldable", pick: (a) => a.filter((p) => p.family === "fold") },
 ];
 
-const STOCK = { in: "In stock", low: "Low stock", out: "Sold out" };
+const STOCK = { in: LEAD_SHORT, low: LEAD_SHORT, out: "Sold out" };
 
 export function ShopCard({ p, big = false }: { p: Product; big?: boolean }) {
   const { add } = useCart();

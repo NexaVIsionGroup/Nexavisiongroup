@@ -27,7 +27,7 @@ export const EDITIONS = [
   {
     id: "pro",
     name: "Nexa Pro",
-    body: "Full control opened up, tower lock, pro network tools, no bloat. Ships today.",
+    body: "Full control opened up, tower lock, pro network tools, no bloat. Ships in 2–3 weeks.",
     price: 0,
     available: true,
   },
