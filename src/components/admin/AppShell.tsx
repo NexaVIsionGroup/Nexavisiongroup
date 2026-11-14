@@ -23,6 +23,7 @@ import {
   ExternalLink,
   ClipboardList,
   Film,
+  HardDrive,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import AuthGuard from "./AuthGuard";
@@ -43,6 +44,7 @@ const navItems: NavItem[] = [
   { label: "Inbox", icon: Mail, path: "/admin/inbox" },
   { label: "Customers", icon: Users, path: "/admin/customers" },
   { label: "Documents", icon: FileCode2, path: "/admin/documents" },
+  { label: "NexaDrive", icon: HardDrive, path: "/admin/nexadrive" },
   { label: "Verify", icon: ShieldCheck, path: "/admin/verification" },
   { label: "Proposals", icon: FileText, path: "/admin/proposals" },
   { label: "Questionnaires", icon: ClipboardList, path: "/admin/questionnaires" },
