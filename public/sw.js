@@ -1,4 +1,4 @@
-const CACHE_NAME = "nexa-admin-v6";
+const CACHE_NAME = "nexa-admin-v7";
 const STATIC = "nexa-static-v1";
 // Scope /admin/ (registered by PWARegister). Speed strategy:
 //   /_next/static, icons, fonts → cache-first (file names are content-hashed: they never change)
@@ -80,6 +80,7 @@ self.addEventListener("fetch", (e) => {
 
   if (url.pathname.startsWith("/api/")) {
     if (url.pathname.startsWith("/api/admin/notifications")) return;          // always live
+    if (url.pathname.startsWith("/api/admin/books")) return;                  // always live: billing and customer state must never be a saved copy
     e.respondWith(new Promise((resolve) => {
       let done = false;
       const timer = setTimeout(() => caches.match(req).then((hit) => { if (hit && !done) { done = true; resolve(hit); } }), 2500);
