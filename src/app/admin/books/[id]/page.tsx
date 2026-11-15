@@ -12,6 +12,7 @@ type Detail = {
   users: { id: string; name: string | null; email: string | null; role: string; external_id: string; last_seen: string }[];
   banks: { id: string; institution_name: string; status: string; last_synced_at: string | null; last_error: string | null; accounts: { name: string; mask: string | null; type: string; balance: number | null }[] | null }[];
   events: { type: string; data: Record<string, unknown>; at: string }[];
+  invite_delivery?: { to: string; status: string; at: string; reason: string | null } | null;
   access: { kind: string; email: string | null; staff: string | null; reason: string | null; expires_at: string; used_at: string | null; created_at: string }[];
   billing: null | { error: string } | {
     status: string; amount: number; extra_amount?: number; next_billing_date: string | null; card_brand: string | null; card_last4: string | null; card_url: string | null;
@@ -87,6 +88,11 @@ export default function BooksCustomer({ params }: { params: { id: string } }) {
             </>}
           </div>
           {link && <div className="space-y-1"><p className={label}>{link.what}</p><CopyLink link={link.url} /></div>}
+          {d.invite_delivery && ["bounced", "complained", "failed"].includes(d.invite_delivery.status) ? (
+            <p className="text-sm text-nv-error" role="alert" data-invite-bounced>The last invitation to {d.invite_delivery.to} did not arrive ({d.invite_delivery.status}). {d.invite_delivery.reason ?? ""} Fix the email under Contact, then send a new sign-up link.</p>
+          ) : d.invite_delivery && c.kind === "personal" && !c.terms_accepted_at ? (
+            <p className="text-sm text-nv-text-muted">Last invitation: {d.invite_delivery.to}, {d.invite_delivery.status === "delivered" ? "delivered" : d.invite_delivery.status === "opened" ? "opened" : d.invite_delivery.status}.</p>
+          ) : null}
           {c.kind === "personal" && !c.terms_accepted_at && <p className="text-sm text-amber-300">They haven&apos;t accepted their invitation yet.</p>}
         </Card>
 
