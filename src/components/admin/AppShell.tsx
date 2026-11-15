@@ -25,6 +25,7 @@ import {
   Film,
   HardDrive,
   BookOpenCheck,
+  WalletCards,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import AuthGuard from "./AuthGuard";
@@ -55,6 +56,7 @@ const navItems: NavItem[] = [
   { label: "Questionnaires", icon: ClipboardList, path: "/admin/questionnaires" },
   { label: "Invoices", icon: Receipt, path: "/admin/invoices" },
   { label: "Bookkeeping", icon: BookOpenCheck, path: "/admin/nexabooks", launch: true, premium: true },
+  { label: "Books customers", icon: WalletCards, path: "/admin/books", premium: true },
   { label: "Analytics", icon: BarChart3, path: "/admin/analytics" },
   { label: "Devices", icon: Smartphone, path: "/admin/devices" },
   { label: "Phone Store", icon: ShoppingBag, path: "/admin/phones" },
