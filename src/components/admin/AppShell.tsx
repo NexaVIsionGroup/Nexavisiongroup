@@ -24,6 +24,7 @@ import {
   ClipboardList,
   Film,
   HardDrive,
+  BookOpenCheck,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import AuthGuard from "./AuthGuard";
@@ -37,6 +38,10 @@ interface NavItem {
   badge?: number;
   /** opens in a new tab instead of client-side routing (path is an absolute URL) */
   external?: boolean;
+  /** full page load (a server route that redirects elsewhere, e.g. the NexaBooks launch) */
+  launch?: boolean;
+  /** premium Nexa module: gradient icon + NEXA chip */
+  premium?: boolean;
 }
 
 const navItems: NavItem[] = [
@@ -49,6 +54,7 @@ const navItems: NavItem[] = [
   { label: "Proposals", icon: FileText, path: "/admin/proposals" },
   { label: "Questionnaires", icon: ClipboardList, path: "/admin/questionnaires" },
   { label: "Invoices", icon: Receipt, path: "/admin/invoices" },
+  { label: "Bookkeeping", icon: BookOpenCheck, path: "/admin/nexabooks", launch: true, premium: true },
   { label: "Analytics", icon: BarChart3, path: "/admin/analytics" },
   { label: "Devices", icon: Smartphone, path: "/admin/devices" },
   { label: "Phone Store", icon: ShoppingBag, path: "/admin/phones" },
@@ -56,6 +62,22 @@ const navItems: NavItem[] = [
   { label: "NEXA AI", icon: Sparkles, path: "https://ai.nexavisiongroup.com", external: true },
   { label: "Settings", icon: Settings, path: "/admin/settings" },
 ];
+
+// Premium Nexa module look (NexaBooks): teal-to-violet gradient tile behind the icon, and a small NEXA chip.
+function PremiumIcon({ item }: { item: NavItem }) {
+  return (
+    <span className="shrink-0 -m-0.5 grid place-items-center w-6 h-6 rounded-md bg-gradient-to-br from-nv-teal to-nv-violet-400 text-nv-void shadow-nv-glow-sm">
+      <item.icon size={15} strokeWidth={2.4} />
+    </span>
+  );
+}
+function NexaChip() {
+  return (
+    <span className="ml-auto shrink-0 rounded-full border border-nv-teal/40 bg-gradient-to-r from-nv-teal/15 to-nv-violet-400/20 px-1.5 py-px font-mono text-[9.5px] font-bold tracking-[0.14em] text-nv-teal-300">
+      NEXA
+    </span>
+  );
+}
 
 // Mobile bottom nav — show top 5
 const mobileNavItems = navItems.slice(0, 5);
@@ -90,6 +112,7 @@ export default function AppShell({ children, title, showBack }: AppShellProps) {
   // external items point at another origin, so they open in a new tab rather than routing
   const go = (item: NavItem) => {
     if (item.external) window.open(item.path, "_blank", "noopener,noreferrer");
+    else if (item.launch) window.location.assign(item.path);
     else router.push(item.path);
   };
 
@@ -146,8 +169,9 @@ export default function AppShell({ children, title, showBack }: AppShellProps) {
                 )}
                 title={collapsed ? item.label : undefined}
               >
-                <item.icon size={20} className="shrink-0" />
+                {item.premium ? <PremiumIcon item={item} /> : <item.icon size={20} className="shrink-0" />}
                 {!collapsed && <span>{item.label}</span>}
+                {!collapsed && item.premium && <NexaChip />}
                 {!collapsed && item.external && (
                   <ExternalLink size={13} className="ml-auto opacity-50 shrink-0" />
                 )}
@@ -196,7 +220,7 @@ export default function AppShell({ children, title, showBack }: AppShellProps) {
                 </button>
               </div>
 
-              <nav className="flex-1 space-y-1">
+              <nav className="flex-1 space-y-1 overflow-y-auto">
                 {navItems.map((item) => (
                   <button
                     key={item.path}
@@ -208,8 +232,9 @@ export default function AppShell({ children, title, showBack }: AppShellProps) {
                         : "text-nv-text-secondary hover:text-nv-text-primary hover:bg-white/5"
                     )}
                   >
-                    <item.icon size={20} />
+                    {item.premium ? <PremiumIcon item={item} /> : <item.icon size={20} />}
                     <span>{item.label}</span>
+                    {item.premium && <NexaChip />}
                     {badgeOf(item) > 0 && (
                       <span className="ml-auto bg-nv-error text-white text-xs font-bold px-1.5 py-0.5 rounded-full min-w-[20px] text-center">{badgeText(item)}</span>
                     )}
