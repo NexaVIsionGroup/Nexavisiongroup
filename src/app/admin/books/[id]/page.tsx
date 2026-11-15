@@ -22,7 +22,8 @@ type Detail = {
 const EVENT: Record<string, string> = {
   "customer.created": "Account created", "customer.updated": "Account changed", "invite.created": "Invitation made", "invite.accepted": "Accepted the invitation",
   "launch.ok": "Signed in", "mfa.code_sent": "Sign-in code sent", "mfa.failed": "Wrong sign-in code", "support.opened": "Support visit", "support.allowed": "Turned support access on",
-  "support.blocked": "Turned support access off", "control.sync": "Bank synced by NexaVision", "bank.linked": "Bank linked", "plaid.linked": "Bank linked",
+  "support.blocked": "Turned support access off", "invite.cancelled": "Invitation cancelled", "customer.email_changed": "Email changed",
+  "budget.suggested": "Set budgets from usual spending", "control.sync": "Bank synced by NexaVision", "bank.linked": "Bank linked", "plaid.linked": "Bank linked",
 };
 const when = (s: string) => new Date(s).toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
 
@@ -126,7 +127,7 @@ export default function BooksCustomer({ params }: { params: { id: string } }) {
             <div className="max-h-72 overflow-y-auto space-y-1.5">
               {d.events.map((e, i) => (
                 <div key={i} className="flex justify-between gap-3 text-sm">
-                  <span className="text-nv-text-secondary">{EVENT[e.type] || e.type}{e.type === "support.opened" ? ` (${String(e.data?.staff ?? "")})` : ""}</span>
+                  <span className="text-nv-text-secondary">{EVENT[e.type] || e.type}{e.type === "support.opened" ? ` (${String(e.data?.staff ?? "")})` : ""}{e.type === "invite.created" && e.data?.to ? `, emailed to ${String(e.data.to)}` : ""}{e.type === "customer.email_changed" ? `: ${String(e.data?.from ?? "")} → ${String(e.data?.to ?? "")}` : ""}</span>
                   <span className="text-xs text-nv-text-muted whitespace-nowrap">{when(e.at)}</span>
                 </div>
               ))}

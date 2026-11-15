@@ -141,7 +141,7 @@ function AddPerson({ plans, onClose, onDone }: { plans: Plan[]; onClose: () => v
   const [f, setF] = useState({ name: "", email: "", phone: "", state: "SC", plan: plans[0]?.code ?? "personal", price: plans[0] ? String(plans[0].monthly_price_cents / 100) : "0", trial: "14", notes: "", send: true });
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
-  const [result, setResult] = useState<{ link: string; emailed: boolean; id: string } | null>(null);
+  const [result, setResult] = useState<{ link: string; emailed: boolean; id: string; to?: string } | null>(null);
   const set = (k: keyof typeof f, v: string | boolean) => setF((x) => ({ ...x, [k]: v }));
   const submit = async () => {
     setBusy(true); setErr("");
@@ -159,7 +159,8 @@ function AddPerson({ plans, onClose, onDone }: { plans: Plan[]; onClose: () => v
         </div>
         {result ? (
           <div className="space-y-3">
-            <p className="text-sm text-nv-teal">{result.emailed ? "Done. The invitation is in their inbox." : "Done. Send them this link (it works for 14 days):"}</p>
+            <p className="text-sm text-nv-teal">{result.emailed ? <>Done. Invitation emailed to <b>{result.to}</b>. A copy is in the admin inbox, in the books mailbox.</> : "Done. Send them this link (it works for 14 days):"}</p>
+            {result.emailed && <p className="text-xs text-nv-text-muted">Wrong address? Open their account, fix the email under Contact, and send a new sign-up link. The old one stops working.</p>}
             <CopyLink link={result.link} />
             <div className="flex gap-2"><Link href={`/admin/books/${result.id}`} className={btn}>Open their account</Link><button className={btnGhost} onClick={onClose}>Close</button></div>
           </div>
@@ -168,7 +169,7 @@ function AddPerson({ plans, onClose, onDone }: { plans: Plan[]; onClose: () => v
             <p className="text-sm text-nv-text-muted">For someone using NexaBooks for their own money (not a business). They get an invitation link, link their bank with Plaid, and add a card if the plan has a price.</p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="sm:col-span-2"><label className={label}>Name</label><input className={field} value={f.name} onChange={(e) => set("name", e.target.value)} data-add-name /></div>
-              <div><label className={label}>Email</label><input className={field} type="email" value={f.email} onChange={(e) => set("email", e.target.value)} data-add-email /></div>
+              <div><label className={label}>Email (this is their login)</label><input className={field} type="email" value={f.email} onChange={(e) => set("email", e.target.value.trim())} data-add-email /></div>
               <div><label className={label}>Phone (optional)</label><input className={field} value={f.phone} onChange={(e) => set("phone", e.target.value)} /></div>
               <div><label className={label}>Plan</label>
                 <select className={field} value={f.plan} onChange={(e) => { const p = plans.find((x) => x.code === e.target.value); setF((x) => ({ ...x, plan: e.target.value, price: p ? String(p.monthly_price_cents / 100) : x.price })); }}>
@@ -182,7 +183,7 @@ function AddPerson({ plans, onClose, onDone }: { plans: Plan[]; onClose: () => v
             <label className="flex items-center gap-2 text-sm text-nv-text-secondary"><input type="checkbox" checked={f.send} onChange={(e) => set("send", e.target.checked)} className="w-4 h-4 accent-teal-400" /> Email them the invitation now</label>
             {err && <p className="text-sm text-nv-error">{err}</p>}
             <button className={btn + " w-full"} disabled={busy || !f.name || !f.email} onClick={submit} data-add-go>
-              {busy ? <Loader2 size={16} className="animate-spin" /> : <Plus size={16} />} Create and invite
+              {busy ? <Loader2 size={16} className="animate-spin" /> : <Plus size={16} />} {f.send && f.email ? `Create and email ${f.email}` : "Create"}
             </button>
           </>
         )}
