@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils";
 import { loadSaved, fetchJson } from "@/lib/admin/cache";
 import { CopyLink, ago, usdD, billChip, billLabel, btn, btnGhost, chip, field, label, post, statusChip, statusLabel, usd, type Customer, type Plan } from "./ui";
 
+const isLead = (c: Customer) => !!c.interested_at && c.status !== "active";
 const needsAttention = (c: Customer) => c.bank_errors > 0 || c.billing_status === "past_due" || c.billing_status === "on_hold" || (c.billing?.owed ?? 0) > 0 || c.to_review > 50;
 
 export default function BooksCustomers() {
@@ -15,7 +16,7 @@ export default function BooksCustomers() {
   const [plans, setPlans] = useState<Plan[]>([]);
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState("");
-  const [tab, setTab] = useState<"all" | "personal" | "business" | "attention" | "plans">("all");
+  const [tab, setTab] = useState<"all" | "personal" | "business" | "leads" | "attention" | "plans">("all");
   const [q, setQ] = useState("");
   const [adding, setAdding] = useState(false);
 
@@ -33,7 +34,7 @@ export default function BooksCustomers() {
   const shown = useMemo(() => {
     const t = q.trim().toLowerCase();
     return real
-      .filter((c) => tab === "all" || tab === "plans" || (tab === "attention" ? needsAttention(c) : c.kind === tab))
+      .filter((c) => tab === "all" || tab === "plans" || (tab === "attention" ? needsAttention(c) : tab === "leads" ? isLead(c) : c.kind === tab))
       .filter((c) => !t || [c.name, c.slug, c.contact_email, c.contact_phone].some((v) => v?.toLowerCase().includes(t)));
   }, [real, tab, q]);
 
@@ -70,7 +71,7 @@ export default function BooksCustomers() {
 
         <div className="flex flex-col sm:flex-row gap-3 mb-4">
           <div className="flex gap-2 overflow-x-auto">
-            {([["all", `All (${real.length})`], ["personal", "People"], ["business", "Businesses"], ["attention", `Attention (${attention})`], ["plans", "Plans & prices"]] as const).map(([k, label]) => (
+            {([["all", `All (${real.length})`], ["personal", "People"], ["business", "Businesses"], ["leads", `Asked for it (${real.filter(isLead).length})`], ["attention", `Attention (${attention})`], ["plans", "Plans & prices"]] as const).map(([k, label]) => (
               <button key={k} onClick={() => setTab(k)} data-books-tab={k}
                 className={cn("px-4 py-2 rounded-full text-sm border whitespace-nowrap", tab === k ? "bg-nv-teal/15 border-nv-teal/40 text-nv-teal" : "border-white/10 text-nv-text-muted")}>
                 {label}
@@ -100,6 +101,7 @@ export default function BooksCustomers() {
                     <span className="font-semibold text-nv-text-primary truncate">{c.name}</span>
                     <span className={chip(c.kind === "personal" ? "violet" : "dim")}>{c.kind === "personal" ? "Person" : c.industry}</span>
                     <span className={statusChip(c.status)}>{statusLabel(c.status)}</span>
+                    {isLead(c) && <span className={chip("warn")}>Asked for NexaBooks {ago(c.interested_at)}</span>}
                   </div>
                   <div className="flex items-center gap-2">
                     <span className="text-sm text-nv-text-primary">{c.monthly_price_cents ? `${usd(c.monthly_price_cents)}/mo` : c.plan}</span>

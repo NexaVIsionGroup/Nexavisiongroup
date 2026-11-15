@@ -185,6 +185,7 @@ function PlanCard({ c, plans, busy, onSave }: { c: Customer; plans: Plan[]; busy
           </select></div>
         <div><label className={label}>Free until</label><input className={field} type="date" value={trial} onChange={(e) => setTrial(e.target.value)} /></div>
       </div>
+      {c.plan === "preview" && <p className="text-sm text-amber-300">{c.interested_at ? `They asked for NexaBooks ${ago(c.interested_at)}. ` : ""}On the preview plan they can look but can&apos;t switch it on. Pick Business or Business Pro and save; then they tap Activate in their admin app.</p>}
       <button className={btn} disabled={busy} onClick={() => onSave({ plan, monthly_price_cents: Math.round(Number(price) * 100), status, trial_ends: trial || null })} data-plan-save-customer>
         {busy && <Loader2 size={14} className="animate-spin" />} Save
       </button>

@@ -10,7 +10,7 @@ export type Customer = {
   id: string; slug: string; name: string; kind: "business" | "personal"; industry: string; state: string; is_demo: boolean;
   contact_email: string | null; contact_phone: string | null; created_at: string; support_access: boolean; terms_accepted_at: string | null;
   status: string; plan: string; monthly_price_cents: number; trial_ends: string | null; billing_status: string | null; billing_ref: string | null;
-  activated_at: string | null; last_seen: string | null; banks: number; bank_errors: number; to_review: number; txns: number; last_txn: string | null;
+  activated_at: string | null; last_seen: string | null; interested_at: string | null; banks: number; bank_errors: number; to_review: number; txns: number; last_txn: string | null;
   billing: Billing;
 };
 
