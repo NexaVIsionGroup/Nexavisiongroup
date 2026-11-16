@@ -43,7 +43,7 @@ export default function PlanEditor({ params }: { params: { id: string } }) {
     if (!plan) return;
     setBusy(true); setErr(""); setMsg("");
     try {
-      await post({ action: "plan-save", id: params.id, plan: { ...plan, steps: plan.steps.map((s) => ({ ...s, items: s.items.map((i) => ({ id: i.id, text: i.text })) })) } });
+      await post({ action: "action-plan-save", id: params.id, plan: { ...plan, steps: plan.steps.map((s) => ({ ...s, items: s.items.map((i) => ({ id: i.id, text: i.text })) })) } });
       setMsg("Saved. Her plan is updated."); await load();
     } catch (e) { setErr(e instanceof Error ? e.message : "Failed"); } finally { setBusy(false); }
   };
