@@ -13,6 +13,8 @@ export async function GET(req: NextRequest) {
   const admin = await requireBooksAdmin();
   if (!admin) return fail("Only NexaVision admins can manage NexaBooks customers.", 403);
   try {
+    const planFor = req.nextUrl.searchParams.get("plan");
+    if (planFor) return NextResponse.json(await control("plan", { id: planFor }));
     const id = req.nextUrl.searchParams.get("id");
     if (id) {
       const d = await control("customer", { id });
@@ -46,6 +48,7 @@ export async function POST(req: NextRequest) {
     switch (b.action) {
       case "create-personal": return NextResponse.json(await control("create-personal", { ...b, staff }));
       case "update": return NextResponse.json(await control("update", { id: b.id, fields: b.fields, staff }));
+      case "plan-save": return NextResponse.json(await control("plan-save", { id: b.id, plan: b.plan, staff }));
       case "add-member": return NextResponse.json(await control("add-member", { id: b.id, name: b.name, email: b.email, send: b.send !== false, staff }));
       case "invite": return NextResponse.json(await control("invite", { id: b.id, send: b.send !== false, staff }));
       case "support-link": return NextResponse.json(await control("support-link", { id: b.id, reason: b.reason, staff }));

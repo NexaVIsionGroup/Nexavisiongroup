@@ -81,6 +81,7 @@ export default function BooksCustomer({ params }: { params: { id: string } }) {
         <Card title="Help them">
           <SupportBox c={c} busy={busy === "support"} onOpen={(reason) => act("support", { action: "support-link", reason }, (j) => { window.open(j.link, "_blank", "noopener"); setLink({ what: "Support link (works once, for 5 minutes)", url: j.link }); })} />
           <div className="flex flex-wrap gap-2">
+            <Link className={btn} href={`/admin/books/${c.id}/plan`} data-edit-plan>Edit their plan</Link>
             {c.banks > 0 && <button className={btnGhost} disabled={!!busy} onClick={() => act("sync", { action: "sync" }, (j) => setMsg(`Synced: ${(j.results || []).map((r: any) => r.ok ? `${r.added ?? 0} new` : r.error).join(", ") || "no banks"}.`))}>{busy === "sync" ? <Loader2 size={14} className="animate-spin" /> : <RefreshCw size={14} />} Pull latest from their bank</button>}
             {c.kind === "personal" && <>
               <button className={btnGhost} disabled={!!busy} onClick={() => act("invite", { action: "invite", send: true }, (j) => { setMsg(j.emailed ? "A new invitation is in their inbox." : "Made a new invitation, but the email didn't send. Copy the link below."); setLink({ what: "Invitation link (14 days)", url: j.link }); })}><Send size={14} /> Email a new sign-up link</button>
