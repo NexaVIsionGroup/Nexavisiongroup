@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils";
 import { CopyLink, ago, billChip, billLabel, btn, btnGhost, chip, field, label, post, statusChip, statusLabel, usd, usdD, type Customer, type Plan } from "../ui";
 
 type Detail = {
-  customer: Customer; notes: string | null; plans: Plan[];
+  customer: Customer & { side_business?: string | null }; notes: string | null; plans: Plan[];
   users: { id: string; name: string | null; email: string | null; role: string; external_id: string; last_seen: string }[];
   banks: { id: string; institution_name: string; status: string; last_synced_at: string | null; last_error: string | null; accounts: { name: string; mask: string | null; type: string; balance: number | null }[] | null }[];
   events: { type: string; data: Record<string, unknown>; at: string }[];
@@ -141,7 +141,9 @@ export default function BooksCustomer({ params }: { params: { id: string } }) {
           </Card>
         </div>
 
-        <NotesCard initial={d.notes} contact={{ email: c.contact_email, phone: c.contact_phone, name: c.name }} busy={busy === "notes"} onSave={(fields) => act("notes", { action: "update", fields }, () => setMsg("Saved."))} />
+        {c.kind === "personal" && <HouseholdCard users={d.users} busy={busy === "member"} onAdd={(name, email) => act("member", { action: "add-member", name, email }, (j) => { setMsg(j.emailed ? `Added ${name}. Their invitation went to ${j.to}.` : `Added ${name}.`); setLink({ what: `${name}'s invitation link (14 days)`, url: j.link }); })} />}
+
+        <NotesCard initial={d.notes} side={c.kind === "personal" ? (c.side_business ?? "") : null} contact={{ email: c.contact_email, phone: c.contact_phone, name: c.name }} busy={busy === "notes"} onSave={(fields) => act("notes", { action: "update", fields }, () => setMsg("Saved."))} />
 
         {c.kind === "personal" && <CloseCard name={c.name} busy={busy === "close"} onClose={(confirm) => act("close", { action: "close", confirm }, () => { window.location.href = "/admin/books"; })} />}
       </div>
@@ -258,8 +260,31 @@ function Stat({ k, v, warn }: { k: string; v: string; warn?: boolean }) {
   return <div className="rounded-nv-md border border-white/10 p-2"><p className="text-[11px] uppercase tracking-wide text-nv-text-muted">{k}</p><p className={cn("font-semibold", warn ? "text-amber-300" : "text-nv-text-primary")}>{v}</p></div>;
 }
 
-function NotesCard({ initial, contact, busy, onSave }: { initial: string | null; contact: { email: string | null; phone: string | null; name: string }; busy: boolean; onSave: (f: Record<string, unknown>) => void }) {
+function HouseholdCard({ users, busy, onAdd }: { users: Detail["users"]; busy: boolean; onAdd: (name: string, email: string) => void }) {
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const people = users.filter((u) => u.external_id !== "nexa-support");
+  return (
+    <Card title="Household">
+      <p className="text-sm text-nv-text-muted">Everyone here signs in with their own email and sees the same books.</p>
+      {people.map((u) => (
+        <div key={u.id} className="flex justify-between gap-3 text-sm border-b border-white/5 pb-2" data-member={u.email ?? ""}>
+          <span className="text-nv-text-primary">{u.name || u.email}<span className="text-nv-text-muted"> · {u.email}</span></span>
+          <span className="text-xs text-nv-text-muted whitespace-nowrap">{u.last_seen && new Date(u.last_seen).getTime() > Date.now() - 400 * 86400000 ? `Last in ${ago(u.last_seen)}` : "Not signed in yet"}</span>
+        </div>
+      ))}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+        <input className={field} placeholder="Name (e.g. their spouse)" value={name} onChange={(e) => setName(e.target.value)} data-member-name />
+        <input className={field} placeholder="Their email (their login)" value={email} onChange={(e) => setEmail(e.target.value.trim())} data-member-email />
+        <button className={btn} disabled={busy || !name || !email} onClick={() => { onAdd(name.trim(), email); setName(""); setEmail(""); }} data-member-add>{busy && <Loader2 size={14} className="animate-spin" />} Add and email them</button>
+      </div>
+    </Card>
+  );
+}
+
+function NotesCard({ initial, contact, side, busy, onSave }: { initial: string | null; side: string | null; contact: { email: string | null; phone: string | null; name: string }; busy: boolean; onSave: (f: Record<string, unknown>) => void }) {
   const [notes, setNotes] = useState(initial ?? "");
+  const [sideName, setSideName] = useState(side ?? "");
   const [email, setEmail] = useState(contact.email ?? "");
   const [phone, setPhone] = useState(contact.phone ?? "");
   const [name, setName] = useState(contact.name);
@@ -270,8 +295,9 @@ function NotesCard({ initial, contact, busy, onSave }: { initial: string | null;
         <div><label className={label}>Email</label><input className={field} value={email} onChange={(e) => setEmail(e.target.value)} /></div>
         <div><label className={label}>Phone</label><input className={field} value={phone} onChange={(e) => setPhone(e.target.value)} /></div>
       </div>
+      {side !== null && <div><label className={label}>Side business (its sales and costs get this name, e.g. Palm Studio)</label><input className={field} value={sideName} onChange={(e) => setSideName(e.target.value)} data-side-business /></div>}
       <div><label className={label}>Notes (only NexaVision sees these)</label><textarea className={field} rows={3} value={notes} onChange={(e) => setNotes(e.target.value)} /></div>
-      <button className={btnGhost} disabled={busy} onClick={() => onSave({ notes: notes || null, contact_email: email || null, contact_phone: phone || null, name })}>Save</button>
+      <button className={btnGhost} disabled={busy} onClick={() => onSave({ notes: notes || null, contact_email: email || null, contact_phone: phone || null, name, ...(side !== null && sideName !== side ? { side_business: sideName || null } : {}) })}>Save</button>
     </Card>
   );
 }

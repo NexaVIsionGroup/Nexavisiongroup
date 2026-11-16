@@ -46,6 +46,7 @@ export async function POST(req: NextRequest) {
     switch (b.action) {
       case "create-personal": return NextResponse.json(await control("create-personal", { ...b, staff }));
       case "update": return NextResponse.json(await control("update", { id: b.id, fields: b.fields, staff }));
+      case "add-member": return NextResponse.json(await control("add-member", { id: b.id, name: b.name, email: b.email, send: b.send !== false, staff }));
       case "invite": return NextResponse.json(await control("invite", { id: b.id, send: b.send !== false, staff }));
       case "support-link": return NextResponse.json(await control("support-link", { id: b.id, reason: b.reason, staff }));
       case "plan-save": return NextResponse.json(await control("plan-save", { plan: b.plan, staff }));
