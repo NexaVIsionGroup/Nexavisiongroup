@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
 // notifyDb reads with cache: "no-store": a turned-off link or a changed password must take effect at once.
 import { notifyDb } from "@/lib/notify";
 import { docCookieName, isExpired, verifyDocAccess } from "@/lib/documents";
@@ -14,7 +15,7 @@ async function getDoc(slug: string) {
   const supabase = notifyDb();
   const { data } = await supabase
     .from("shared_documents")
-    .select("id, slug, title, description, client_name, status, expires_at, password_hash, show_toolbar")
+    .select("id, slug, title, description, client_name, status, expires_at, password_hash, show_toolbar, redirect_url")
     .eq("slug", slug)
     .single();
   return data;
@@ -89,6 +90,9 @@ export default async function SharedDocumentPage({ params }: Params) {
       return <PasswordGate slug={doc.slug} title={doc.title} />;
     }
   }
+
+  // A link can forward to a live page (e.g. a customer's plan in NexaBooks) instead of showing a fixed file.
+  if (doc.redirect_url && /^https:\/\//.test(doc.redirect_url)) redirect(doc.redirect_url);
 
   return (
     <DocFrame
