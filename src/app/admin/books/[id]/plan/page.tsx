@@ -21,6 +21,7 @@ export default function PlanEditor({ params }: { params: { id: string } }) {
   const [plan, setPlan] = useState<Plan | null>(null);
   const [metrics, setMetrics] = useState<Metrics | null>(null);
   const [debts, setDebts] = useState<Debt[]>([]);
+  const [link, setLink] = useState<string | null>(null);
   const [err, setErr] = useState("");
   const [msg, setMsg] = useState("");
   const [busy, setBusy] = useState(false);
@@ -31,7 +32,7 @@ export default function PlanEditor({ params }: { params: { id: string } }) {
     const j = await r.json().catch(() => ({}));
     if (!r.ok) { setErr(j.error || `Failed (${r.status})`); return; }
     setPlan(j.plan ?? { slug: null, title: "Money plan", intro: "", food_week_cents: null, steps: [blankStep()] });
-    setMetrics(j.metrics); setDebts(j.debts || []); setDirty(false);
+    setMetrics(j.metrics); setDebts(j.debts || []); setLink(j.link ?? null); setDirty(false);
   }, [params.id]);
   useEffect(() => { load(); }, [load]);
 
@@ -61,7 +62,7 @@ export default function PlanEditor({ params }: { params: { id: string } }) {
             <h1 className="text-xl font-display font-semibold text-nv-text-primary">Edit plan</h1>
             <p className="text-sm text-nv-text-muted">{done} of {items.length} items done. Changes show in her NexaBooks as soon as you save.</p>
           </div>
-          {plan.slug && <a className={btnGhost} href={`https://books.nexavisiongroup.com/p/${plan.slug}`} target="_blank" rel="noreferrer"><ExternalLink size={14} /> books.nexavisiongroup.com/p/{plan.slug}</a>}
+          {link && <div className="flex flex-wrap items-center gap-2"><a className={btnGhost} href={link} target="_blank" rel="noreferrer"><ExternalLink size={14} /> Open her plan</a><button className={btnGhost} onClick={() => { navigator.clipboard.writeText(link); setMsg("Her plan link is copied. It opens without a sign-in."); }}>Copy her link</button></div>}
         </div>
 
         {metrics && (
