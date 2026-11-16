@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { cookies } from "next/headers";
-import { createAdminClient } from "@/lib/supabase/server";
+// notifyDb reads with cache: "no-store": a turned-off link or a changed password must take effect at once.
+import { notifyDb } from "@/lib/notify";
 import { docCookieName, isExpired, verifyDocAccess } from "@/lib/documents";
 import DocFrame from "./DocFrame";
 import PasswordGate from "./PasswordGate";
@@ -10,7 +11,7 @@ export const dynamic = "force-dynamic";
 type Params = { params: { slug: string } };
 
 async function getDoc(slug: string) {
-  const supabase = createAdminClient();
+  const supabase = notifyDb();
   const { data } = await supabase
     .from("shared_documents")
     .select("id, slug, title, description, client_name, status, expires_at, password_hash, show_toolbar")

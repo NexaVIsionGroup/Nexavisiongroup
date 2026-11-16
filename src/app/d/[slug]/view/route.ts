@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createAdminClient } from "@/lib/supabase/server";
+// notifyDb reads with cache: "no-store": a turned-off link or a changed password must take effect at once.
+import { notifyDb } from "@/lib/notify";
 import {
   DOCS_BUCKET,
   SANDBOX_CSP,
@@ -16,7 +17,7 @@ export const dynamic = "force-dynamic";
 // top-level URL (used by the "open full / print" action), which is safe
 // because the CSP `sandbox` header gives the document an opaque origin.
 export async function GET(req: NextRequest, { params }: { params: { slug: string } }) {
-  const supabase = createAdminClient();
+  const supabase = notifyDb();
 
   const { data: doc } = await supabase
     .from("shared_documents")

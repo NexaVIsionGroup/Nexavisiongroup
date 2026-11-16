@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createAdminClient } from "@/lib/supabase/server";
+// notifyDb reads with cache: "no-store": a turned-off link or a changed password must take effect at once.
+import { notifyDb } from "@/lib/notify";
 import { docCookieName, isExpired, signDocAccess, verifyPassword } from "@/lib/documents";
 
 export const dynamic = "force-dynamic";
@@ -7,7 +8,7 @@ export const dynamic = "force-dynamic";
 // Password gate for protected share links. Sets a signed, HttpOnly cookie
 // valid for 12 hours so the client isn't re-prompted while reading.
 export async function POST(req: NextRequest, { params }: { params: { slug: string } }) {
-  const supabase = createAdminClient();
+  const supabase = notifyDb();
   const { password } = await req.json().catch(() => ({ password: "" }));
 
   const { data: doc } = await supabase
