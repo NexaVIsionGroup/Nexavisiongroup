@@ -3,22 +3,35 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ChevronRight, FileText, Loader2, Plus, X } from "lucide-react";
+import { Check, ChevronRight, Copy, FileText, Loader2, Plus, X } from "lucide-react";
 import AppShell from "@/components/admin/AppShell";
 import { DIVISIONS, money } from "@/lib/proposals/types";
 import { field, label, StatusChip, statusOf, when } from "./shared";
 
 type Row = {
-  id: string; number: string; title: string; status: string; client_name: string | null; client_company: string | null;
+  id: string; token: string; number: string; title: string; status: string; client_name: string | null; client_company: string | null;
   link_enabled: boolean; expires_at: string | null; view_count: number; last_viewed_at: string | null; signed_at: string | null;
   due_amount: number | null; paid_at: string | null; updated_at: string;
 };
+
+type Tab = "all" | "waiting" | "signed" | "drafts";
+
+// Waiting on the customer: sent or opened but not signed, or signed with payment still due.
+const isWaiting = (p: Row) => { const s = statusOf(p); return s === "sent" || s === "viewed" || s === "payment due"; };
+const TABS: { id: Tab; label: string; match: (p: Row) => boolean }[] = [
+  { id: "all", label: "All", match: () => true },
+  { id: "waiting", label: "Waiting to sign or pay", match: isWaiting },
+  { id: "signed", label: "Signed", match: (p) => !!p.signed_at && statusOf(p) !== "payment due" },
+  { id: "drafts", label: "Drafts", match: (p) => p.status === "draft" },
+];
 
 export default function ProposalsPage() {
   const router = useRouter();
   const [rows, setRows] = useState<Row[] | null>(null);
   const [err, setErr] = useState("");
   const [open, setOpen] = useState(false);
+  const [tab, setTab] = useState<Tab>("all");
+  const [copied, setCopied] = useState("");
   const [busy, setBusy] = useState(false);
   const [form, setForm] = useState({ title: "", client_name: "", client_company: "", client_email: "", client_phone: "", division: "Restaurants" });
 
@@ -41,6 +54,14 @@ export default function ProposalsPage() {
   const set = (k: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => setForm((f) => ({ ...f, [k]: e.target.value }));
   const waiting = (rows || []).filter((p) => ["sent", "viewed"].includes(p.status) && !p.signed_at).length;
   const signed = (rows || []).filter((p) => p.signed_at).length;
+  const counts = Object.fromEntries(TABS.map((t) => [t.id, (rows || []).filter(t.match).length])) as Record<Tab, number>;
+  const shown = (rows || []).filter(TABS.find((t) => t.id === tab)!.match);
+
+  async function copyLink(p: Row) {
+    const url = `${window.location.origin}/go/${p.token.slice(0, 6)}`;
+    try { await navigator.clipboard.writeText(url); setCopied(p.id); setTimeout(() => setCopied(""), 2000); }
+    catch { window.prompt("Copy this link", url); }
+  }
 
   return (
     <AppShell title="Proposals">
@@ -81,9 +102,21 @@ export default function ProposalsPage() {
           </div>
         )}
 
+        {rows && rows.length > 0 && (
+          <div role="tablist" aria-label="Filter proposals" className="flex flex-wrap gap-2">
+            {TABS.map((t) => (
+              <button key={t.id} role="tab" aria-selected={tab === t.id} onClick={() => setTab(t.id)}
+                className={`min-h-[44px] px-4 rounded-full border text-sm font-medium ${tab === t.id ? "bg-nv-teal text-nv-deep border-nv-teal" : "border-white/15 text-nv-text-secondary hover:text-nv-text-primary"}`}>
+                {t.label} <span className="opacity-70">{counts[t.id]}</span>
+              </button>
+            ))}
+          </div>
+        )}
+        {rows && rows.length > 0 && shown.length === 0 && <p className="text-nv-text-muted">Nothing here right now.</p>}
+
         <ul className="grid gap-3">
-          {(rows || []).map((p) => (
-            <li key={p.id}>
+          {shown.map((p) => (
+            <li key={p.id} className="grid gap-2">
               <Link href={`/admin/proposals/${p.id}`} className="nv-glass rounded-nv-lg p-4 flex items-center gap-3 hover:border-nv-teal/40">
                 <div className="min-w-0 flex-1 grid gap-1">
                   <div className="flex flex-wrap items-center gap-2">
@@ -99,6 +132,12 @@ export default function ProposalsPage() {
                 </div>
                 <ChevronRight size={20} className="text-nv-text-muted flex-none" aria-hidden />
               </Link>
+              {isWaiting(p) && p.link_enabled !== false && (
+                <button onClick={() => copyLink(p)} className="justify-self-start inline-flex items-center gap-2 min-h-[44px] px-4 rounded-nv-md border border-white/15 text-nv-text-primary text-sm">
+                  {copied === p.id ? <Check size={16} aria-hidden /> : <Copy size={16} aria-hidden />}
+                  {copied === p.id ? "Copied" : `Copy link to send: ${p.token.slice(0, 6)}`}
+                </button>
+              )}
             </li>
           ))}
         </ul>
