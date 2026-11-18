@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Check, Copy, Download, ExternalLink, Eye, Loader2, Lock, Mail, Pause, Play, Plus, Trash2, X } from "lucide-react";
+import { Check, Copy, Download, ExternalLink, Eye, FileText, Loader2, Lock, Mail, Pause, Play, Plus, Trash2, X } from "lucide-react";
 import AppShell from "@/components/admin/AppShell";
 import { DIVISIONS, WORK_CATALOG, dueAtSigning, defaultPackage, money, surchargeOn, type ProposalContent } from "@/lib/proposals/types";
 import { field, label, StatusChip, statusOf, when } from "../shared";
@@ -135,6 +135,7 @@ export default function ProposalEditor({ params }: { params: { id: string } }) {
             {!locked && <button onClick={() => send(true)} disabled={!!busy || !p.client_email} className="inline-flex items-center gap-2 min-h-[46px] px-4 rounded-nv-md bg-nv-teal text-nv-deep font-semibold disabled:opacity-50">{busy === "email" ? <Loader2 size={18} className="animate-spin" /> : <Mail size={18} aria-hidden />}{p.sent_at ? "Email again" : "Email to customer"}</button>}
             <button onClick={() => send(false)} disabled={!!busy} className="inline-flex items-center gap-2 min-h-[46px] px-4 rounded-nv-md border border-white/15 text-nv-text-primary">{copied ? <Check size={18} aria-hidden /> : <Copy size={18} aria-hidden />}{copied ? "Copied" : "Copy link"}</button>
             <a href={`/admin/proposals/${p.id}/preview`} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 min-h-[46px] px-4 rounded-nv-md border border-white/15 text-nv-text-primary"><Eye size={18} aria-hidden />Preview</a>
+            {p.preview_url && <a href={String(p.preview_url).replace(/\/preview\/([^?]+)/, "/project/$1/sign")} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 min-h-[46px] px-4 rounded-nv-md border border-white/15 text-nv-text-primary" title="Just the agreement: plan, price, terms and signature. This is what the customer link opens when the proposal is set to open on the agreement."><FileText size={18} aria-hidden />Preview agreement</a>}
             {p.preview_url && (
               <button type="button" onClick={async () => { try { await navigator.clipboard.writeText(p.preview_url); setSharedCopied(true); setTimeout(() => setSharedCopied(false), 2000); } catch { setMsg({ ok: true, text: `Share preview: ${p.preview_url}` }); } }} className="inline-flex items-center gap-2 min-h-[46px] px-4 rounded-nv-md border border-white/15 text-nv-text-primary" title="A read-only preview anyone can open without logging in. Signing is off and views aren't counted.">
                 {sharedCopied ? <Check size={18} aria-hidden /> : <ExternalLink size={18} aria-hidden />}{sharedCopied ? "Copied" : "Share preview"}
