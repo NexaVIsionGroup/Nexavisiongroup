@@ -78,7 +78,7 @@ export function RichProposal({ proposal: p, token, preview = false, share = fals
               {p.autopay_opt_in && (!(s.due > 0) || p.paid_at) && !preview && <a className="pr-btn pr-btn-ghost" href={`/project/${token}/card`}>Save or update your card</a>}
               <a className="pr-btn pr-btn-ghost" href={`/api/project/${token}/pdf`}><Download size={18} aria-hidden /> Download signed copy</a>
             </div>
-            {s.due > 0 && p.paid_at && <p className="pr-paid"><Check size={18} aria-hidden /> Payment received on {longDate(p.paid_at)}. Thank you.</p>}
+            {Number(p.due_amount) > 0 && p.paid_at && <p className="pr-paid"><Check size={18} aria-hidden /> Payment received on {longDate(p.paid_at)}. Thank you.</p>}
           </section>
         )}
 
@@ -242,6 +242,7 @@ export function RichProposal({ proposal: p, token, preview = false, share = fals
           {(s.due > 0 || c.payment.notes) && (
             <Rise className="pr-pay">
               <h3><Wallet size={22} aria-hidden /> Payment</h3>
+              {!s.signed && p.paid_at && <p className="pr-paid"><Check size={18} aria-hidden /> Setup payment received on {longDate(p.paid_at)}, and your card is saved for monthly billing. All that's left is your signature.</p>}
               {s.due > 0 && (
                 <dl>
                   <div><dt>Due at signing</dt><dd>{money(s.due)}</dd></div>
@@ -274,10 +275,10 @@ export function RichProposal({ proposal: p, token, preview = false, share = fals
                     <span className="pr-tick-ring" aria-hidden><Check size={16} /></span>
                     <span><b>Yes, bill my card automatically</b>{c.payment.autopay?.recommended && <em>Recommended</em>}<small>Secures your subscription to {BUSINESS_NAME}&apos;s services. Nothing to remember each month.</small></span>
                   </button>
-                  <button type="button" role="radio" aria-checked={s.autopay === false} className="pr-choice-card" onClick={() => s.setAutopay(false)}>
+                  {!c.payment.autopay?.required && <button type="button" role="radio" aria-checked={s.autopay === false} className="pr-choice-card" onClick={() => s.setAutopay(false)}>
                     <span className="pr-tick-ring" aria-hidden><Check size={16} /></span>
                     <span><b>I&apos;ll pay each invoice myself</b><small>We email an invoice each month and you pay it by card.</small></span>
-                  </button>
+                  </button>}
                 </div>
               )}
             </Rise>
@@ -326,7 +327,7 @@ export function RichProposal({ proposal: p, token, preview = false, share = fals
                 {s.err && <p className="pr-error" role="alert">{s.err}</p>}
                 <button className="pr-btn pr-btn-gold pr-btn-wide" type="submit" disabled={s.busy}>
                   {s.busy ? <Loader2 size={20} className="animate-spin" aria-hidden /> : <Lock size={18} aria-hidden />}
-                  {s.busy ? "Saving your signature" : s.due > 0 ? `Sign and continue to pay ${money(s.due + s.fee)}` : s.autopay === true ? "Sign and continue to your card" : "Sign proposal"}
+                  {s.busy ? "Saving your signature" : s.due > 0 ? `Sign and continue to pay ${money(s.due + s.fee)}` : p.paid_at ? "Sign agreement" : s.autopay === true ? "Sign and continue to your card" : "Sign proposal"}
                 </button>
                 <p className="pr-fine">Questions first? Email <a href="mailto:info@nexavisiongroup.com">info@nexavisiongroup.com</a> and we&apos;ll answer before you sign anything.</p>
               </form>

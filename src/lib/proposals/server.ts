@@ -209,7 +209,8 @@ export async function emailProposal(p: any) {
 
 export async function emailSignedCopy(p: any, pdf: Buffer | null) {
   const content = normalizeContent(p.signed_snapshot?.content || p.content);
-  const due = Number(p.due_amount) || 0;
+  // Paid before signing (admin ran the card first): nothing is due any more.
+  const due = p.paid_at ? 0 : Number(p.due_amount) || 0;
   const total = due + surchargeOn(content, due);
   const autopay = p.signed_snapshot?.autopay_opt_in === true;
   const attachments = pdf ? [{ filename: `Service-Agreement-${p.number}-signed.pdf`, content: pdf }] : undefined;

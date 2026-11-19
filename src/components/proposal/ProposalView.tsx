@@ -177,7 +177,7 @@ export function ProposalView({ proposal: p, token, preview = false, share = fals
                   <legend>{c.payment.autopay?.title || "Automatic monthly billing"}</legend>
                   {c.payment.autopay?.text && <p>{c.payment.autopay.text}</p>}
                   <label><input type="radio" name="autopay" checked={s.autopay === true} onChange={() => s.setAutopay(true)} /> Yes, bill my card automatically each month{c.payment.autopay?.recommended ? " (recommended)" : ""}</label>
-                  <label><input type="radio" name="autopay" checked={s.autopay === false} onChange={() => s.setAutopay(false)} /> I&apos;ll pay each monthly invoice myself</label>
+                  {!c.payment.autopay?.required && <label><input type="radio" name="autopay" checked={s.autopay === false} onChange={() => s.setAutopay(false)} /> I&apos;ll pay each monthly invoice myself</label>}
                 </fieldset>
               )}
               <label className="nxp-agree">

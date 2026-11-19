@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Check, Copy, Download, ExternalLink, Eye, FileText, Loader2, Lock, Mail, Pause, Play, Plus, Trash2, X } from "lucide-react";
+import { Check, Copy, CreditCard, Download, ExternalLink, Eye, FileText, Loader2, Lock, Mail, Pause, Play, Plus, Trash2, X } from "lucide-react";
 import AppShell from "@/components/admin/AppShell";
 import { DIVISIONS, WORK_CATALOG, dueAtSigning, defaultPackage, money, surchargeOn, type ProposalContent } from "@/lib/proposals/types";
 import { field, label, StatusChip, statusOf, when } from "../shared";
@@ -45,6 +45,7 @@ export default function ProposalEditor({ params }: { params: { id: string } }) {
   const [copied, setCopied] = useState(false);
   const [sharedCopied, setSharedCopied] = useState(false);
   const [confirmDel, setConfirmDel] = useState(false);
+  useEffect(() => { const m = new URLSearchParams(window.location.search).get("card_first"); if (m) setMsg({ ok: false, text: m }); }, []);
 
   const load = useCallback(async () => {
     const r = await fetch(`/api/admin/proposals/${params.id}`, { cache: "no-store" });
@@ -136,6 +137,7 @@ export default function ProposalEditor({ params }: { params: { id: string } }) {
             <button onClick={() => send(false)} disabled={!!busy} className="inline-flex items-center gap-2 min-h-[46px] px-4 rounded-nv-md border border-white/15 text-nv-text-primary">{copied ? <Check size={18} aria-hidden /> : <Copy size={18} aria-hidden />}{copied ? "Copied" : "Copy link"}</button>
             <a href={`/admin/proposals/${p.id}/preview`} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 min-h-[46px] px-4 rounded-nv-md border border-white/15 text-nv-text-primary"><Eye size={18} aria-hidden />Preview</a>
             {p.preview_url && <a href={String(p.preview_url).replace(/\/preview\/([^?]+)/, "/project/$1/sign")} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 min-h-[46px] px-4 rounded-nv-md border border-white/15 text-nv-text-primary" title="Just the agreement: plan, price, terms and signature. This is what the customer link opens when the proposal is set to open on the agreement."><FileText size={18} aria-hidden />Preview agreement</a>}
+            {!p.signed_at && c?.payment.autopay?.offer && <a href={`/api/admin/proposals/${p.id}/card-first`} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 min-h-[46px] px-4 rounded-nv-md border border-white/15 text-nv-text-primary" title="Opens the card form now: charges what is due at signing and saves the card for automatic monthly billing. The customer then only signs."><CreditCard size={18} aria-hidden />Run card first</a>}
             {p.preview_url && (
               <button type="button" onClick={async () => { try { await navigator.clipboard.writeText(p.preview_url); setSharedCopied(true); setTimeout(() => setSharedCopied(false), 2000); } catch { setMsg({ ok: true, text: `Share preview: ${p.preview_url}` }); } }} className="inline-flex items-center gap-2 min-h-[46px] px-4 rounded-nv-md border border-white/15 text-nv-text-primary" title="A read-only preview anyone can open without logging in. Signing is off and views aren't counted.">
                 {sharedCopied ? <Check size={18} aria-hidden /> : <ExternalLink size={18} aria-hidden />}{sharedCopied ? "Copied" : "Share preview"}

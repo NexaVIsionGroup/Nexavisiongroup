@@ -47,7 +47,7 @@ export type ProposalPackage = {
   /** plain-English rule for when the ramp ends, e.g. once measured momentum is clear */
   rampNote?: string;
 };
-export type AutopayOffer = { offer: boolean; recommended?: boolean; title?: string; text?: string };
+export type AutopayOffer = { offer: boolean; recommended?: boolean; /** true = automatic billing is part of the deal; no "pay each invoice myself" choice */ required?: boolean; title?: string; text?: string };
 export type PaymentTerms = {
   /** "none" skips the payment step entirely. */
   mode: "none" | "fixed" | "percent";

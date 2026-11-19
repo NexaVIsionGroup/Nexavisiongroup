@@ -18,6 +18,8 @@ export async function GET(req: Request, { params }: { params: { token: string } 
       dueInvoice = fresh?.invoice_number || null;
     }
     const sub = await ensureSubscription(p, dueInvoice);
+    // Card already run before signing: don't show the card form again.
+    if (p.paid_at && sub.card_last4) return NextResponse.redirect(projectUrl(params.token), 303);
     await logEvent(p.id, "card_link_opened", req);
     return NextResponse.redirect(sub.card_url, 303);
   } catch (e) {

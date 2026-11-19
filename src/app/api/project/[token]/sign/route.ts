@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { clientIp, contentVersion, db, emailSignedCopy, fingerprint, linkState, logEvent } from "@/lib/proposals/server";
+import { clientIp, contentVersion, db, emailSignedCopy, fingerprint, linkState, logEvent, syncPaid } from "@/lib/proposals/server";
 import { renderAgreementPdf } from "@/lib/proposals/pdf";
 import { notifyAdmin } from "@/lib/notify";
 import { defaultPackage, dueAtSigning, money, normalizeContent } from "@/lib/proposals/types";
@@ -36,7 +36,7 @@ export async function POST(req: Request, { params }: { params: { token: string }
   // Automatic monthly billing is a choice only when the proposal offers it, and then it must be made.
   const offerAutopay = !!content.payment.autopay?.offer;
   if (offerAutopay && typeof body.autopay !== "boolean") return NextResponse.json({ error: "Choose how you'd like to pay your monthly invoices." }, { status: 400 });
-  const autopay_opt_in: boolean | null = offerAutopay ? body.autopay === true : null;
+  const autopay_opt_in: boolean | null = offerAutopay ? (content.payment.autopay?.required ? true : body.autopay === true) : null;
 
   const signed_at = new Date().toISOString();
   const snapshot = {
@@ -72,7 +72,7 @@ export async function POST(req: Request, { params }: { params: { token: string }
   // The signature is already saved, so an email or PDF problem must not undo it.
   try {
     const pdf = await renderAgreementPdf(updated).catch((e) => { console.error("[proposal pdf]", e); return null; });
-    await emailSignedCopy(updated, pdf);
+    await emailSignedCopy(await syncPaid(updated), pdf);
     await logEvent(p.id, "signed_copy_emailed", undefined, { pdf: !!pdf });
   } catch (e) {
     console.error("[proposal signed email]", e);

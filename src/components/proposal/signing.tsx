@@ -114,13 +114,14 @@ export function useSigning(p: PublicProposal, token: string, preview: boolean) {
   const [name, setName] = useState(p.client_name || "");
   const [title, setTitle] = useState("");
   const [agreed, setAgreed] = useState(false);
-  const [autopay, setAutopay] = useState<boolean | null>(offerAutopay && c.payment.autopay?.recommended ? true : null);
+  const [autopay, setAutopay] = useState<boolean | null>(offerAutopay && (c.payment.autopay?.recommended || c.payment.autopay?.required) ? true : null);
   const [sig, setSig] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
 
   const pkg = useMemo(() => c.packages.find((x) => x.id === pkgId) || null, [c.packages, pkgId]);
-  const due = signed ? Number(p.due_amount) || 0 : dueAtSigning(c, pkg);
+  // Already paid (admin ran the card before signing): nothing left to pay at signing.
+  const due = p.paid_at ? 0 : signed ? Number(p.due_amount) || 0 : dueAtSigning(c, pkg);
   const fee = surchargeOn(c, due);
 
   async function sign(e: React.FormEvent) {
