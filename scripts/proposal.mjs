@@ -114,7 +114,7 @@ for (const p of pkgs) {
   const due = pay.mode === "percent" ? (base * pay.value) / 100 : pay.mode === "fixed" ? pay.value : 0;
   const ramp = (p.ramp || []).map((r) => `${usd(r.monthly)}/mo ${r.label}, then `).join("");
   const pct = p.percent ? ` + ${p.percent.rate}% of ${p.percent.of}` : "";
-  console.log(`  ${p.name}: ${usd(p.price)} one-time, ${ramp}${usd(p.monthly)}/mo${p.monthlyLabel ? ` (${p.monthlyLabel.toLowerCase()})` : ""}${pct}, due at signing ${usd(due)}${pay.surcharge && due ? " + 4% card fee" : ""}`);
+  console.log(`  ${p.name}: ${usd(p.price)} one-time, ${ramp}${usd(p.monthly)}/mo${p.monthlyLabel ? ` (${p.monthlyLabel.toLowerCase()})` : ""}${pct}, due at signing ${usd(due)}${pay.surcharge && due ? " + card fee" : ""}`);
   if (p.rampNote) console.log(`    Ramp rule: ${p.rampNote}`);
 }
 if (pay.autopay?.offer) console.log(`  Automatic monthly billing offered at signing${pay.autopay.recommended ? " (recommended)" : ""}.`);
