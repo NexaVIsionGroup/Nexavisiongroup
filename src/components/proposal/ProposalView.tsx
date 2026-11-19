@@ -2,7 +2,7 @@
 
 import { Check, Download, Loader2, Lock, Target, TriangleAlert } from "lucide-react";
 import { Logo } from "@/components/site/Logo";
-import { BUSINESS_NAME, CATCHPHRASE, MOTTO, money, type PublicProposal } from "@/lib/proposals/types";
+import { BUSINESS_NAME, CATCHPHRASE, MOTTO, money, surchargePct, type PublicProposal } from "@/lib/proposals/types";
 import { SignaturePad, useOpenTracking, useSigning } from "./signing";
 
 // Fixed time zone so the server and the customer's browser print the same date (no hydration mismatch).
@@ -135,7 +135,7 @@ export function ProposalView({ proposal: p, token, preview = false, share = fals
             {due > 0 && (
               <dl className="nxp-due">
                 <div><dt>Due at signing</dt><dd>{money(due)}</dd></div>
-                {fee > 0 && <div><dt>4% card fee</dt><dd>{money(fee)}</dd></div>}
+                {fee > 0 && <div><dt>{surchargePct(c)}% card fee</dt><dd>{money(fee)}</dd></div>}
                 {fee > 0 && <div className="is-total"><dt>Total at signing</dt><dd>{money(due + fee)}</dd></div>}
               </dl>
             )}

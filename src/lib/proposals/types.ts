@@ -52,8 +52,12 @@ export type PaymentTerms = {
   /** "none" skips the payment step entirely. */
   mode: "none" | "fixed" | "percent";
   value: number;
-  /** 4% card surcharge on the amount due at signing */
+  /** card surcharge on the amount due at signing */
   surcharge: boolean;
+  /** card fee percent, default 4 (max 4) */
+  surchargeRate?: number;
+  /** also add the card fee to every automatic monthly charge */
+  surchargeMonthly?: boolean;
   /** Plain-English note about later payments */
   notes?: string;
   /** optional "set up automatic monthly billing" choice the customer makes at signing */
@@ -194,7 +198,9 @@ export function dueAtSigning(c: ProposalContent, pkg: ProposalPackage | null): n
   return 0;
 }
 
-export const surchargeOn = (c: ProposalContent, due: number) => (c.payment.surcharge ? round2(due * 0.04) : 0);
+/** The card fee percent (default 4, never above 4). */
+export const surchargePct = (c: ProposalContent) => { const r = Number(c.payment.surchargeRate); return r > 0 && r <= 4 ? r : 4; };
+export const surchargeOn = (c: ProposalContent, due: number) => (c.payment.surcharge ? round2((due * surchargePct(c)) / 100) : 0);
 
 export type PublicProposal = {
   number: string;

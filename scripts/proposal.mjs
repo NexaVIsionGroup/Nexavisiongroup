@@ -103,7 +103,7 @@ for (const [re, why] of [[/jhps|jhpsfl/i, "the JHPS name"], [/\bLLC\b/, '"LLC" (
 }
 if (problems.length) die(`Fix these and run again:\n - ${problems.join("\n - ")}`);
 
-const content = { ...c, timeline: c.timeline || [], payment: { mode: pay.mode, value: pay.value || 0, surcharge: !!pay.surcharge, notes: pay.notes || "", ...(pay.autopay ? { autopay: pay.autopay } : {}), ...(pay.schedule ? { schedule: pay.schedule } : {}) } };
+const content = { ...c, timeline: c.timeline || [], payment: { mode: pay.mode, value: pay.value || 0, surcharge: !!pay.surcharge, ...(pay.surchargeRate ? { surchargeRate: pay.surchargeRate } : {}), ...(pay.surchargeMonthly ? { surchargeMonthly: true } : {}), notes: pay.notes || "", ...(pay.autopay ? { autopay: pay.autopay } : {}), ...(pay.schedule ? { schedule: pay.schedule } : {}) } };
 if (!c.terms) delete content.terms; // the app fills in the standard terms
 
 // ── Summary ──

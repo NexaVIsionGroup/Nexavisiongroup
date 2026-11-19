@@ -3,7 +3,7 @@ import { Document, Page, Text, View, Image, StyleSheet, Font, renderToBuffer } f
 
 // Never split words with hyphens.
 Font.registerHyphenationCallback((word) => [word]);
-import { BUSINESS_NAME, MOTTO, defaultPackage, dueAtSigning, money, normalizeContent, surchargeOn } from "./types";
+import { BUSINESS_NAME, MOTTO, defaultPackage, dueAtSigning, money, normalizeContent, surchargeOn, surchargePct } from "./types";
 
 const INK = "#10211f", PINE = "#0f5c55", MUTED = "#51625f", LINE = "#d5dedb";
 const s = StyleSheet.create({
@@ -96,7 +96,7 @@ export function renderProposalPdf(p: any): Promise<Buffer> {
             {!!pkg.rampNote && <Text>{pkg.rampNote}</Text>}
             {!!pkg.percent && Number(pkg.percent.rate) > 0 && <View style={s.row}><Text>Plus {pkg.percent.rate}% of {pkg.percent.of}</Text><Text>{pkg.percent.rate}%</Text></View>}
             {due > 0 && <View style={s.row}><Text>Due at signing</Text><Text>{money(due)}</Text></View>}
-            {fee > 0 && <View style={s.row}><Text>4% card fee on the amount due</Text><Text>{money(fee)}</Text></View>}
+            {fee > 0 && <View style={s.row}><Text>{surchargePct(c)}% card fee on the amount due</Text><Text>{money(fee)}</Text></View>}
           </View>
         </View>}
         {!!c.payment.schedule?.length && (
@@ -222,7 +222,7 @@ export function renderAgreementPdf(p: any, opts: { link?: string } = {}): Promis
           {ramp.map((r) => <View key={r.label} style={a.tRow}><Text style={a.cItem}>Monthly service, {r.label.toLowerCase()}</Text><Text style={a.cAmt}>{money(r.monthly)} / month</Text></View>)}
           {Number(pkg.monthly) > 0 && <View style={a.tRow}><Text style={a.cItem}>Monthly service, {(pkg.monthlyLabel || (ramp.length ? "after that" : "monthly")).toLowerCase()}</Text><Text style={a.cAmt}>{money(pkg.monthly)} / month</Text></View>}
           {!!pkg.percent && Number(pkg.percent.rate) > 0 && <View style={a.tRow}><Text style={a.cItem}>Plus {pkg.percent.rate}% of {pkg.percent.of}</Text><Text style={a.cAmt}>{pkg.percent.rate}%</Text></View>}
-          {fee > 0 && <View style={a.tRow}><Text style={a.cItem}>4% card fee on the amount due at signing</Text><Text style={a.cAmt}>{money(fee)}</Text></View>}
+          {fee > 0 && <View style={a.tRow}><Text style={a.cItem}>{surchargePct(c)}% card fee on the amount due at signing</Text><Text style={a.cAmt}>{money(fee)}</Text></View>}
           {due > 0 && <View style={a.tTotal}><Text style={a.cItem}>Due at signing</Text><Text style={a.cAmt}>{money(due + fee)}</Text></View>}
         </View>}
         {!!pkg?.rampNote && <Text style={[a.small, { marginTop: 6 }]}>{pkg.rampNote}</Text>}

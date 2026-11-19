@@ -15,6 +15,7 @@ import { CountUp, EASE, Money, Rise, Words } from "@/components/prospect/motion"
 import { Compare, PhoneShot } from "@/components/prospect/Briefing";
 import {
   BUSINESS_NAME, CATCHPHRASE, MOTTO, money, type BarRow, type Feature, type Finding, type ProposalPackage, type PublicProposal,
+  surchargePct,
 } from "@/lib/proposals/types";
 import { SignaturePad, useOpenTracking, useSigning } from "./signing";
 
@@ -246,7 +247,7 @@ export function RichProposal({ proposal: p, token, preview = false, share = fals
               {s.due > 0 && (
                 <dl>
                   <div><dt>Due at signing</dt><dd>{money(s.due)}</dd></div>
-                  {s.fee > 0 && <div><dt>4% card fee</dt><dd>{money(s.fee)}</dd></div>}
+                  {s.fee > 0 && <div><dt>{surchargePct(c)}% card fee</dt><dd>{money(s.fee)}</dd></div>}
                   {s.fee > 0 && <div className="is-total"><dt>Total at signing</dt><dd>{money(s.due + s.fee)}</dd></div>}
                 </dl>
               )}

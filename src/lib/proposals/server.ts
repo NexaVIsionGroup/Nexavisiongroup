@@ -1,7 +1,7 @@
 import { createHash, createHmac, randomBytes, timingSafeEqual } from "crypto";
 import { Resend } from "resend";
 import { notifyAdmin, notifyDb } from "@/lib/notify";
-import { BUSINESS_NAME, CATCHPHRASE, MOTTO, defaultPackage, firstMonthly, normalizeContent, money, surchargeOn, type ProposalContent, type PublicProposal } from "./types";
+import { BUSINESS_NAME, CATCHPHRASE, MOTTO, defaultPackage, firstMonthly, normalizeContent, money, surchargeOn, surchargePct, type ProposalContent, type PublicProposal } from "./types";
 
 export const SITE = process.env.NEXT_PUBLIC_SITE_URL || "https://nexavisiongroup.com";
 export const FROM = `${BUSINESS_NAME} <info@nexavisiongroup.com>`;
@@ -103,6 +103,7 @@ export async function ensureInvoice(p: any): Promise<string> {
     customer: { name: p.client_name || p.client_company || p.signed_name, email: p.client_email, phone: p.client_phone || undefined, company: p.client_company || undefined },
     items: [{ description: `${p.title}: payment due at signing (${p.number})`, quantity: 1, unit_price: due }],
     surcharge: !!content.payment.surcharge,
+    surcharge_rate: surchargePct(content),
     notes: `Proposal ${p.number}`,
     return_url: projectUrl(p.token),
   });
@@ -154,13 +155,16 @@ async function billingPost(payload: Record<string, unknown>) {
 export async function ensureSubscription(p: any, dueInvoice?: string | null) {
   const content: ProposalContent = normalizeContent(p.signed_snapshot?.content || p.content);
   const pkg = content.packages.find((x) => x.id === p.selected_package_id) || defaultPackage(content);
-  const amount = pkg ? firstMonthly(pkg) : 0;
+  const base = pkg ? firstMonthly(pkg) : 0;
+  // Card fee on every monthly charge when the proposal says so.
+  const amount = content.payment.surcharge && content.payment.surchargeMonthly ? Math.round(base * (100 + surchargePct(content))) / 100 : base;
   if (!pkg || amount <= 0) throw new Error("This proposal has no monthly price to bill.");
   if (!p.client_email) throw new Error("Add the customer's email first.");
   const plan_note = [
     pkg.ramp?.length ? pkg.ramp.map((r) => `${r.label}: ${money(r.monthly)}/mo`).join(", ") : "",
     pkg.ramp?.length ? `${pkg.monthlyLabel || "After that"}: ${money(pkg.monthly)}/mo` : "",
     pkg.percent ? `Plus ${pkg.percent.rate}% of ${pkg.percent.of}` : "",
+    amount !== base ? `Each charge includes a ${surchargePct(content)}% card fee` : "",
   ].filter(Boolean).join(". ");
   return billingPost({
     action: "ensure", order_id: p.id, due_invoice: dueInvoice || undefined, amount, plan_name: pkg.name, reference: p.number, plan_note, return_url: projectUrl(p.token),
