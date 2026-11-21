@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { fontDisplay, fontBody, fontMono } from "@/lib/fonts";
 import { Providers } from "@/components/Providers";
+import RootBeacon from "@/components/analytics/RootBeacon";
 import "@/styles/globals.css";
 
 export const metadata: Metadata = {
@@ -47,6 +49,10 @@ export default function RootLayout({
             }}
           />
         </div>
+
+        <Suspense fallback={null}>
+          <RootBeacon />
+        </Suspense>
 
         <Providers>
           {children}

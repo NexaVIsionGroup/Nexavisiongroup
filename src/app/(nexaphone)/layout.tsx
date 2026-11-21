@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { JAIL_THEME } from "../../components/nexaphone/theme";
 import { Big_Shoulders_Display, IBM_Plex_Sans } from "next/font/google";
 import "@/styles/nexaphone.css";
@@ -6,6 +7,7 @@ import "@/styles/nexaphone-store.css";
 import "@/styles/nexaphone-shop.css";
 import { CartProvider } from "@/components/nexaphone/cart";
 import { LeadProvider } from "@/components/nexaphone/lead";
+import Beacon from "@/components/analytics/Beacon";
 
 // Chrome holds first paint until preloaded fonts land, so keep the preloaded set
 // tiny: one display weight (700 requests resolve to 800), and body text paints in
@@ -38,6 +40,9 @@ export const metadata: Metadata = {
 export default function NexaPhoneLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className={`${display.variable} ${body.variable} np`} data-jail={JAIL_THEME}>
+      <Suspense fallback={null}>
+        <Beacon site="nexaphone" />
+      </Suspense>
       <LeadProvider>
         <CartProvider>{children}</CartProvider>
       </LeadProvider>

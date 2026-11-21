@@ -89,8 +89,8 @@ export default function PhoneStorePage() {
             <h1 className="text-xl font-display font-semibold text-nv-text-primary">Phone Store</h1>
             <p className="text-sm text-nv-text-muted">
               Nexa Pro orders and leads from{" "}
-              <a href="/nexaphone" target="_blank" className="text-nv-teal inline-flex items-center gap-1">
-                /nexaphone <ExternalLink size={12} />
+              <a href="https://nexaphone.com" target="_blank" className="text-nv-teal inline-flex items-center gap-1">
+                nexaphone.com <ExternalLink size={12} />
               </a>
             </p>
           </div>
