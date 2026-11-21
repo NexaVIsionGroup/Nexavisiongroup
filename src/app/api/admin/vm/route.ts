@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { db, newToken, pcc, VM_PHONES, VM_HOTSPOTS, trialState, type VmUser } from "@/lib/vm";
+import { db, newToken, pcc, VM_PHONES, VM_APPLIANCES, trialState, type VmUser } from "@/lib/vm";
 
 // Admin management for virtual cloud phones + their users.
 // Auth: middleware already requires a Supabase session for /api/admin/*.
@@ -20,7 +20,7 @@ function publicUser(u: VmUser) {
     id: u.id, label: u.label, username: u.username, phone_id: u.phone_id, enabled: u.enabled,
     // An appliance account holds a real device, not one of the phoneN slots, so the phone list
     // below never matches it. Name it here or the panel would call it "unassigned".
-    device_label: u.phone_id ? VM_HOTSPOTS[u.phone_id]?.label ?? null : null,
+    device_label: u.phone_id ? VM_APPLIANCES[u.phone_id]?.label ?? null : null,
     signed_up: !!u.username && !!u.password_hash,
     pending_link: pending ? u.token_kind : null,
     link_expires: pending ? u.token_expires : null,
@@ -48,8 +48,11 @@ export async function GET() {
     state: ((status.phones as Record<string, unknown> | undefined)?.[id] as Record<string, unknown>) || null,
   }));
   const slots = Object.values((status.phones as Record<string, { running?: boolean; in_use?: boolean }> | undefined) || {});
+  // Appliances aren't a pool — each id is one specific real device, so just report whether it's
+  // already claimed, not "available slots" like the cloud phones above.
+  const appliances = Object.entries(VM_APPLIANCES).map(([id, a]) => ({ id, label: a.label, model: a.model, assigned: used.has(id) }));
   return NextResponse.json({
-    users, phones, backend_ok: status.ok === true,
+    users, phones, appliances, backend_ok: status.ok === true,
     rack: { free_gb: status.free_gb ?? null, running: slots.filter((x) => x.running).length, in_use: slots.filter((x) => x.in_use).length },
   });
 }
@@ -89,6 +92,22 @@ export async function POST(req: NextRequest) {
       // simply starts when the person signs in.
       const on = await pcc(`/vm/${phone}/on`, "POST");
       return NextResponse.json({ ok: true, link: link(t.token), user: publicUser(data as VmUser), phone, phone_started: on.ok === true });
+    }
+    // Invite for a SPECIFIC real device (an appliance: a hotspot panel or a live-control phone),
+    // not an auto-picked pool slot. One device, one account — no wipe/boot, it's already on.
+    case "invite_device": {
+      const device = String(body.phone_id ?? "");
+      if (!VM_APPLIANCES[device]) return err("Unknown device.");
+      const { data: clash } = await db().from("vm_users").select("id").eq("phone_id", device).maybeSingle();
+      if (clash) return err("That device already has an account. Reassign or delete it first.", 409);
+      const t = newToken();
+      const { data, error } = await db().from("vm_users").insert({
+        plan: "full", label: String(body.label ?? "").slice(0, 80), phone_id: device,
+        token_hash: t.hash, token_kind: "invite",
+        token_expires: new Date(Date.now() + INVITE_DAYS * 86400_000).toISOString(),
+      }).select("*").single();
+      if (error) return err(error.message, 500);
+      return NextResponse.json({ ok: true, link: link(t.token), user: publicUser(data as VmUser), phone_id: device });
     }
     // Replace the pending link (invite not used yet) or issue a password-reset link.
     case "new_link":
@@ -160,11 +179,12 @@ export async function POST(req: NextRequest) {
       const u = await getUser();
       if (!u) return err("User not found.", 404);
       const target = String(body.phone_id ?? "");
-      if (target && !VM_PHONES[target]) return err("Unknown phone.");
+      if (target && !VM_PHONES[target] && !VM_APPLIANCES[target]) return err("Unknown phone.");
       if (target) {
         const { data: clash } = await db().from("vm_users").select("id").eq("phone_id", target).neq("id", u.id).maybeSingle();
         if (clash) return err("That phone is assigned to someone else.", 409);
-        await pcc(`/vm/${target}/on`, "POST");
+        // Pool phones boot on assignment; an appliance is a real device that's already on.
+        if (VM_PHONES[target]) await pcc(`/vm/${target}/on`, "POST");
       }
       await db().from("vm_users").update({ phone_id: target || null }).eq("id", u.id);
       return NextResponse.json({ ok: true });

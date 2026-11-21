@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import { cookies } from "next/headers";
-import { VM_COOKIE, VM_PHONES, VM_HOTSPOTS, userFromCookie, trialState } from "@/lib/vm";
+import { VM_COOKIE, VM_PHONES, VM_HOTSPOTS, VM_LIVE_DEVICES, userFromCookie, trialState } from "@/lib/vm";
 import VmClient from "./VmClient";
 import HotspotClient from "./HotspotClient";
+import LiveDeviceClient from "./LiveDeviceClient";
 
 // One door for every VM user: sign in here and the ACCOUNT decides which phone opens.
 export const dynamic = "force-dynamic";
@@ -16,6 +17,12 @@ export default async function VmPage() {
   const appliance = u?.phone_id ? VM_HOTSPOTS[u.phone_id] : null;
   if (u && appliance) {
     return <HotspotClient user={{ username: u.username! }} device={appliance} />;
+  }
+  // A live-control appliance (a real, working phone) opens the same WebRTC relay the admin
+  // "Live Control" panel uses, instead of a settings deck.
+  const liveDevice = u?.phone_id ? VM_LIVE_DEVICES[u.phone_id] : null;
+  if (u && liveDevice) {
+    return <LiveDeviceClient user={{ username: u.username! }} device={liveDevice} />;
   }
   const phone = u?.phone_id ? VM_PHONES[u.phone_id] : null;
   const trial = u ? trialState(u) : null;

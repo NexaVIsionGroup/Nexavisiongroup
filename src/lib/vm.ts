@@ -18,6 +18,15 @@ export const VM_PHONES: Record<string, { host: string; label: string }> = Object
 export const VM_HOTSPOTS: Record<string, { label: string; model: string }> = {
   op13r: { label: "Nexa Pro 13", model: "Hotspot" },
 };
+// Appliances that get the SAME door but a live screen+touch session instead of a settings panel —
+// a real working phone, reached through the same WebRTC relay the admin "Live Control" panel uses
+// (/pcc/<id>/cmd to wake it, then the shared control_url the rack hands back from /pcc/devices).
+export const VM_LIVE_DEVICES: Record<string, { label: string; model: string }> = {
+  op13r2: { label: "Nexa 13 Pro 2", model: "OnePlus 13R (CPH2647)" },
+};
+// Every account that owns a real device rather than a pool phoneN slot — used anywhere code needs
+// to know "is this phone_id an appliance" without caring which kind of door it opens.
+export const VM_APPLIANCES: Record<string, { label: string; model: string }> = { ...VM_HOTSPOTS, ...VM_LIVE_DEVICES };
 export const VM_COOKIE = "vm_session";
 const SESSION_DAYS = 30;
 
@@ -94,6 +103,12 @@ export function readSession(cookie: string | undefined): { uid: string } | null 
 /** Short-lived token the nexa-gate Worker accepts for ONE phone (must match its hostname). */
 export function mintGateToken(phone: string): string {
   return signBlob({ exp: Math.floor(Date.now() / 1000) + 120, phone }, process.env.VM_GATE_SECRET || "");
+}
+/** Same nexa-gate Worker token /admin/gate mints for phone.nexavisiongroup.com (GATE_SECRET,
+ *  shared with term.) — minted here for a signed-in live-control appliance owner instead of an
+ *  admin session, so the one existing control_url path works without a second pipeline. */
+export function mintPhoneGateToken(): string {
+  return signBlob({ exp: Math.floor(Date.now() / 1000) + 120 }, process.env.GATE_SECRET || "");
 }
 
 // ---- users ---------------------------------------------------------------------------

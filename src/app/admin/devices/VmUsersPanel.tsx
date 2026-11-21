@@ -23,6 +23,8 @@ type VmPhone = {
   id: string; label: string; url: string; assigned: boolean;
   state: { power?: boolean; running?: boolean; booted?: boolean; in_use?: boolean; idle_min?: number | null; conf?: { ram_mb: number; cores: number; data_gb: number; sleep_min: number } } | null;
 };
+// A real device (hotspot panel or live-control phone), not a pool slot — one id, one device.
+type VmAppliance = { id: string; label: string; model: string; assigned: boolean };
 type Rack = { free_gb: number | null; running: number; in_use: number };
 function fmtUsed(min: number) {
   if (!min) return "not used yet";
@@ -49,6 +51,7 @@ function ago(s: string | null) {
 export default function VmUsersPanel() {
   const [users, setUsers] = useState<VmUser[]>([]);
   const [phones, setPhones] = useState<VmPhone[]>([]);
+  const [appliances, setAppliances] = useState<VmAppliance[]>([]);
   const [backendOk, setBackendOk] = useState(true);
   const [rack, setRack] = useState<Rack | null>(null);
   const [loading, setLoading] = useState(true);
@@ -63,7 +66,7 @@ export default function VmUsersPanel() {
   const load = useCallback(async () => {
     const r = await fetch("/api/admin/vm", { cache: "no-store" });
     const d = await r.json().catch(() => ({}));
-    if (r.ok) { setUsers(d.users || []); setPhones(d.phones || []); setBackendOk(d.backend_ok !== false); setRack(d.rack || null); }
+    if (r.ok) { setUsers(d.users || []); setPhones(d.phones || []); setAppliances(d.appliances || []); setBackendOk(d.backend_ok !== false); setRack(d.rack || null); }
     else setMsg(d.error || "Could not load cloud phone users.");
     setLoading(false);
   }, []);
@@ -148,6 +151,25 @@ export default function VmUsersPanel() {
               {lastLink.copied ? <Check size={13} className="text-nv-success" /> : <Copy size={13} />} Copy
             </button>
           </div>
+        </div>
+      )}
+
+      {appliances.length > 0 && (
+        <div className="flex flex-wrap items-center gap-2 pb-1 border-b border-white/10">
+          <span className="text-[11.5px] text-nv-text-muted">Devices:</span>
+          {appliances.map((a) => (
+            <div key={a.id} className="flex items-center gap-1.5">
+              <span className="text-[11.5px] px-2 py-0.5 rounded-full border border-white/10 text-nv-text-secondary">
+                {a.label} {a.assigned ? "· has an account" : "· no account yet"}
+              </span>
+              {!a.assigned && (
+                <button className={BTN} disabled={busy !== ""}
+                  onClick={async () => { const d = await act(`inv-${a.id}`, { action: "invite_device", phone_id: a.id, label }); if (d) { setLabel(""); await showLink(d, `Sign-up link for ${a.label}`); } }}>
+                  {busy === `inv-${a.id}` ? <Loader2 size={13} className="animate-spin" /> : <Link2 size={13} />} Invite
+                </button>
+              )}
+            </div>
+          ))}
         </div>
       )}
 
