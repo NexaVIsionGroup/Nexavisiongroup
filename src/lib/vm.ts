@@ -104,12 +104,6 @@ export function readSession(cookie: string | undefined): { uid: string } | null 
 export function mintGateToken(phone: string): string {
   return signBlob({ exp: Math.floor(Date.now() / 1000) + 120, phone }, process.env.VM_GATE_SECRET || "");
 }
-/** Same nexa-gate Worker token /admin/gate mints for phone.nexavisiongroup.com (GATE_SECRET,
- *  shared with term.) — minted here for a signed-in live-control appliance owner instead of an
- *  admin session, so the one existing control_url path works without a second pipeline. */
-export function mintPhoneGateToken(): string {
-  return signBlob({ exp: Math.floor(Date.now() / 1000) + 120 }, process.env.GATE_SECRET || "");
-}
 
 // ---- users ---------------------------------------------------------------------------
 export async function userFromCookie(cookie: string | undefined): Promise<VmUser | null> {
