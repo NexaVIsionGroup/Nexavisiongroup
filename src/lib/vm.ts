@@ -18,12 +18,14 @@ export const VM_PHONES: Record<string, { host: string; label: string }> = Object
 export const VM_HOTSPOTS: Record<string, { label: string; model: string }> = {
   op13r: { label: "Nexa Pro 13", model: "Hotspot" },
 };
-// Appliances that get the SAME door but a live screen+touch session instead of a settings panel —
-// a real working phone, reached through the same WebRTC relay the admin "Live Control" panel uses
-// (/pcc/<id>/cmd to wake it, then the shared control_url the rack hands back from /pcc/devices).
-export const VM_LIVE_DEVICES: Record<string, { label: string; model: string }> = {
-  op13r2: { label: "Nexa 13 Pro 2", model: "OnePlus 13R (CPH2647)" },
+// Appliances that get the SAME door but a live screen+touch session instead of a settings panel.
+// The viewer is the cloudphone console's single-device /share page on phone.nexavisiongroup.com.
+// `share` is a permanent console share for that device; it only picks what the page draws. Access
+// is enforced by the nexa-gate Worker from the `live` token below (one device, relayed socket).
+export const VM_LIVE_DEVICES: Record<string, { label: string; model: string; share: string }> = {
+  op13r2: { label: "Nexa 13 Pro 2", model: "OnePlus 13R (CPH2647)", share: "st_4fa1fd2bbc361b1f9598b87933dc729e" },
 };
+export const LIVE_CONSOLE = "https://phone.nexavisiongroup.com";
 // Every account that owns a real device rather than a pool phoneN slot — used anywhere code needs
 // to know "is this phone_id an appliance" without caring which kind of door it opens.
 export const VM_APPLIANCES: Record<string, { label: string; model: string }> = { ...VM_HOTSPOTS, ...VM_LIVE_DEVICES };
@@ -103,6 +105,10 @@ export function readSession(cookie: string | undefined): { uid: string } | null 
 /** Short-lived token the nexa-gate Worker accepts for ONE phone (must match its hostname). */
 export function mintGateToken(phone: string): string {
   return signBlob({ exp: Math.floor(Date.now() / 1000) + 120, phone }, process.env.VM_GATE_SECRET || "");
+}
+// Claim is `live`, never `phone`: the Worker only accepts it on phone. and scopes it to this device.
+export function mintLiveToken(device: string): string {
+  return signBlob({ exp: Math.floor(Date.now() / 1000) + 120, live: device }, process.env.VM_GATE_SECRET || "");
 }
 
 // ---- users ---------------------------------------------------------------------------

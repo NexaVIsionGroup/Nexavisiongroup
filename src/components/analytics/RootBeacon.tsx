@@ -8,5 +8,6 @@ import Beacon from "./Beacon";
 export default function RootBeacon() {
   const pathname = usePathname();
   if (pathname?.startsWith("/nexaphone")) return null;
+  if (pathname && /^\/(admin|vm|studio)(\/|$)/.test(pathname)) return null;
   return <Beacon site="nexavisiongroup" />;
 }
