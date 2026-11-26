@@ -59,6 +59,9 @@ type HotspotData = {
   // framework re-tethered the AP, so traffic IS flowing -- never paint that as a clean block.
   traffic?: string; tethered?: boolean; ip_forward?: string;
   upstream?: string; internet?: number; uptime_s?: number;
+  // front-screen privacy mask: when true the phone's own screen shows a fixed "1" device count
+  // instead of the real number (this count stays real).
+  screen_mask?: boolean;
 };
 
 type WorkTab = "control" | "actions" | "beacon" | "hotspot" | "status" | "shell";
@@ -1221,6 +1224,35 @@ export default function DevicesPage() {
                         Hiding and restarting drive the phone&apos;s own hotspot screen, so they take a few seconds and
                         the panel re-reads afterwards. Every client drops and has to rejoin — the shop runs on this
                         link, so don&apos;t restart it while someone is working.
+                      </div>
+                    </Panel>
+
+                    <Panel title="Front-screen device count" icon={Users}>
+                      <div className="flex items-center gap-2 text-[12.5px] mb-3">
+                        <span className="text-nv-text-muted">Phone&apos;s own screen shows:</span>
+                        {hs?.screen_mask ? (
+                          <span className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 bg-nv-teal/15 text-nv-teal text-[11.5px] font-medium">
+                            <Users size={12} /> Always “1” device
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 bg-nv-text-muted/10 text-nv-text-secondary text-[11.5px] font-medium">
+                            <Users size={12} /> Real count ({hs?.clients ?? 0})
+                          </span>
+                        )}
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        <button onClick={() => hotspotAction({ action: "screen_count", on: !hs?.screen_mask }, hs?.screen_mask ? "show the real device count" : "mask the device count")}
+                          disabled={!!hsBusy || !online}
+                          className="flex items-center gap-1.5 rounded-nv-md px-3 py-2 text-[12.5px] nv-glass border border-nv-teal/15 text-nv-text-secondary hover:border-nv-teal/45 hover:text-nv-text-primary transition-all disabled:opacity-40">
+                          {hsBusy.includes("device count") ? <Loader2 size={13} className="animate-spin" /> : <Users size={13} />}
+                          {hs?.screen_mask ? "Show real count on screen" : "Show “1” on screen"}
+                        </button>
+                      </div>
+                      <div className="mt-2.5 text-[11px] text-nv-text-muted leading-snug">
+                        This only changes the number painted on the phone&apos;s own (cracked) screen. When it&apos;s on,
+                        that screen reads <span className="text-nv-text-secondary">1</span> no matter how many devices are
+                        really on the hotspot; when it&apos;s off it shows the true count. This dashboard and the <span className="text-nv-text-secondary">/vm</span> panel
+                        always show the real number — the <span className="text-nv-text-secondary">Connected</span> tile above is never masked.
                       </div>
                     </Panel>
 
