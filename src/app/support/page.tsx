@@ -57,6 +57,25 @@ export default function SupportPage() {
           Download Support Tool
         </a>
 
+        <a
+          href="/support/NexaVision-Fix.bat"
+          download
+          style={{
+            display: "block",
+            background: "#1fbf6b",
+            color: "#fff",
+            fontSize: 22,
+            fontWeight: 700,
+            textDecoration: "none",
+            padding: "20px 24px",
+            borderRadius: 18,
+            marginTop: 16,
+            boxShadow: "0 10px 30px rgba(31,191,107,0.4)",
+          }}
+        >
+          Reconnect / Fix
+        </a>
+
         <ol
           style={{
             textAlign: "left",
